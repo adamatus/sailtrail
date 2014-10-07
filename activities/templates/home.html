@@ -1,0 +1,15 @@
+<html>
+  <head>
+	  <title>SailStats</title>
+	</head>
+	<body>
+	  <form action="/activities/upload" method="POST">
+			<input name="filename" id="sailstats-upload-activity">
+			{% csrf_token %}
+		</form>
+		<ul>
+			{% for activity in activities %}
+			<li><a href="/activities/{{ activity.id }}/">{{ activity.filename }}</a></li>
+			{% endfor %}
+	</body>
+</html>
