@@ -308,8 +308,9 @@ class Parser(object):
             # Magnetic variation [NOT IMPLEMENTED]
             out['magvar'] = magvar 
 
-            out['date'] = '{}/{}/{}'.format(year, month, day)
-            out['time'] = '{}:{}:{}'.format(hour, minute, int(second/1e3))
+            out['date'] = '{:02}/{:02}/{:02}'.format(year, month, day)
+            out['time'] = '{:02}:{:02}:{:02}'.format(hour, 
+                                                     minute, int(second/1e3))
 
             return out
 
