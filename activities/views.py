@@ -1,16 +1,28 @@
 from django.shortcuts import render, redirect
 from activities.models import Activity
-import os.path
+from .forms import UploadFileForm
 
 
 def home_page(request):
-    return render(request, 'home.html', {'activities': Activity.objects.all()})
+    return render(request, 'home.html', 
+                  {'activities': Activity.objects.all(),
+                   'form': UploadFileForm()
+                   })
 
 
 def upload(request):
-    path, name = os.path.split(request.POST['filename'])
-    Activity.objects.create(filename=name, filepath=path)
-    return redirect('home')
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = UploadFileForm()
+
+    return render(request, 'home.html', 
+                  {'activities': Activity.objects.all(),
+                   'form': form,
+                   })
 
 
 def view(request, activity_id):

@@ -1,9 +1,18 @@
+# import unittest
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.urlresolvers import reverse
+
+import shutil
+import tempfile
+
 from activities.models import Activity
+from activities.forms import ERROR_NO_UPLOAD_FILE_SELECTED
 
 
 class HomePageTest(TestCase):
     """Tests for Homepage"""
+    fixtures = ['activity.json']
 
     def test_home_page_renders_home_template(self):
         """Make sure that the homepage is using the correct template"""
@@ -11,64 +20,64 @@ class HomePageTest(TestCase):
         self.assertTemplateUsed(response, 'home.html')
 
     def test_home_page_shows_existing_filenames(self):
-        Activity.objects.create(filename='test1.sbn')
-        Activity.objects.create(filename='test2.sbn')
+        
         response = self.client.get('/')
-
-        self.assertContains(response, 'test1.sbn')
-        self.assertContains(response, 'test2.sbn')
-
-    def test_home_page_does_not_show_full_filepaths(self):
-        Activity.objects.create(filename='test2.sbn', filepath='/test')
-        response = self.client.get('/')
-
-        self.assertNotContains(response, '/test')
+        self.assertContains(response, 'kite-session1.sbn')
+        self.assertContains(response, 'kite-session2.sbn')
 
 
 class FileUploadTest(TestCase):
 
-    def test_saving_POST_request(self):
-        """Make sure that the upload filename is saved"""
-        self.client.post('/activities/upload',
-                         data={'filename': 'testfile.sbn'})
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
 
-        self.assertEqual(Activity.objects.count(), 1)
-        new_activity = Activity.objects.first()
-        self.assertEqual(new_activity.filename, 'testfile.sbn')
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_saving_POST_request(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            """Make sure that the upload filename is saved"""
+            test_file = SimpleUploadedFile('test1.txt', 
+                                           bytes('Testfile', 'ascii'))
+
+            self.client.post(reverse('upload'),
+                             data={'upfile': test_file})
+
+            self.assertEqual(Activity.objects.count(), 1)
+            new_activity = Activity.objects.first()
+            self.assertEqual(new_activity.upfile.url,
+                             'activities/test1.txt')
 
     def test_POST_request_redirects_to_homepage(self):
-        """Make sure that we are redirected after POST"""
-        response = self.client.post('/activities/upload',
-                                    data={'filename': 'testfile.sbn'})
-        self.assertRedirects(response, '/')
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            """Make sure that we are redirected after POST"""
+            test_file = SimpleUploadedFile('test1.txt', 
+                                           bytes('Testfile', 'ascii'))
 
-    def test_saving_POST_request_splits_filename_and_path(self):
-        """Make sure that the upload filename is saved"""
-        self.client.post('/activities/upload',
-                         data={'filename': '/test/testfile.sbn'})
+            response = self.client.post(reverse('upload'),
+                                        data={'upfile': test_file})
+            self.assertRedirects(response, '/')
 
-        self.assertEqual(Activity.objects.count(), 1)
-        new_activity = Activity.objects.first()
-        self.assertEqual(new_activity.filename, 'testfile.sbn')
-        self.assertEqual(new_activity.filepath, '/test')
+    def test_GET_request_renders_homepage(self):
+        response = self.client.get(reverse('upload'))
+        self.assertTemplateUsed(response, 'home.html')
+
+    def test_POST_without_file_displays_error(self):
+        response = self.client.post(reverse('upload'))
+        self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
 
 
 class ActivityViewTest(TestCase):
 
+    fixtures = ['activity.json']
+
     def test_uses_activity_template(self):
-        a = Activity.objects.create(filename='test2.sbn', filepath='/test')
-        response = self.client.get('/activities/{id}/'.format(id=a.id))
+        response = self.client.get(reverse('view_activity', args=[1]))
         self.assertTemplateUsed(response, 'activity.html')
 
     def test_displays_only_details_for_that_session(self):
-        a = Activity.objects.create(filename='test1.sbn', filepath='/test')
-        Activity.objects.create(filename='test2.sbn', filepath='/tast')
-
-        response = self.client.get('/activities/{id}/'.format(id=a.id))
-
-        self.assertContains(response, 'test1.sbn')
-        self.assertContains(response, '/test')
-        self.assertNotContains(response, 'test2.sbn')
-        self.assertNotContains(response, '/tast')
+        response = self.client.get(reverse('view_activity', args=[1]))
+        self.assertContains(response, 'kite-session1.sbn')
+        self.assertNotContains(response, 'kite-session2.sbn')
 
 

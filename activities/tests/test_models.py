@@ -1,5 +1,9 @@
 from django.test import TestCase
-from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+import shutil
+import tempfile
+import os.path
 
 from activities.models import Activity
 
@@ -7,27 +11,36 @@ from activities.models import Activity
 class ActivityModelTest(TestCase):
     """Tests for the Activity model"""
 
-    def test_can_save_simple_filename(self):
-        activity = Activity(filename='test.sbn')
-        activity.full_clean()  # Should not rase
-        activity.save()
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
 
-        self.assertIn(activity, Activity.objects.all())
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
 
-    def test_cannot_save_empty_filename(self):
-        activity = Activity()
-        with self.assertRaises(ValidationError):
-            activity.full_clean()  # Should rase
+    def test_upfile_field_creates_file(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.txt', 
+                                           bytes('This is testfile', 'ascii'))
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
 
-        self.assertNotIn(activity, Activity.objects.all())
+            self.assertTrue(
+                os.path.exists(
+                    os.path.join(self.temp_dir, a.upfile.url)
+                ))
 
-    def test_can_save_full_filename(self):
-        activity = Activity(filename='test.sbn', filepath='/test/')
-        activity.full_clean()  # Should not rase
-        activity.save()
+    def test_upfile_file_contents_are_correct(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            file_contents = 'This is testfile'
+            test_file = SimpleUploadedFile('test1.txt', 
+                                           bytes(file_contents, 'ascii'))
+                                           
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
 
-        self.assertIn(activity, Activity.objects.all())
-        saved_activity = Activity.objects.first()
-        self.assertEqual(saved_activity.filepath, '/test/')
-        self.assertEqual(saved_activity.filename, 'test.sbn')
+            with open(os.path.join(self.temp_dir, a.upfile.url), 'r') as f:
+                self.assertEqual(
+                    f.read(),
+                    file_contents
+                )
 
