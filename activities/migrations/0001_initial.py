@@ -13,9 +13,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Activity',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
-                ('filename', models.TextField()),
-                ('filepath', models.TextField(blank=True, null=True)),
+                ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
+                ('upfile', models.FileField(upload_to='activities')),
             ],
             options={
             },

@@ -3,13 +3,20 @@
 	  <title>SailStats</title>
 	</head>
 	<body>
-	  <form action="/activities/upload" method="POST">
-			<input name="filename" id="sailstats-upload-activity">
+		<form method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
+			{% if form.errors %}
+			<div class="form-group has-error">
+				<span class="help-block">{{ form.upfile.errors }}</span>
+			</div>
+			{% endif %}
+			{{ form.title }}
+			{{ form.upfile }}
 			{% csrf_token %}
+			<input type="submit" value="Upload" />
 		</form>
 		<ul>
 			{% for activity in activities %}
-			<li><a href="/activities/{{ activity.id }}/">{{ activity.filename }}</a></li>
+			<li><a href="/activities/{{ activity.id }}/">{{ activity.upfile.url }}</a></li>
 			{% endfor %}
 	</body>
 </html>
