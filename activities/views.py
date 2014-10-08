@@ -28,3 +28,9 @@ def upload(request):
 def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
     return render(request, 'activity.html', {'activity': activity})
+
+
+def delete(request, activity_id):
+    Activity.objects.get(id=activity_id).delete()
+    return redirect('home')
+   
