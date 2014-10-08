@@ -44,3 +44,34 @@ class ActivityModelTest(TestCase):
                     file_contents
                 )
 
+    def test_delete_removes_file(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            file_contents = 'This is testfile'
+            test_file = SimpleUploadedFile('test1.txt', 
+                                           bytes(file_contents, 'ascii'))
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            file_path = os.path.join(self.temp_dir, a.upfile.url)
+            self.assertTrue(os.path.exists(file_path))
+
+            a.delete()
+            self.assertFalse(os.path.exists(file_path))
+
+    def test_delete_removes_only_correct_file(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            file_contents = 'This is testfile'
+            test_file1 = SimpleUploadedFile('test1.txt', 
+                                            bytes(file_contents, 'ascii'))
+            test_file2 = SimpleUploadedFile('test2.txt', 
+                                            bytes(file_contents, 'ascii'))
+
+            Activity.objects.create(upfile=test_file1)
+            Activity.objects.create(upfile=test_file2)
+            a = Activity.objects.all()[0]
+            b = Activity.objects.all()[1]
+
+            a.delete()
+            file_path = os.path.join(self.temp_dir, b.upfile.url)
+            self.assertTrue(os.path.exists(file_path))
+

@@ -11,7 +11,7 @@ from activities.forms import ERROR_NO_UPLOAD_FILE_SELECTED
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
 
 
-class FileUploadTest(LiveServerTestCase):
+class ActivitiesTest(LiveServerTestCase):
     """Test the uploading of SBN files"""
 
     def setUp(self):
@@ -67,5 +67,17 @@ class FileUploadTest(LiveServerTestCase):
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED, body)
 
-            # self.fail('Finish the tests!')
+            # They return to their uploaded page and notice a 'delete' link
+            self.browser.find_element_by_link_text(
+                'activities/kite-session1.sbn').click()
+            delete = self.browser.find_element_by_link_text(
+                'Delete')
+
+            # The click the link and are returned to the homepage,
+            # where they notice that their activity is no longer listed
+            delete.click()
+            self.assertEqual(self.browser.current_url, 
+                             self.live_server_url + '/')
+            body = self.browser.find_element_by_tag_name('body').text
+            self.assertNotIn('kite-session1.sbn', body)
 

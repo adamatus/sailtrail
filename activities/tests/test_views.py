@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 
 import shutil
 import tempfile
@@ -79,5 +80,21 @@ class ActivityViewTest(TestCase):
         response = self.client.get(reverse('view_activity', args=[1]))
         self.assertContains(response, 'kite-session1.sbn')
         self.assertNotContains(response, 'kite-session2.sbn')
+
+
+class DeleteActivityTest(TestCase):
+
+    fixtures = ['activity.json']
+
+    def test_delete_redirects_to_homepage(self):
+        response = self.client.get(reverse('delete_activity', 
+                                           args=[1]))
+        self.assertRedirects(response, '/')
+
+    def test_delete_removes_item_from_db(self):
+        self.client.get(reverse('delete_activity', args=[1]))
+        self.assertRaises(ObjectDoesNotExist, 
+                          lambda: Activity.objects.get(id=1)
+                          )
 
 
