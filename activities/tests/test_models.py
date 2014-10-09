@@ -1,11 +1,13 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.utils import IntegrityError
+from django.core.exceptions import ValidationError
 
 import shutil
 import tempfile
 import os.path
 
-from activities.models import Activity
+from activities.models import Activity, ActivityDetail
 
 
 class ActivityModelTest(TestCase):
@@ -74,4 +76,52 @@ class ActivityModelTest(TestCase):
             a.delete()
             file_path = os.path.join(self.temp_dir, b.upfile.url)
             self.assertTrue(os.path.exists(file_path))
+
+
+class ActivityDetailsModelTests(TestCase):
+
+    fixtures = ['partial-activity.json']
+
+    def test_smoke_model_has_expected_fields(self):
+        name = 'Test name'
+        desc = 'Test description'
+
+        ActivityDetail.objects.create(
+            name=name,
+            description=desc,
+            file_id=Activity.objects.first())  # Should not raise
+
+    def test_cannot_associate_two_details_with_one_file(self):
+        ActivityDetail.objects.create(
+            name='Test', file_id=Activity.objects.first())
+        self.assertRaises(
+            IntegrityError,
+            lambda:
+                ActivityDetail.objects.create(
+                    name='Test2', file_id=Activity.objects.first())
+        )
+
+    def test_cannot_create_details_without_file_ref(self):
+        self.assertRaises(
+            IntegrityError,
+            lambda:
+                ActivityDetail.objects.create(
+                    name='Test')
+        )
+
+    def test_cannot_create_details_without_name(self):
+        with self.assertRaises(ValidationError):
+            a = ActivityDetail.objects.create(
+                file_id=Activity.objects.first())
+            a.full_clean()
+
+    def test_deleting_activity_removes_activity_details(self):
+        ActivityDetail.objects.create(
+            name='',
+            file_id=Activity.objects.first())  
+
+        self.assertEqual(1, len(ActivityDetail.objects.all()))
+        Activity.objects.first().delete()
+        self.assertEqual(0, len(ActivityDetail.objects.all()))
+
 

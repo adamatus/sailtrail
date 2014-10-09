@@ -17,3 +17,9 @@ def auto_delete_file_on_model_delete(sender, instance, **kwargs):
         if os.path.isfile(instance.upfile.path):
             os.remove(instance.upfile.path)
 
+
+class ActivityDetail(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
+    file_id = models.OneToOneField(Activity, related_name='details',
+                                   blank=False, null=False)

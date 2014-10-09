@@ -16,7 +16,7 @@
 		</form>
 		<ul>
 			{% for activity in activities %}
-			<li><a href="/activities/{{ activity.id }}/">{{ activity.upfile.url }}</a></li>
+			<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
 			{% endfor %}
 	</body>
 </html>
