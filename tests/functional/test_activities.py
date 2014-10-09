@@ -50,8 +50,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
                 desc)
             
             # They hit 'OK' and are redirected to the session page
-            self.browser.find_element_by_css_selector(
-                'input[type="submit"]').click()
+            self.browser.find_element_by_id('save-details').click()
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(name, body)
             self.assertIn(desc, body)
@@ -91,8 +90,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
             # They hit 'OK' and are redirected to the activity page,
             # where they can see that the description has been updated
-            self.browser.find_element_by_css_selector(
-                'input[type="submit"]').click()
+            self.browser.find_element_by_id('save-details').click()
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(name, body)
             self.assertIn(new_desc, body)
