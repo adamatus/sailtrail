@@ -1,22 +1,61 @@
-<html>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
   <head>
 	  <title>SailStats</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href='{% static 'bootstrap/dist/css/bootstrap.min.css' %}'>
 	</head>
 	<body>
-		<form method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
-			{% if form.errors %}
-			<div class="form-group has-error">
-				<span class="help-block">{{ form.upfile.errors }}</span>
-			</div>
-			{% endif %}
-			{{ form.title }}
-			{{ form.upfile }}
-			{% csrf_token %}
-			<input type="submit" value="Upload" />
-		</form>
-		<ul>
-			{% for activity in activities %}
-			<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
-			{% endfor %}
+    <div class="navbar navbar-inverse" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'home' %}">SailStats</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="{% url 'home' %}">Home</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+	  <div class="container">
+			<h1>SailStats</h1>
+			<p>The best place to track your windsports activites</p>
+		  <h2>Activity List</h2>
+			<ul>
+				{% for activity in activities %}
+				<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
+				{% endfor %}
+			<form role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
+				{{ form.title }}
+				<div class="form-group">
+				  <label for="id_upfile">File to upload</label>
+					{{ form.upfile }}
+        </div>
+				{% if form.errors %}
+				<div class="alert alert-danger alert-dismissible" role="alert">
+					{% for field in form %}
+					  {% for error in field.errors %}
+							<p>{{ error }}</p>
+						{% endfor %}
+					{% endfor %}
+				</div>
+				{% endif %}
+				{% csrf_token %}
+				<button id="upload-file-btn" type="submit" class="btn btn-default">Upload</button>
+			</form>
+    </div>
+		<script type="text/javascript" src='{% static 'jquery/dist/jquery.min.js' %}'></script>
+		<script type="text/javascript" src='{% static 'bootstrap/dist/js/bootstrap.min.js' %}'></script>
 	</body>
 </html>
