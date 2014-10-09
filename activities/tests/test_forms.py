@@ -5,7 +5,7 @@ import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from activities.forms import UploadFileForm, NewActivityForm
+from activities.forms import UploadFileForm, ActivityDetailsForm
 from activities.models import Activity, ActivityDetail
 
 
@@ -33,19 +33,19 @@ class UploadFileFormTest(TestCase):
                              Activity.objects.first())
 
 
-class NewActivityFormTest(TestCase):
+class ActivityDetailsFormTest(TestCase):
 
     fixtures = ['partial-activity.json']
 
     def test_form_renders_correct_fields(self):
-        form = NewActivityForm()
+        form = ActivityDetailsForm()
         self.assertIn('id_name', form.as_p())
 
     def test_from_save(self):
         a = Activity.objects.first()
-        form = NewActivityForm({'name': 'Test', 
-                                'description': '', 
-                                'file_id': a.id})
+        form = ActivityDetailsForm({'name': 'Test', 
+                                    'description': '', 
+                                    'file_id': a.id})
         form.is_valid()
         upactivity = form.save()
         self.assertNotEquals(upactivity, None)

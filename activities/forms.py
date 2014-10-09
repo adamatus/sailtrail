@@ -15,7 +15,7 @@ class UploadFileForm(forms.models.ModelForm):
         }
 
 
-class NewActivityForm(forms.models.ModelForm):
+class ActivityDetailsForm(forms.models.ModelForm):
 
     class Meta:
         model = ActivityDetail

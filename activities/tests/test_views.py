@@ -8,7 +8,8 @@ import shutil
 import tempfile
 
 from activities.models import Activity, ActivityDetail
-from activities.forms import (NewActivityForm, ERROR_NO_UPLOAD_FILE_SELECTED,
+from activities.forms import (ActivityDetailsForm, 
+                              ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING)
 
 
@@ -68,7 +69,7 @@ class FileUploadTest(TestCase):
             response = self.client.post(reverse('upload'),
                                         data={'upfile': test_file})
             self.assertRedirects(response, 
-                                 reverse('new_activity', 
+                                 reverse('details', 
                                          args=[1]))
 
     def test_GET_request_renders_homepage(self):
@@ -80,21 +81,22 @@ class FileUploadTest(TestCase):
         self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
 
 
-class NewActivityViewTest(TestCase):
+class NewActivityDetailViewTest(TestCase):
 
     fixtures = ['partial-activity.json']
 
-    def test_new_view_uses_new_activity_template(self):
-        response = self.client.get(reverse('new_activity', args=[1]))
-        self.assertTemplateUsed(response, 'new_activity.html')
+    def test_new_view_uses_activity_details_template(self):
+        response = self.client.get(reverse('details', args=[1]))
+        self.assertTemplateUsed(response, 'activity_details.html')
 
     def test_new_view_uses_new_session_form(self):
-        response = self.client.get(reverse('new_activity', args=[1]))
-        self.assertIsInstance(response.context['form'], NewActivityForm)
+        response = self.client.get(reverse('details', args=[1]))
+        self.assertIsInstance(response.context['form'], 
+                              ActivityDetailsForm)
 
     def test_POST_to_new_view_redirects_to_activity(self):
         response = self.client.post(
-            reverse('new_activity', args=[1]),
+            reverse('details', args=[1]),
             data={'name': 'Test post',
                   'description': 'Test description'})
         self.assertRedirects(response, reverse('view_activity', args=[1]))
@@ -103,7 +105,7 @@ class NewActivityViewTest(TestCase):
         name = 'Test name'
         desc = 'Test description'
         self.client.post(
-            reverse('new_activity', args=[1]),
+            reverse('details', args=[1]),
             data={'name': name,
                   'description': desc})
         new_details = ActivityDetail.objects.first()
@@ -113,7 +115,7 @@ class NewActivityViewTest(TestCase):
         name = ''
         desc = 'Test description'
         response = self.client.post(
-            reverse('new_activity', args=[1]),
+            reverse('details', args=[1]),
             data={'name': name,
                   'description': desc})
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
