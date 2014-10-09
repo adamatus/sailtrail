@@ -81,8 +81,43 @@ class ActivitiesTest(LiveServerTestCase):
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED, body)
 
-            # They return to their uploaded page and notice a 'delete' link
+            # They return to their uploaded page and notice an 'edit' link
             self.browser.find_element_by_link_text(name).click()
+            edit = self.browser.find_element_by_link_text('Edit')
+
+            # The click the link and are taken to a page where they can 
+            # edit their page.  They make a change to the description 
+            edit.click()
+            new_desc = 'Updated description'
+            desc_field = self.browser.find_element_by_id('id_description')
+            desc_field.clear()
+            desc_field.send_keys(new_desc)
+
+            # They hit 'OK' and are redirected to the activity page,
+            # where they can see that the description has been updated
+            self.browser.find_element_by_css_selector(
+                'input[type="submit"]').click()
+            body = self.browser.find_element_by_tag_name('body').text
+            self.assertIn(name, body)
+            self.assertIn(new_desc, body)
+            self.assertNotIn(desc, body)
+
+            # They click the edit button again, update the name, then
+            # change their mind and hit 'cancel'
+            self.browser.find_element_by_link_text('Edit').click()
+            new_name = 'Updated activity name'
+            self.browser.find_element_by_id('id_description').send_keys(
+                new_name)
+            self.browser.find_element_by_link_text('Cancel').click()
+
+            # They are taken back to the activity page and the details
+            # are as they were before
+            self.assertIn(name, body)
+            self.assertIn(new_desc, body)
+            self.assertNotIn(desc, body)
+            self.assertNotIn(new_name, body)
+
+            # They return to their uploaded page and notice a 'delete' link
             delete = self.browser.find_element_by_link_text('Delete')
 
             # The click the link and are returned to the homepage,

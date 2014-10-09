@@ -121,6 +121,52 @@ class NewActivityDetailViewTest(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
 
 
+class ActivityDetailViewTest(TestCase):
+
+    fixtures = ['full-activities.json']
+
+    def test_detail_view_uses_activity_details_template(self):
+        response = self.client.get(reverse('details', args=[1]))
+        self.assertTemplateUsed(response, 'activity_details.html')
+
+    def test_detail_view_uses_new_session_form(self):
+        response = self.client.get(reverse('details', args=[1]))
+        self.assertIsInstance(response.context['form'], 
+                              ActivityDetailsForm)
+
+    def test_detail_view_shows_current_values(self):
+        details = Activity.objects.first().details
+        response = self.client.get(reverse('details', args=[1]))
+        self.assertContains(response, details.name)
+        self.assertContains(response, details.description)
+
+    def test_POST_to_detail_view_redirects_to_activity(self):
+        response = self.client.post(
+            reverse('details', args=[1]),
+            data={'name': 'Test post',
+                  'description': 'Test description'})
+        self.assertRedirects(response, reverse('view_activity', args=[1]))
+
+    def test_POST_with_valid_input_saves_details(self):
+        name = 'Test name'
+        desc = 'Test description'
+        self.client.post(
+            reverse('details', args=[1]),
+            data={'name': name,
+                  'description': desc})
+        new_details = ActivityDetail.objects.first()
+        self.assertEqual(new_details.name, name)
+
+    def test_POST_without_name_displays_error(self):
+        name = ''
+        desc = 'Test description'
+        response = self.client.post(
+            reverse('details', args=[1]),
+            data={'name': name,
+                  'description': desc})
+        self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
+
+
 class ActivityViewTest(TestCase):
 
     fixtures = ['full-activities.json']

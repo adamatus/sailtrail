@@ -6,15 +6,17 @@
 		<h1>Add details about this new activity</h1>
 		<form method="POST" action="{% url 'details' activity.id %}" enctype="multipart/form-data">
 			{% if form.errors %}
-			<div class="form-group has-error">
-				<span class="help-block">{{ form.name.errors }}</span>
-			</div>
+			<ul class="form-group has-error">
+				{% for field in form %}
+						<span class="help-block">{{ field.errors }}</span>
+				{% endfor %}
+			</ul>
 			{% endif %}
 			{{ form.name }}
 			{{ form.description }}
 			{% csrf_token %}
 			<input type="submit" value="OK" />
-			<a href="{% url 'delete_activity' activity.id %}">Cancel</a>
+			<a href="{{ cancel_link }}">Cancel</a>
 		</form>
 
 	</body>

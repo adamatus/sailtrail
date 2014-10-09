@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 from activities.models import Activity
 from .forms import UploadFileForm, ActivityDetailsForm
 
@@ -27,17 +28,28 @@ def upload(request):
 
 def details(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
+    cancel_link = reverse('delete_activity', args=[activity.id])
+
     if request.method == 'POST':
         request.POST['file_id'] = activity_id
-        form = ActivityDetailsForm(request.POST)
+        if hasattr(activity, 'details'):
+            form = ActivityDetailsForm(request.POST, instance=activity.details)
+        else: 
+            form = ActivityDetailsForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('view_activity', activity.id)
     else:
-        form = ActivityDetailsForm()
+        if hasattr(activity, 'details'):
+            form = ActivityDetailsForm(instance=activity.details)
+            cancel_link = reverse('view_activity', args=[activity.id])
+        else:
+            form = ActivityDetailsForm()
         
     return render(request, 'activity_details.html', {'activity': activity,
-                                                     'form': form})
+                                                     'form': form,
+                                                     'cancel_link':
+                                                     cancel_link})
 
 
 def view(request, activity_id):
