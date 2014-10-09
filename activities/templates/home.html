@@ -1,22 +1,23 @@
-<html>
-  <head>
-	  <title>SailStats</title>
-	</head>
-	<body>
-		<form method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
-			{% if form.errors %}
-			<div class="form-group has-error">
-				<span class="help-block">{{ form.upfile.errors }}</span>
-			</div>
-			{% endif %}
-			{{ form.title }}
-			{{ form.upfile }}
-			{% csrf_token %}
-			<input type="submit" value="Upload" />
-		</form>
-		<ul>
-			{% for activity in activities %}
-			<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
-			{% endfor %}
-	</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title_text %}Home{% endblock %}
+
+{% block main_section %}
+			<h1>SailStats</h1>
+			<p>The best place to track your windsports activites</p>
+		  <h2>Activity List</h2>
+			<ul>
+				{% for activity in activities %}
+				<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
+				{% endfor %}
+			<form role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
+				{{ form.title }}
+				<div class="form-group">
+				  <label for="id_upfile">File to upload</label>
+					{{ form.upfile }}
+        </div>
+				{% include 'components/form-errors.html' %}
+				{% csrf_token %}
+				<button id="upload-file-btn" type="submit" class="btn btn-default">Upload</button>
+			</form>
+{% endblock %}

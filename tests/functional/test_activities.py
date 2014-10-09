@@ -1,4 +1,4 @@
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 import shutil
@@ -11,7 +11,7 @@ from activities.forms import ERROR_NO_UPLOAD_FILE_SELECTED
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
 
 
-class ActivitiesTest(LiveServerTestCase):
+class ActivitiesTest(StaticLiveServerTestCase):
     """Test the uploading of SBN files"""
 
     def setUp(self):
@@ -39,9 +39,7 @@ class ActivitiesTest(LiveServerTestCase):
                 'id_upfile'
             )
             upload_box.send_keys(os.path.join(ASSET_PATH, 'kite-session1.sbn'))
-            submit = self.browser.find_element_by_css_selector(
-                'input[type="submit"]')
-            submit.click()
+            self.browser.find_element_by_id('upload-file-btn').click()
 
             # They are taken to the new activity page, where they are 
             # prompted to enter details about the uploaded file
@@ -52,8 +50,7 @@ class ActivitiesTest(LiveServerTestCase):
                 desc)
             
             # They hit 'OK' and are redirected to the session page
-            self.browser.find_element_by_css_selector(
-                'input[type="submit"]').click()
+            self.browser.find_element_by_id('save-details').click()
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(name, body)
             self.assertIn(desc, body)
@@ -72,9 +69,7 @@ class ActivitiesTest(LiveServerTestCase):
             # They return to the homepage and click upload without
             # choosing a file!
             self.browser.get(self.live_server_url)
-            submit = self.browser.find_element_by_css_selector(
-                'input[type="submit"]')
-            submit.click()
+            self.browser.find_element_by_id('upload-file-btn').click()
 
             # They get a helpful error message telling them this
             # is not okay!
@@ -95,8 +90,7 @@ class ActivitiesTest(LiveServerTestCase):
 
             # They hit 'OK' and are redirected to the activity page,
             # where they can see that the description has been updated
-            self.browser.find_element_by_css_selector(
-                'input[type="submit"]').click()
+            self.browser.find_element_by_id('save-details').click()
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(name, body)
             self.assertIn(new_desc, body)
@@ -134,9 +128,7 @@ class ActivitiesTest(LiveServerTestCase):
                 'id_upfile'
             )
             upload_box.send_keys(os.path.join(ASSET_PATH, 'kite-session2.sbn'))
-            submit = self.browser.find_element_by_css_selector(
-                'input[type="submit"]')
-            submit.click()
+            self.browser.find_element_by_id('upload-file-btn').click()
             self.browser.find_element_by_link_text('Cancel').click()
 
             # They are taken back to the homepage, and their session is
@@ -156,9 +148,7 @@ class ActivitiesTest(LiveServerTestCase):
                 'id_upfile'
             )
             upload_box.send_keys(os.path.join(ASSET_PATH, 'kite-session2.sbn'))
-            submit = self.browser.find_element_by_css_selector(
-                'input[type="submit"]')
-            submit.click()
+            self.browser.find_element_by_id('upload-file-btn').click()
             self.browser.get(self.live_server_url)
 
             # Again, they don't see the item in the list
