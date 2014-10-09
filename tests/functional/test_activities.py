@@ -26,7 +26,7 @@ class ActivitiesTest(LiveServerTestCase):
         self.browser.quit()
         shutil.rmtree(self.temp_dir)
 
-    def test_visit_homepage(self):
+    def test_visit_homepage_and_upload_activity(self):
         """Functional tests for visiting homepage and uploading file"""
 
         with self.settings(MEDIA_ROOT=self.temp_dir):
@@ -43,17 +43,31 @@ class ActivitiesTest(LiveServerTestCase):
                 'input[type="submit"]')
             submit.click()
 
-            # They now see the file in the list of activities 
+            # They are taken to the new activity page, where they are 
+            # prompted to enter details about the uploaded file
+            name = 'First winter kite session!'
+            desc = 'The very first session of the year'
+            self.browser.find_element_by_id('id_name').send_keys(name)
+            self.browser.find_element_by_id('id_description').send_keys(
+                desc)
+            
+            # They hit 'OK' and are redirected to the session page
+            self.browser.find_element_by_css_selector(
+                'input[type="submit"]').click()
+            body = self.browser.find_element_by_tag_name('body').text
+            self.assertIn(name, body)
+            self.assertIn(desc, body)
+
+            # They return to the homepage and see the activity listed
             self.browser.get(self.live_server_url)
             body = self.browser.find_element_by_tag_name('body').text
-            self.assertIn('kite-session1.sbn', body)
+            self.assertIn(name, body)
 
-            # The user clicks on one of their uploaded sessions and are taken 
-            # to a page which shows the details of the session
-            self.browser.find_element_by_link_text(
-                'activities/kite-session1.sbn').click()
+            # The user clicks on the link for their uploaded sessions and 
+            # are taken to back to a page which shows the details
+            self.browser.find_element_by_link_text(name).click()
             body = self.browser.find_element_by_tag_name('body').text
-            self.assertIn('kite-session1.sbn', body)
+            self.assertIn(name, body)
 
             # They return to the homepage and click upload without
             # choosing a file!
@@ -67,11 +81,44 @@ class ActivitiesTest(LiveServerTestCase):
             body = self.browser.find_element_by_tag_name('body').text
             self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED, body)
 
+            # They return to their uploaded page and notice an 'edit' link
+            self.browser.find_element_by_link_text(name).click()
+            edit = self.browser.find_element_by_link_text('Edit')
+
+            # The click the link and are taken to a page where they can 
+            # edit their page.  They make a change to the description 
+            edit.click()
+            new_desc = 'Updated description'
+            desc_field = self.browser.find_element_by_id('id_description')
+            desc_field.clear()
+            desc_field.send_keys(new_desc)
+
+            # They hit 'OK' and are redirected to the activity page,
+            # where they can see that the description has been updated
+            self.browser.find_element_by_css_selector(
+                'input[type="submit"]').click()
+            body = self.browser.find_element_by_tag_name('body').text
+            self.assertIn(name, body)
+            self.assertIn(new_desc, body)
+            self.assertNotIn(desc, body)
+
+            # They click the edit button again, update the name, then
+            # change their mind and hit 'cancel'
+            self.browser.find_element_by_link_text('Edit').click()
+            new_name = 'Updated activity name'
+            self.browser.find_element_by_id('id_description').send_keys(
+                new_name)
+            self.browser.find_element_by_link_text('Cancel').click()
+
+            # They are taken back to the activity page and the details
+            # are as they were before
+            self.assertIn(name, body)
+            self.assertIn(new_desc, body)
+            self.assertNotIn(desc, body)
+            self.assertNotIn(new_name, body)
+
             # They return to their uploaded page and notice a 'delete' link
-            self.browser.find_element_by_link_text(
-                'activities/kite-session1.sbn').click()
-            delete = self.browser.find_element_by_link_text(
-                'Delete')
+            delete = self.browser.find_element_by_link_text('Delete')
 
             # The click the link and are returned to the homepage,
             # where they notice that their activity is no longer listed
@@ -79,5 +126,49 @@ class ActivitiesTest(LiveServerTestCase):
             self.assertEqual(self.browser.current_url, 
                              self.live_server_url + '/')
             body = self.browser.find_element_by_tag_name('body').text
-            self.assertNotIn('kite-session1.sbn', body)
+            self.assertNotIn(name, body)
+
+            # They upload another file, but this time on the details screen
+            # they click cancel
+            upload_box = self.browser.find_element_by_id(
+                'id_upfile'
+            )
+            upload_box.send_keys(os.path.join(ASSET_PATH, 'kite-session2.sbn'))
+            submit = self.browser.find_element_by_css_selector(
+                'input[type="submit"]')
+            submit.click()
+            self.browser.find_element_by_link_text('Cancel').click()
+
+            # They are taken back to the homepage, and their session is
+            # not shown in the list
+            self.assertEqual(self.browser.current_url, 
+                             self.live_server_url + '/')
+
+            self.assertEqual(
+                [], 
+                self.browser.find_elements_by_css_selector('.activity'),
+                'Items appear in activity list when they should not!'
+            )
+
+            # They upload another file, but this time on the details screen
+            # they navigate back to the homepage!
+            upload_box = self.browser.find_element_by_id(
+                'id_upfile'
+            )
+            upload_box.send_keys(os.path.join(ASSET_PATH, 'kite-session2.sbn'))
+            submit = self.browser.find_element_by_css_selector(
+                'input[type="submit"]')
+            submit.click()
+            self.browser.get(self.live_server_url)
+
+            # Again, they don't see the item in the list
+            self.assertEqual(
+                [], 
+                self.browser.find_elements_by_css_selector('.activity'),
+                'Items appear in activity list when they should not!'
+            )
+
+
+            
+
 

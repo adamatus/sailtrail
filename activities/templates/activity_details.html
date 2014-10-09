@@ -1,0 +1,23 @@
+<html>
+  <head>
+	  <title>SailStats</title>
+	</head>
+	<body>
+		<h1>Add details about this new activity</h1>
+		<form method="POST" action="{% url 'details' activity.id %}" enctype="multipart/form-data">
+			{% if form.errors %}
+			<ul class="form-group has-error">
+				{% for field in form %}
+						<span class="help-block">{{ field.errors }}</span>
+				{% endfor %}
+			</ul>
+			{% endif %}
+			{{ form.name }}
+			{{ form.description }}
+			{% csrf_token %}
+			<input type="submit" value="OK" />
+			<a href="{{ cancel_link }}">Cancel</a>
+		</form>
+
+	</body>
+</html>

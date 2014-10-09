@@ -1,12 +1,16 @@
 from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 from activities.models import Activity
-from .forms import UploadFileForm
+from .forms import UploadFileForm, ActivityDetailsForm
 
 
-def home_page(request):
+def home_page(request, form=None):
+    if form is None:
+        form = UploadFileForm()
     return render(request, 'home.html', 
-                  {'activities': Activity.objects.all(),
-                   'form': UploadFileForm()
+                  {'activities': 
+                      Activity.objects.filter(details__isnull=False), 
+                   'form': form
                    })
 
 
@@ -14,15 +18,38 @@ def upload(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('home')
+            activity = form.save()
+            return redirect('details', activity.id)
     else:
         form = UploadFileForm()
 
-    return render(request, 'home.html', 
-                  {'activities': Activity.objects.all(),
-                   'form': form,
-                   })
+    return home_page(request, form=form)
+
+
+def details(request, activity_id):
+    activity = Activity.objects.get(id=activity_id)
+    cancel_link = reverse('delete_activity', args=[activity.id])
+
+    if request.method == 'POST':
+        request.POST['file_id'] = activity_id
+        if hasattr(activity, 'details'):
+            form = ActivityDetailsForm(request.POST, instance=activity.details)
+        else: 
+            form = ActivityDetailsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('view_activity', activity.id)
+    else:
+        if hasattr(activity, 'details'):
+            form = ActivityDetailsForm(instance=activity.details)
+            cancel_link = reverse('view_activity', args=[activity.id])
+        else:
+            form = ActivityDetailsForm()
+        
+    return render(request, 'activity_details.html', {'activity': activity,
+                                                     'form': form,
+                                                     'cancel_link':
+                                                     cancel_link})
 
 
 def view(request, activity_id):

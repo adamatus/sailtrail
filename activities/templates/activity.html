@@ -3,7 +3,9 @@
 	  <title>SailStats</title>
 	</head>
 	<body>
-		<h1>{{ activity.upfile.url }}</h1>
+		<h1>{{ activity.details.name }}</h1>
+		<p>{{ activity.details.description }}</p>
 		<a href="{% url 'delete_activity' activity.id %}">Delete</a>
+		<a href="{% url 'details' activity.id %}">Edit</a>
 	</body>
 </html>
