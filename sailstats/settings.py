@@ -97,4 +97,5 @@ BOWER_INSTALLED_APPS = (
     'bootstrap',
     'leaflet',
     'blanket',
+    'd3',
 )
