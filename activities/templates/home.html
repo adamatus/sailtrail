@@ -8,7 +8,14 @@
 		  <h2>Activity List</h2>
 			<ul>
 				{% for activity in activities %}
-				<li class="activity"><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></li>
+				<div class='activity'>
+					<h3><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></h3>
+					<ul class="list-inline">
+						<li class="activity-date">{{ activity.stats.date }}</li>
+						<li class="activity-time">{{ activity.stats.start_time }}</li>
+						<li class="activity-max-speed">{{ activity.stats.max_speed }}</li>
+					</ul>
+				</div>
 				{% endfor %}
 			<form role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
 				{{ form.title }}
