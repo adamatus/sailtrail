@@ -9,7 +9,7 @@ import tempfile
 import os.path
 
 from activities.models import Activity, ActivityDetail, ActivityStat
-from activities.forms import (ActivityDetailsForm, 
+from activities.forms import (UploadFileForm, ActivityDetailsForm, 
                               ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING)
 
@@ -26,6 +26,11 @@ class HomePageTest(TestCase):
         """Make sure that the homepage is using the correct template"""
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'home.html')
+    
+    def test_homepage_uses_upload_form(self):
+        response = self.client.get('/')
+        self.assertIsInstance(response.context['form'], 
+                              UploadFileForm)
 
     def test_home_page_shows_existing_activities(self):
         
