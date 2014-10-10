@@ -41,8 +41,8 @@ class HomePageTest(TestCase):
     def test_home_page_shows_existing_activities(self):
         
         response = self.client.get('/')
-        self.assertContains(response, 'First kite session')
-        self.assertContains(response, 'Kiting times 2')
+        self.assertContains(response, 'First snowkite of the season')
+        self.assertContains(response, 'Snowkite lesson:')
 
     def test_home_page_does_not_show_activities_without_details(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
@@ -176,7 +176,7 @@ class ActivityDetailViewTest(TestCase):
 
     def test_detail_view_shows_current_values(self):
         details = Activity.objects.first().details
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('details', args=[2]))
         self.assertContains(response, details.name)
         self.assertContains(response, details.description)
 
@@ -226,32 +226,16 @@ class ActivityViewTest(TestCase):
         response = self.client.get(reverse('view_activity', args=[1]))
         
         # Expected responses from fixture
-        self.assertContains(response, 'First kite session')
-        self.assertContains(response, 'Bet it was awesome')
-        self.assertNotContains(response, 'Kiting times 2')
+        self.assertContains(response, 'First snowkite of the season')
+        self.assertContains(response, 'Hooray ice!')
+        self.assertNotContains(response, 'Snowkite lesson:')
 
     def test_html_includes_embedded_track_json(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            """Make sure that we are redirected after POST"""
-            with open(os.path.join(ASSET_PATH, 
-                                   'kite-session1.sbn'), 'rb') as f:
-                test_file = SimpleUploadedFile('test-stats.sbn', f.read())
-            self.client.post(reverse('upload'),
-                             data={'upfile': test_file})
-
-            response = self.client.get(reverse('view_activity', args=[3]))
+            response = self.client.get(reverse('view_activity', args=[1]))
             self.assertContains(response, 'var pos = [')
 
     def test_html_includes_max_speed(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            """Make sure that we are redirected after POST"""
-            with open(os.path.join(ASSET_PATH, 
-                                   'kite-session1.sbn'), 'rb') as f:
-                test_file = SimpleUploadedFile('test-stats.sbn', f.read())
-            self.client.post(reverse('upload'),
-                             data={'upfile': test_file})
-
-            response = self.client.get(reverse('view_activity', args=[3]))
+            response = self.client.get(reverse('view_activity', args=[1]))
             self.assertContains(response, 'Max speed')
             self.assertContains(response, 'knots')
 
