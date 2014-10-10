@@ -4,7 +4,8 @@ from selenium import webdriver
 import shutil
 import tempfile
 
-from activities.forms import ERROR_NO_UPLOAD_FILE_SELECTED
+from activities.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
+                              ERROR_ACTIVITY_NAME_MISSING)
 
 from .pages import HomePage, ActivityPage, ActivityDetailsPage
 
@@ -99,6 +100,23 @@ class ActivitiesTest(StaticLiveServerTestCase):
             self.assertNotIn(new_name, activity_page.get_page_content())
             self.assertIn(new_desc, activity_page.get_page_content())
             self.assertNotIn(desc, activity_page.get_page_content())
+
+            # They click the edit button again, blank out the name, get
+            # warned that it's not okay, 
+            activity_page.click_edit()
+            new_name = ''
+            details_page.enter_name(new_name)
+            details_page.click_ok()
+            self.assertIn(ERROR_ACTIVITY_NAME_MISSING, 
+                          details_page.get_alerts())
+
+            # They then change their mind and hit 'cancel'
+            details_page.click_cancel()
+
+            # They are taken back to the activity page and the details
+            # are as they were before
+            self.assertIn(name, activity_page.get_page_content())
+            self.assertIn(new_desc, activity_page.get_page_content())
 
             # The click the 'delete' link and are returned to the homepage,
             activity_page.click_delete()
