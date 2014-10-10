@@ -96,4 +96,5 @@ BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../bower')
 BOWER_INSTALLED_APPS = (
     'bootstrap',
     'leaflet',
+    'blanket',
 )
