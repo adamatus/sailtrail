@@ -15,6 +15,7 @@
 		<p>Date: {{ activity.stats.date }}</p>
 		<p>Start Time: {{ activity.stats.start_time }}</p>
 		<p>Duration: {{ activity.stats.duration }}</p>
+		<p>Max speed: {{ max_speed }}</p>
 		<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 		<a class="btn btn-default" href="{% url 'delete_activity' activity.id %}">Delete</a>
 		<div id="map"></div>

@@ -7,6 +7,8 @@ from sirf.stats import Stats
 import os.path
 import json
 
+from pint import UnitRegistry
+
 
 def home_page(request, form=None):
     if form is None:
@@ -62,12 +64,20 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = json.dumps(stats.tracks)
+
+        ureg = UnitRegistry()
+        max_speed = stats.max_speed * (ureg.meter / ureg.second)
+        max_speed.ito(ureg.knot)
+        max_speed = '{:.2f} knots'.format(max_speed.magnitude)
+
     else:
         pos = None
+        max_speed = None
     return render(request, 
                   'activity.html', 
                   {'activity': activity,
                    'pos_json': pos,
+                   'max_speed': max_speed
                    })
 
 
