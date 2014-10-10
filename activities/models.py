@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+import timedelta
+
 import os.path
 
 
@@ -23,3 +25,24 @@ class ActivityDetail(models.Model):
     description = models.TextField(null=True, blank=True)
     file_id = models.OneToOneField(Activity, related_name='details',
                                    blank=False, null=False)
+
+
+class ActivityStat(models.Model):
+    file_id = models.OneToOneField(Activity, related_name='stats',
+                                   blank=False, null=False)
+    datetime = models.DateTimeField()
+    duration = timedelta.fields.TimedeltaField()
+
+    @property
+    def end_time(self):
+        return (self.datetime + self.duration).time()
+
+    @property
+    def start_time(self):
+        return self.datetime.time()
+
+    @property
+    def date(self):
+        return self.datetime.date()
+
+

@@ -5,6 +5,9 @@
 {% block main_section %}
 		<h1>{{ activity.details.name }}</h1>
 		<p>{{ activity.details.description }}</p>
+		<p>Date: {{ activity.stats.date }}</p>
+		<p>Start Time: {{ activity.stats.start_time }}</p>
+		<p>Duration: {{ activity.stats.duration }}</p>
 		<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 		<a class="btn btn-default" href="{% url 'delete_activity' activity.id %}">Delete</a>
 {% endblock %}
