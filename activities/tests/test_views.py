@@ -195,6 +195,12 @@ class ActivityDetailViewTest(TestCase):
 
 class ActivityViewTest(TestCase):
 
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
     fixtures = ['full-activities.json']
 
     def test_uses_activity_template(self):
@@ -208,6 +214,18 @@ class ActivityViewTest(TestCase):
         self.assertContains(response, 'First kite session')
         self.assertContains(response, 'Bet it was awesome')
         self.assertNotContains(response, 'Kiting times 2')
+
+    def test_html_includes_embedded_track_json(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            """Make sure that we are redirected after POST"""
+            with open(os.path.join(ASSET_PATH, 
+                                   'kite-session1.sbn'), 'rb') as f:
+                test_file = SimpleUploadedFile('test-stats.sbn', f.read())
+            self.client.post(reverse('upload'),
+                             data={'upfile': test_file})
+
+            response = self.client.get(reverse('view_activity', args=[3]))
+            self.assertContains(response, 'var pos = [')
 
 
 class DeleteActivityTest(TestCase):

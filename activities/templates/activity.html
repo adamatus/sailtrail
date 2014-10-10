@@ -10,4 +10,5 @@
 		<p>Duration: {{ activity.stats.duration }}</p>
 		<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 		<a class="btn btn-default" href="{% url 'delete_activity' activity.id %}">Delete</a>
+		<script>var pos = {{ pos_json|safe }};</script>
 {% endblock %}
