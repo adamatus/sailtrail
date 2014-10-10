@@ -118,15 +118,6 @@ class ActivityDetailsModelTests(TestCase):
                 file_id=Activity.objects.first())
             a.full_clean()
 
-    def test_deleting_activity_removes_activity_details(self):
-        ActivityDetail.objects.create(
-            name='',
-            file_id=Activity.objects.first())  
-
-        self.assertEqual(1, len(ActivityDetail.objects.all()))
-        Activity.objects.first().delete()
-        self.assertEqual(0, len(ActivityDetail.objects.all()))
-
 
 class ActivityStatModelTests(TestCase):
 
@@ -149,15 +140,41 @@ class ActivityStatModelTests(TestCase):
     def test_get_end_date_returns_date(self):
         self.assertEqual(date(2014, 10, 12), self.stat.date)
 
+    def test_get_model_max_speed_is_initially_empty(self):
+        self.assertEqual('', self.stat.model_max_speed)
 
-class ActivityModelsIntegerationTests(TestCase):
-    fixtures = ['partial-activity.json']
+    # TODO This test is very slow, definitely need to mock somehow 
+    def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
+        self.assertEqual('21.17 knots', self.stat.max_speed)
+        self.assertEqual('21.17 knots', self.stat.model_max_speed)
+
+    def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
+        self.stat.model_max_speed = '10 knots'
+        self.stat.save()
+        self.assertEqual('10 knots', self.stat.max_speed)
+
+
+class ActivityModelsIntegrationTests(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
+
+    def test_deleting_activity_removes_activity_details(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            Activity.objects.create(
+                upfile=SimpleUploadedFile('test.txt', 
+                                          bytes('file contents', 'ascii')))
+
+            ActivityDetail.objects.create(
+                name='',
+                file_id=Activity.objects.first())  
+
+            self.assertEqual(1, len(ActivityDetail.objects.all()))
+            Activity.objects.first().delete()
+            self.assertEqual(0, len(ActivityDetail.objects.all()))
 
     def test_model_ordering_on_stat_dates_with_most_recent_first(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
