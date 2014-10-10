@@ -4,6 +4,8 @@ from activities.models import Activity, ActivityStat
 from .forms import UploadFileForm, ActivityDetailsForm
 from sirf.stats import Stats
 
+import os.path
+
 
 def home_page(request, form=None):
     if form is None:
@@ -29,7 +31,7 @@ def upload(request):
 
 def details(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    cancel_link = reverse('delete_activity', args=[activity.id])
+    cancel_link = reverse('view_activity', args=[activity.id])
 
     if request.method == 'POST':
         request.POST['file_id'] = activity_id
@@ -43,9 +45,9 @@ def details(request, activity_id):
     else:
         if hasattr(activity, 'details'):
             form = ActivityDetailsForm(instance=activity.details)
-            cancel_link = reverse('view_activity', args=[activity.id])
         else:
             form = ActivityDetailsForm()
+            cancel_link = reverse('delete_activity', args=[activity.id])
             _compute_stats(activity_id)
         
     return render(request, 'activity_details.html', {'activity': activity,
@@ -63,8 +65,6 @@ def delete(request, activity_id):
     Activity.objects.get(id=activity_id).delete()
     return redirect('home')
 
-import os.path
-
 
 def _compute_stats(activity_id):
     activity = Activity.objects.get(id=activity_id)
@@ -75,5 +75,4 @@ def _compute_stats(activity_id):
             datetime=stats.full_start_time,
             duration=stats.duration,
             file_id=activity)  
-
 
