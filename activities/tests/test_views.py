@@ -22,6 +22,12 @@ class HomePageTest(TestCase):
     """Tests for Homepage"""
     fixtures = ['full-activities.json']
 
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
     def test_home_page_renders_home_template(self):
         """Make sure that the homepage is using the correct template"""
         response = self.client.get('/')
@@ -39,13 +45,14 @@ class HomePageTest(TestCase):
         self.assertContains(response, 'Kiting times 2')
 
     def test_home_page_does_not_show_activities_without_details(self):
-        Activity.objects.create(
-            upfile=SimpleUploadedFile('test1.txt', 
-                                      bytes('Testfile', 'ascii'))
-        )
-        
-        response = self.client.get('/')
-        self.assertNotContains(response, '></a>')
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            Activity.objects.create(
+                upfile=SimpleUploadedFile('test1.txt', 
+                                          bytes('Testfile', 'ascii'))
+            )
+            
+            response = self.client.get('/')
+            self.assertNotContains(response, '></a>')
 
 
 class FileUploadTest(TestCase):
@@ -59,9 +66,8 @@ class FileUploadTest(TestCase):
     def test_saving_POST_request(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             """Make sure that the upload filename is saved"""
-            with open(os.path.join(ASSET_PATH, 
-                                   'kite-session1.sbn'), 'rb') as f:
-                test_file = SimpleUploadedFile('test1.sbn', f.read())
+            test_file = SimpleUploadedFile('test1.sbn',
+                                           bytes('Testfile', 'ascii'))
 
             self.client.post(reverse('upload'),
                              data={'upfile': test_file})
@@ -71,6 +77,8 @@ class FileUploadTest(TestCase):
             self.assertEqual(new_activity.upfile.url,
                              'activities/test1.sbn')
 
+    # TODO This test is very slow as it's actually parsing
+    # the uploaded SBN!
     def test_POST_request_redirects_to_new_activity_page(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             """Make sure that we are redirected after POST"""
@@ -93,6 +101,7 @@ class FileUploadTest(TestCase):
         self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
 
 
+# TODO Many of these tests are SLOOOOWWWW
 class NewActivityDetailViewTest(TestCase):
 
     fixtures = ['partial-activity.json']
@@ -198,6 +207,7 @@ class ActivityDetailViewTest(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
 
 
+# TODO This series also very SLOW
 class ActivityViewTest(TestCase):
 
     def setUp(self):
@@ -248,17 +258,28 @@ class ActivityViewTest(TestCase):
 
 class DeleteActivityTest(TestCase):
 
-    fixtures = ['full-activities.json']
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            Activity.objects.create(
+                upfile=SimpleUploadedFile('test1.txt', 
+                                          bytes('Testfile', 'ascii'))
+            )
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
 
     def test_delete_redirects_to_homepage(self):
-        response = self.client.get(reverse('delete_activity', 
-                                           args=[1]))
-        self.assertRedirects(response, '/')
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            response = self.client.get(reverse('delete_activity', 
+                                               args=[1]))
+            self.assertRedirects(response, '/')
 
     def test_delete_removes_item_from_db(self):
-        self.client.get(reverse('delete_activity', args=[1]))
-        self.assertRaises(ObjectDoesNotExist, 
-                          lambda: Activity.objects.get(id=1)
-                          )
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            self.client.get(reverse('delete_activity', args=[1]))
+            self.assertRaises(ObjectDoesNotExist, 
+                              lambda: Activity.objects.get(id=1)
+                              )
 
 

@@ -118,15 +118,6 @@ class ActivityDetailsModelTests(TestCase):
                 file_id=Activity.objects.first())
             a.full_clean()
 
-    def test_deleting_activity_removes_activity_details(self):
-        ActivityDetail.objects.create(
-            name='',
-            file_id=Activity.objects.first())  
-
-        self.assertEqual(1, len(ActivityDetail.objects.all()))
-        Activity.objects.first().delete()
-        self.assertEqual(0, len(ActivityDetail.objects.all()))
-
 
 class ActivityStatModelTests(TestCase):
 
@@ -150,14 +141,27 @@ class ActivityStatModelTests(TestCase):
         self.assertEqual(date(2014, 10, 12), self.stat.date)
 
 
-class ActivityModelsIntegerationTests(TestCase):
-    fixtures = ['partial-activity.json']
+class ActivityModelsIntegrationTests(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
+
+    def test_deleting_activity_removes_activity_details(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            Activity.objects.create(
+                upfile=SimpleUploadedFile('test.txt', 
+                                          bytes('file contents', 'ascii')))
+
+            ActivityDetail.objects.create(
+                name='',
+                file_id=Activity.objects.first())  
+
+            self.assertEqual(1, len(ActivityDetail.objects.all()))
+            Activity.objects.first().delete()
+            self.assertEqual(0, len(ActivityDetail.objects.all()))
 
     def test_model_ordering_on_stat_dates_with_most_recent_first(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
