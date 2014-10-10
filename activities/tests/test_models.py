@@ -149,3 +149,35 @@ class ActivityStatModelTests(TestCase):
     def test_get_end_date_returns_date(self):
         self.assertEqual(date(2014, 10, 12), self.stat.date)
 
+
+class ActivityModelsIntegerationTests(TestCase):
+    fixtures = ['partial-activity.json']
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_model_ordering_on_stat_dates_with_most_recent_first(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            file_contents = 'test file'
+            files = ['test{}.txt'.format(x) for x in [1, 2, 3]]
+            hours = [11, 10, 12]
+            test_files = []
+            for f, t in zip(files, hours):
+                test_files.append(SimpleUploadedFile(f, 
+                                                     bytes(file_contents, 
+                                                           'ascii')))
+                a = Activity.objects.create(upfile=test_files[-1])
+
+                ActivityStat.objects.create(
+                    datetime=datetime(2014, 10, 12, t, 20, 15, 
+                                      tzinfo=timezone('UTC')),
+                    duration=timedelta(days=0, hours=1, minutes=10),
+                    file_id=a)
+
+            activities = Activity.objects.all()
+            self.assertIn('test3.txt', activities[0].upfile.url)
+            self.assertIn('test1.txt', activities[1].upfile.url)
+            self.assertIn('test2.txt', activities[2].upfile.url)

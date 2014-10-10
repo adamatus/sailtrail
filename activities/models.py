@@ -11,6 +11,9 @@ import os.path
 class Activity(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
 
+    class Meta:
+        ordering = ['-stats__datetime']
+
 
 @receiver(post_delete, sender=Activity)
 def auto_delete_file_on_model_delete(sender, instance, **kwargs):
