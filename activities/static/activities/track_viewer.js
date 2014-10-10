@@ -1,14 +1,25 @@
-var latlng = [];
+var TrackViewer = {
+	latlng: [],
+	map: null,
+	trackline: null,
+	tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
-for(var i=0; i<pos.length; i++) { 
-	latlng.push(L.latLng(pos[i].lat, pos[i].lon));
-}
+	drawmap: function(pos) {
+		this.latlng = [];
+		for(var i=0; i<pos.length; i++) { 
+			this.latlng.push(L.latLng(pos[i].lat, pos[i].lon));
+		}
 
-var map = L.map('map');
-L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-{
-	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-	maxZoom: 18}).addTo(map);
+		this.map = L.map('map');
+		L.tileLayer(this.tile_source,
+		{
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+			maxZoom: 18
+		}).addTo(this.map);
 
-var trackline = L.polyline(latlng, {color: 'red'}).addTo(map);
-map.fitBounds(trackline.getBounds());
+		this.trackline = L.polyline(this.latlng, {color: 'red'}).addTo(this.map);
+		this.map.fitBounds(this.trackline.getBounds());
+	},
+};
+
+

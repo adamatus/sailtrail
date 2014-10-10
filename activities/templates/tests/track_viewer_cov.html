@@ -1,0 +1,13 @@
+{% extends "tests/track_viewer.html" %}
+{% load js %}
+
+{% block js_init %}
+	{{ block.super }}
+	{% js 'blanket/dist/jasmine/blanket_jasmine.min.js' %}
+	{% css 'leaflet/dist/leaflet.css' %}
+{% endblock %}
+
+{% block js_content %}
+	{% js 'activities/track_viewer.js' data='data-cover'%}
+	{% js 'activities/tests/track_viewer.specs.js' %}
+{% endblock %}
