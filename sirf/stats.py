@@ -37,6 +37,11 @@ class Stats(object):
     def duration(self):
         return self.full_end_time - self.full_start_time
 
+    @property
+    def tracks(self):
+        return [{'lat': x['latitude'], 
+                 'lon': x['longitude']} for x in self.timepoints]
+
     def _filter_timepoints(self):
         self.timepoints = [x for x in self.timepoints if x is not None]
 
