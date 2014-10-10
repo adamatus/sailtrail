@@ -6,7 +6,7 @@
 			<h1>SailStats</h1>
 			<p>The best place to track your windsports activites</p>
 		  <h2>Activity List</h2>
-			<ul>
+				<hr>
 				{% for activity in activities %}
 				<div class='activity'>
 					<h3><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></h3>
@@ -16,12 +16,15 @@
 						<li class="activity-max-speed">{{ activity.stats.max_speed }}</li>
 					</ul>
 				</div>
+				<hr>
 				{% endfor %}
-			<form role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
+				<form class="form-horizontal" role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
 				{{ form.title }}
 				<div class="form-group">
-				  <label for="id_upfile">File to upload</label>
+				  <label for="id_upfile" class="col-sm-2">Upload new activity:</label>
+					<div class="col-sm-10">
 					{{ form.upfile }}
+					</div>
         </div>
 				{% include 'components/form-errors.html' %}
 				{% csrf_token %}
