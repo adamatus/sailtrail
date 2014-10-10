@@ -3,6 +3,10 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from sirf.stats import Stats
+
+from pint import UnitRegistry
+
 import timedelta
 
 import os.path
@@ -35,6 +39,7 @@ class ActivityStat(models.Model):
                                    blank=False, null=False)
     datetime = models.DateTimeField()
     duration = timedelta.fields.TimedeltaField()
+    model_max_speed = models.CharField(max_length=30, blank=True, default='')
 
     @property
     def end_time(self):
@@ -48,4 +53,19 @@ class ActivityStat(models.Model):
     def date(self):
         return self.datetime.date()
 
+    @property
+    def max_speed(self):
+        if self.model_max_speed == '':
+            if os.path.exists(self.file_id.upfile.path):
+                stats = Stats(self.file_id.upfile.path)
 
+                ureg = UnitRegistry()
+                max_speed = stats.max_speed * (ureg.meter / ureg.second)
+                max_speed.ito(ureg.knot)
+                self.model_max_speed = '{:.2f} knots'.format(
+                    max_speed.magnitude)
+                self.save()
+            else:
+                self.model_max_speed = '--file missing--'
+        
+        return self.model_max_speed
