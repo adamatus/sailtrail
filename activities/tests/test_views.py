@@ -232,6 +232,19 @@ class ActivityViewTest(TestCase):
             response = self.client.get(reverse('view_activity', args=[3]))
             self.assertContains(response, 'var pos = [')
 
+    def test_html_includes_max_speed(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            """Make sure that we are redirected after POST"""
+            with open(os.path.join(ASSET_PATH, 
+                                   'kite-session1.sbn'), 'rb') as f:
+                test_file = SimpleUploadedFile('test-stats.sbn', f.read())
+            self.client.post(reverse('upload'),
+                             data={'upfile': test_file})
+
+            response = self.client.get(reverse('view_activity', args=[3]))
+            self.assertContains(response, 'Max speed')
+            self.assertContains(response, 'knots')
+
 
 class DeleteActivityTest(TestCase):
 

@@ -51,3 +51,12 @@ class StatsTest(unittest.TestCase):
         self.assertAlmostEquals(-89.4007119, tracks[0]['lon'])
         self.assertAlmostEquals(43.0771931, tracks[0]['lat'])
 
+    def test_get_speeds(self):
+        speeds = self.stats.speeds
+        self.assertEquals(672, len(speeds))
+        self.assertAlmostEquals(.11, speeds[0])
+
+    def test_get_max_speed(self):
+        self.assertEqual(1.05, self.stats.max_speed)
+
+

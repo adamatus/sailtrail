@@ -42,6 +42,14 @@ class Stats(object):
         return [{'lat': x['latitude'], 
                  'lon': x['longitude']} for x in self.timepoints]
 
+    @property
+    def speeds(self):
+        return [x['sog'] for x in self.timepoints]
+
+    @property
+    def max_speed(self):
+        return max(self.speeds)
+
     def _filter_timepoints(self):
         self.timepoints = [x for x in self.timepoints 
                            if x is not None and x['satlst'] >= 3]
