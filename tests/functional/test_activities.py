@@ -124,3 +124,32 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
             # Again, they don't see the item in the list
             self.assertTrue(homepage.activity_list_is_empty())
+
+    def test_activity_stats(self):
+        """Functional tests for visiting homepage and uploading file"""
+
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            homepage = HomePage(self)
+            details_page = ActivityDetailsPage(self)
+            activity_page = ActivityPage(self) 
+
+            # Visitor uploads file
+            homepage.go_to_homepage()
+            homepage.upload_file('kite-session1.sbn')
+
+            # They are taken to the new details page, where they notice 
+            # the date and time and duration of the session listed 
+            self.assertIn('Jan. 19, 2014', details_page.get_page_content())
+            self.assertIn('4:44 p.m.', details_page.get_page_content())
+            self.assertIn('1:30:06', details_page.get_page_content())
+
+            # They enter some session details and click ok
+            name = 'First winter kite session!'
+            desc = 'The very first session of the year'
+            details_page.enter_details(name, desc)
+            details_page.click_ok()
+
+            # They notice the same details on the activity page
+            self.assertIn('Jan. 19, 2014', activity_page.get_page_content())
+            self.assertIn('4:44 p.m.', activity_page.get_page_content())
+            self.assertIn('1:30:06', activity_page.get_page_content())

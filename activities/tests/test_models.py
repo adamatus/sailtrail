@@ -7,7 +7,10 @@ import shutil
 import tempfile
 import os.path
 
-from activities.models import Activity, ActivityDetail
+from datetime import datetime, timedelta, time, date
+from pytz import timezone
+
+from activities.models import Activity, ActivityDetail, ActivityStat
 
 
 class ActivityModelTest(TestCase):
@@ -124,4 +127,25 @@ class ActivityDetailsModelTests(TestCase):
         Activity.objects.first().delete()
         self.assertEqual(0, len(ActivityDetail.objects.all()))
 
+
+class ActivityStatModelTests(TestCase):
+
+    fixtures = ['partial-activity.json']
+
+    def setUp(self):
+        self.stat = ActivityStat(
+            datetime=datetime(2014, 10, 12, 11, 20, 15, 
+                              tzinfo=timezone('UTC')),
+            duration=timedelta(days=0, hours=1, minutes=10),
+            file_id=Activity.objects.first())  # Should not raise
+        self.stat.save()
+
+    def test_get_start_time_returns_time(self):
+        self.assertEqual(time(11, 20, 15), self.stat.start_time)
+
+    def test_get_end_time_returns_correct_time(self):
+        self.assertEqual(time(12, 30, 15), self.stat.end_time)
+
+    def test_get_end_date_returns_date(self):
+        self.assertEqual(date(2014, 10, 12), self.stat.date)
 

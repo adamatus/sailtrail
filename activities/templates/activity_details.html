@@ -4,6 +4,9 @@
 
 {% block main_section %}
 		<h1>Details about activity</h1>
+		<p>Date: {{ activity.stats.date }}</p>
+		<p>Start Time: {{ activity.stats.start_time }}</p>
+		<p>Duration: {{ activity.stats.duration }}</p>
 		<form role="form" method="POST" action="{% url 'details' activity.id %}" enctype="multipart/form-data">
 			{% include 'components/form-errors.html' %}
 			<div class="form-group">

@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from activities.models import Activity
+from activities.models import Activity, ActivityStat
 from .forms import UploadFileForm, ActivityDetailsForm
+from sirf.stats import Stats
 
 
 def home_page(request, form=None):
@@ -45,6 +46,7 @@ def details(request, activity_id):
             cancel_link = reverse('view_activity', args=[activity.id])
         else:
             form = ActivityDetailsForm()
+            _compute_stats(activity_id)
         
     return render(request, 'activity_details.html', {'activity': activity,
                                                      'form': form,
@@ -60,4 +62,18 @@ def view(request, activity_id):
 def delete(request, activity_id):
     Activity.objects.get(id=activity_id).delete()
     return redirect('home')
-   
+
+import os.path
+
+
+def _compute_stats(activity_id):
+    activity = Activity.objects.get(id=activity_id)
+    if os.path.exists(activity.upfile.path):
+        stats = Stats(activity.upfile.path)
+
+        ActivityStat.objects.create(
+            datetime=stats.full_start_time,
+            duration=stats.duration,
+            file_id=activity)  
+
+
