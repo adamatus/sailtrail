@@ -23,4 +23,7 @@
 {% block extra_bottom_js %}
 		<script>var pos = {{ pos_json|safe }};</script>
 		<script type="text/javascript" src='{% static 'activities/track_viewer.js' %}'></script>
+		<script>
+TrackViewer.drawmap(pos);
+		</script>
 {% endblock %}
