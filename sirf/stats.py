@@ -43,7 +43,8 @@ class Stats(object):
                  'lon': x['longitude']} for x in self.timepoints]
 
     def _filter_timepoints(self):
-        self.timepoints = [x for x in self.timepoints if x is not None]
+        self.timepoints = [x for x in self.timepoints 
+                           if x is not None and x['satlst'] >= 3]
 
     def _convert_to_utc(self, time, date):
         return datetime.strptime('{} {}'.format(time, date),
