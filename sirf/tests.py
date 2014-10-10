@@ -45,3 +45,9 @@ class StatsTest(unittest.TestCase):
     def test_get_duration(self):
         self.assertEquals(timedelta(0, 671), self.stats.duration)
 
+    def test_get_tracks(self):
+        tracks = self.stats.tracks
+        self.assertEquals(672, len(tracks))
+        self.assertAlmostEquals(-89.4007119, tracks[0]['lon'])
+        self.assertAlmostEquals(43.0771931, tracks[0]['lat'])
+

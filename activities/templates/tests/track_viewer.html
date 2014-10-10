@@ -1,0 +1,17 @@
+{% extends "djangojs/jasmine-runner.html" %}
+{% load static %}
+{% load js %}
+
+{% block js_init %}
+	{{ block.super }}
+	{% js 'leaflet/dist/leaflet.js' %}
+{% endblock %}
+
+{% block js_content %}
+	{% js 'activities/track_viewer.js'%}
+	{% js 'activities/tests/track_viewer.specs.js' %}
+{% endblock %}
+
+{% block body_content %}
+	<div id="map" style="height: 200px; width: 200px;"></div>
+{% endblock %}

@@ -5,6 +5,7 @@ from .forms import UploadFileForm, ActivityDetailsForm
 from sirf.stats import Stats
 
 import os.path
+import json
 
 
 def home_page(request, form=None):
@@ -58,7 +59,16 @@ def details(request, activity_id):
 
 def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    return render(request, 'activity.html', {'activity': activity})
+    if os.path.exists(activity.upfile.path):
+        stats = Stats(activity.upfile.path)
+        pos = json.dumps(stats.tracks)
+    else:
+        pos = None
+    return render(request, 
+                  'activity.html', 
+                  {'activity': activity,
+                   'pos_json': pos,
+                   })
 
 
 def delete(request, activity_id):
