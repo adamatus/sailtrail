@@ -5,8 +5,6 @@ from django.dispatch import receiver
 
 from sirf.stats import Stats
 
-from pint import UnitRegistry
-
 import timedelta
 
 import os.path
@@ -58,12 +56,8 @@ class ActivityStat(models.Model):
         if self.model_max_speed == '':
             if os.path.exists(self.file_id.upfile.path):
                 stats = Stats(self.file_id.upfile.path)
-
-                ureg = UnitRegistry()
-                max_speed = stats.max_speed * (ureg.meter / ureg.second)
-                max_speed.ito(ureg.knot)
-                self.model_max_speed = '{:.2f} knots'.format(
-                    max_speed.magnitude)
+                speed = stats.max_speed.to(stats.units.knots)
+                self.model_max_speed = '{:.2f}'.format(speed)
                 self.save()
             else:
                 self.model_max_speed = '--file missing--'
