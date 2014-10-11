@@ -56,7 +56,7 @@ class ActivityStat(models.Model):
         if self.model_max_speed == '':
             if os.path.exists(self.file_id.upfile.path):
                 stats = Stats(self.file_id.upfile.path)
-                speed = stats.max_speed.to(stats.units.knots)
+                speed = stats.max_speed.to('knots')
                 self.model_max_speed = '{:.2f}'.format(speed)
                 self.save()
             else:

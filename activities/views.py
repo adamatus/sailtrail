@@ -62,7 +62,8 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = json.dumps(stats.tracks)
-        speed = json.dumps(stats.speeds)
+        speed = json.dumps([x.to('knots').magnitude
+                            for x in stats.speeds])
     else:
         pos = None
         speed = None

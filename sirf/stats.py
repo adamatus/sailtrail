@@ -48,12 +48,12 @@ class Stats(object):
 
     @property
     def speeds(self):
-        return [x['sog'] for x in self.timepoints]
+        return [x['sog'] * (self.units.m / self.units.s) 
+                for x in self.timepoints]
 
     @property
     def max_speed(self):
-        return max(self.speeds) * (self.units.m / 
-                                   self.units.s)
+        return max(self.speeds)
 
     def _filter_timepoints(self):
         self.timepoints = [x for x in self.timepoints 
