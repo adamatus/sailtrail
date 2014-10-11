@@ -62,12 +62,15 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = json.dumps(stats.tracks)
+        speed = json.dumps(stats.speeds)
     else:
         pos = None
+        speed = None
     return render(request, 
                   'activity.html', 
                   {'activity': activity,
                    'pos_json': pos,
+                   'speed_json': speed,
                    })
 
 

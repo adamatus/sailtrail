@@ -4,15 +4,16 @@
 
 {% block js_init %}
 	{{ block.super }}
-	{% js 'leaflet/dist/leaflet.js' %}
+	{% js 'jquery/dist/jquery.min.js' %}
+	{% js 'd3/d3.min.js' %}
 	{% js 'blanket/dist/jasmine/blanket_jasmine.min.js' %}
 {% endblock %}
 
 {% block js_content %}
-	{% js 'activities/track_viewer.js' data='data-cover' %}
-	{% js 'activities/tests/track_viewer.specs.js' %}
+	{% js 'activities/speed_viewer.js' data='data-cover' %}
+	{% js 'activities/tests/speed_viewer.specs.js' %}
 {% endblock %}
 
 {% block body_content %}
-	<div id="map" style="height: 200px; width: 200px;"></div>
+	<div id="speed-plot" style="height: 200px; width: 200px;"></div>
 {% endblock %}

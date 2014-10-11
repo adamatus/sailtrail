@@ -10,7 +10,7 @@ var TrackViewer = {
 			this.latlng.push(L.latLng(pos[i].lat, pos[i].lon));
 		}
 
-		this.map = L.map('map');
+		this.map = L.map('map', {scrollWheelZoom: false});
 		L.tileLayer(this.tile_source,
 		{
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
