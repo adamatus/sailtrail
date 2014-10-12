@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load js %}
 
 {% block title_text %}{{ activity.details.name }}{% endblock %}
 
@@ -51,7 +52,6 @@ var units = {{ units|safe }};
 		</div>
 {% endblock %}
 
-{% load js %}
 {% block extra_bottom_js %}
 		<script>
 var pos = {{ pos_json|safe }};

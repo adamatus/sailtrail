@@ -1,4 +1,5 @@
 {% load static %}
+{% load js %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,20 +7,20 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href='{% static 'bootstrap/dist/css/bootstrap.min.css' %}'>
-		<link rel="stylesheet" href='{% static 'leaflet/dist/leaflet.css' %}'>
+		
+		{% css 'bootstrap/dist/css/bootstrap.min.css' %}
+		{% css 'leaflet/dist/leaflet.css' %}
 		{% block extra_styles %}{% endblock %}
 	</head>
 	<body>
 	  {% include 'components/main-nav.html' %}
 
 	  <div class="container">
-			{% block main_section %}
-			{% endblock %}
+			{% block main_section %}{% endblock %}
     </div>
-		<script type="text/javascript" src='{% static 'jquery/dist/jquery.min.js' %}'></script>
-		<script type="text/javascript" src='{% static 'bootstrap/dist/js/bootstrap.min.js' %}'></script>
-		<script type="text/javascript" src='{% static 'leaflet/dist/leaflet.js' %}'></script>
+		{% js 'jquery/dist/jquery.min.js' %}
+		{% js 'bootstrap/dist/js/bootstrap.min.js' %}
+		{% js 'leaflet/dist/leaflet.js' %}
 		{% block extra_bottom_js %}{% endblock %}
 	</body>
 </html>
