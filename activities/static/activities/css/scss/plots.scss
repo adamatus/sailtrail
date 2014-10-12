@@ -1,0 +1,19 @@
+#map { 	
+  height: 300px; 
+}
+
+#speed-plot { 
+  height: 300px; 
+}
+	
+.axis, .grid {
+  shape-rendering: crispEdges;
+}
+
+.x.axis,
+.y.axis {
+  line, path {
+    fill: none;
+    stroke: #000;
+  }
+}
