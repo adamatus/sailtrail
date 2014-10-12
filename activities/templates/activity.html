@@ -51,7 +51,13 @@ $('#time-slider').slider({
 	max: pos.length,
 	value: 0,
 	formatter: function(value) {
-		return pos[value].time;
+		if (value < 0) {
+			return pos[0].time;
+		} else if (value >= pos.length) {
+			return pos[pos.length-1].time;
+		} else {
+			return pos[value].time;
+		}
 	}
 });
 
