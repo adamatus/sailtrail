@@ -13,7 +13,7 @@ var SpeedViewer = {
 				h = height - (mb + mt),
 				x = d3.scale.linear().range([0, w]).domain([0, spds.length]),
 				xAxis = d3.svg.axis().scale(x).ticks(6).orient('bottom'),
-				y = d3.scale.linear().range([h, 0]).domain([0, d3.max(spds)*1.94384]),
+				y = d3.scale.linear().range([h, 0]).domain([0, d3.max(spds)]),
 				yAxis = d3.svg.axis().scale(y).ticks(4).orient('left'),
 				line = d3.svg.line();
 
@@ -46,10 +46,10 @@ var SpeedViewer = {
 		    .attr('class', 'y label')
 				.attr('text-anchor', 'middle')
 				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
-				.text('Speed (knots)');
+				.text('Speed (' + units['speed'] + ')');
 
 		line.x(function(d,i) { return x(i); })	
-			  .y(function(d) { return y(d*1.94384); });
+			  .y(function(d) { return y(d); });
 
 		this.plot.append('svg:path')
 			.attr('d', line(spds))

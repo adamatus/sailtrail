@@ -26,6 +26,9 @@
 	  stroke: #000;
 	}
 </style>
+<script>
+var units = {{ units|safe }};
+</script>
 {% endblock %}
 
 {% load static %}
@@ -52,7 +55,7 @@
 {% block extra_bottom_js %}
 		<script>
 var pos = {{ pos_json|safe }},
-    speed = {{ speed_json|safe }};
+    speed = {{ speed_json }};
 		</script>
 	{% js 'd3/d3.min.js' %}
 	{% js 'activities/track_viewer.js' %}

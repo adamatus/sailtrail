@@ -3,6 +3,8 @@ from sirf import read_sbn
 
 import pytz
 
+from pint import UnitRegistry
+
 
 class Stats(object):
 
@@ -10,6 +12,8 @@ class Stats(object):
         self.sbn = read_sbn(sbn_file)
         self.timepoints = self.sbn.pktq
         self._filter_timepoints()
+        self.units = UnitRegistry()
+        self.units.define('knots = knot')
 
     @property
     def full_start_time(self):
@@ -44,7 +48,8 @@ class Stats(object):
 
     @property
     def speeds(self):
-        return [x['sog'] for x in self.timepoints]
+        return [x['sog'] * (self.units.m / self.units.s) 
+                for x in self.timepoints]
 
     @property
     def max_speed(self):

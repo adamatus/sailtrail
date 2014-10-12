@@ -5,7 +5,8 @@ from .forms import UploadFileForm, ActivityDetailsForm
 from sirf.stats import Stats
 
 import os.path
-import json
+
+from activities import UNITS
 
 
 def home_page(request, form=None):
@@ -61,8 +62,8 @@ def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
-        pos = json.dumps(stats.tracks)
-        speed = json.dumps(stats.speeds)
+        pos = stats.tracks
+        speed = [x.to(UNITS['speed']).magnitude for x in stats.speeds]
     else:
         pos = None
         speed = None
@@ -71,6 +72,7 @@ def view(request, activity_id):
                   {'activity': activity,
                    'pos_json': pos,
                    'speed_json': speed,
+                   'units': UNITS,
                    })
 
 

@@ -54,9 +54,9 @@ class StatsTest(unittest.TestCase):
     def test_get_speeds(self):
         speeds = self.stats.speeds
         self.assertEquals(672, len(speeds))
-        self.assertAlmostEquals(.11, speeds[0])
+        self.assertAlmostEquals(.11, speeds[0].magnitude)
 
     def test_get_max_speed(self):
-        self.assertEqual(1.05, self.stats.max_speed)
+        self.assertEqual('1.05 m / s', '{:~}'.format(self.stats.max_speed))
 
 
