@@ -140,18 +140,18 @@ class ActivityStatModelTests(TestCase):
     def test_get_end_date_returns_date(self):
         self.assertEqual(date(2014, 10, 12), self.stat.date)
 
-    def test_get_model_max_speed_is_initially_empty(self):
-        self.assertEqual('', self.stat.model_max_speed)
+    def test_get_model_max_speed_is_initially_null(self):
+        self.assertEqual(None, self.stat.model_max_speed)
 
     # TODO This test is very slow, definitely need to mock somehow 
     def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
         self.assertEqual('21.17 knots', self.stat.max_speed)
-        self.assertEqual('21.17 knots', self.stat.model_max_speed)
+        self.assertEqual(10.89, self.stat.model_max_speed)
 
     def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
-        self.stat.model_max_speed = '10 knots'
+        self.stat.model_max_speed = 10.5
         self.stat.save()
-        self.assertEqual('10 knots', self.stat.max_speed)
+        self.assertEqual('20.41 knots', self.stat.max_speed)
 
 
 class ActivityModelsIntegrationTests(TestCase):

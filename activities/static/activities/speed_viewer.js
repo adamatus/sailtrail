@@ -46,7 +46,7 @@ var SpeedViewer = {
 		    .attr('class', 'y label')
 				.attr('text-anchor', 'middle')
 				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
-				.text('Speed (knots)');
+				.text('Speed (' + units['speed'] + ')');
 
 		line.x(function(d,i) { return x(i); })	
 			  .y(function(d) { return y(d); });

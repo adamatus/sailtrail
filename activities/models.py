@@ -9,6 +9,8 @@ import timedelta
 
 import os.path
 
+from activities import UNITS, units
+
 
 class Activity(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
@@ -37,7 +39,7 @@ class ActivityStat(models.Model):
                                    blank=False, null=False)
     datetime = models.DateTimeField()
     duration = timedelta.fields.TimedeltaField()
-    model_max_speed = models.CharField(max_length=30, blank=True, default='')
+    model_max_speed = models.FloatField(null=True)  # m/s
 
     @property
     def end_time(self):
@@ -53,13 +55,13 @@ class ActivityStat(models.Model):
 
     @property
     def max_speed(self):
-        if self.model_max_speed == '':
+        if self.model_max_speed is None:
             if os.path.exists(self.file_id.upfile.path):
                 stats = Stats(self.file_id.upfile.path)
-                speed = stats.max_speed.to('knots')
-                self.model_max_speed = '{:.2f}'.format(speed)
+                self.model_max_speed = stats.max_speed.magnitude
                 self.save()
             else:
-                self.model_max_speed = '--file missing--'
-        
-        return self.model_max_speed
+                return '--error--'
+
+        speed = (self.model_max_speed * units.m/units.s).to(UNITS['speed'])
+        return '{:~.2f}'.format(speed)

@@ -13,6 +13,7 @@ describe("Speed viewer", function() {
 
 	it("expects drawplot to create an svg element [SMOKE for SpeedViewer]", function() {
 		var spds = [10, 20];
+		units = {'speed': 'knots', 'dist': 'nmi'}; // Stick units into global... BAD!
 	  SpeedViewer.drawplot(spds);	
 		expect(document.getElementById("speed-plot-svg")).not.toBeNull();
 	

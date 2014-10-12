@@ -7,6 +7,8 @@ from sirf.stats import Stats
 import os.path
 import json
 
+from activities import UNITS
+
 
 def home_page(request, form=None):
     if form is None:
@@ -62,7 +64,7 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = json.dumps(stats.tracks)
-        speed = json.dumps([x.to('knots').magnitude
+        speed = json.dumps([x.to(UNITS['speed']).magnitude
                             for x in stats.speeds])
     else:
         pos = None
@@ -72,6 +74,7 @@ def view(request, activity_id):
                   {'activity': activity,
                    'pos_json': pos,
                    'speed_json': speed,
+                   'units': UNITS,
                    })
 
 
