@@ -4,29 +4,7 @@
 {% block title_text %}{{ activity.details.name }}{% endblock %}
 
 {% block extra_styles %}
-<style>
-  #map { height: 300px; }
-  #speed-plot { height: 300px; }
-	.axis, .grid {
-	  shape-rendering: crispEdges;
-	}
-
-	.x.axis line,
-	.x.axis path {
-	  fill: none;
-	  stroke: #000;
-	}
-
-	.y.axis text {
-	    text-anchor: end;
-	}
-
-	.y.axis line,
-	.y.axis path {
-	  fill: none;
-	  stroke: #000;
-	}
-</style>
+{% css 'activities/css/plots.css' %}
 <script>
 var units = {{ units|safe }};
 </script>
