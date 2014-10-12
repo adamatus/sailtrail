@@ -63,5 +63,9 @@ $('#time-slider').slider({
 
 TrackViewer.drawmap(pos);
 SpeedViewer.drawplot(pos);
+
+$('#time-slider').on('slide', function(slideEvt) {
+		TrackViewer.movemarker(slideEvt.value);
+});
 		</script>
 {% endblock %}

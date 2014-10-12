@@ -2,6 +2,7 @@ var TrackViewer = {
 	latlng: [],
 	map: null,
 	trackline: null,
+	marker: null,
 	tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
 	drawmap: function(pos) {
@@ -18,8 +19,20 @@ var TrackViewer = {
 		}).addTo(this.map);
 
 		this.trackline = L.polyline(this.latlng, {color: 'red'}).addTo(this.map);
+		this.marker = L.circleMarker(this.latlng[0], {
+			radius: 6,
+			color: 'red',
+			weight: 3,
+		}).addTo(this.map);
 		this.map.fitBounds(this.trackline.getBounds());
 	},
+
+	movemarker: function(i) {
+		if ((i >= 0) && (i < this.latlng.length))
+		{
+			this.marker.setLatLng(this.latlng[i]);
+		}
+	}
 };
 
 
