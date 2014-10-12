@@ -64,9 +64,24 @@ $('#time-slider').slider({
 TrackViewer.drawmap(pos);
 SpeedViewer.drawplot(pos);
 
-$('#time-slider').on('slide', function(slideEvt) {
-		TrackViewer.movemarker(slideEvt.value);
-		SpeedViewer.movemarker(slideEvt.value);
+$('#time-slider').on('slide', function(slideEvt, data) {
+		data = data | slideEvt.value;
+		TrackViewer.movemarker(data);
+		SpeedViewer.movemarker(data);
+});
+
+$(window).on('keydown', function(evnt) {
+		if ($.inArray(evnt.keyCode, [37, 39]) >= 0) {
+			if (evnt.keyCode == 37) { // Left arrow
+				var new_val = $('#time-slider').slider('getValue') - 1;
+			}
+			if (evnt.keyCode == 39) { // Right arrow
+				var new_val = $('#time-slider').slider('getValue') + 1;
+			}
+			$('#time-slider')
+				.slider('setValue', new_val)
+				.trigger('slide', [new_val]);
+		}
 });
 		</script>
 {% endblock %}
