@@ -98,4 +98,5 @@ BOWER_INSTALLED_APPS = (
     'leaflet',
     'blanket',
     'd3',
+    'seiyria-bootstrap-slider',
 )

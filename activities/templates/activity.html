@@ -8,6 +8,12 @@
 <script>
 var units = {{ units|safe }};
 </script>
+{% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+<style>
+  .slider.slider-horizontal {
+		width: 100%;
+	}
+</style>
 {% endblock %}
 
 {% load static %}
@@ -23,6 +29,7 @@ var units = {{ units|safe }};
 		<div class="row">
 			<div class="col-md-6" style="padding-top: 1em;">
 				<div id="map"></div>
+				<input id="time-slider" data-slider-id="time-slider-Slider" type="text">
 			</div>
 			<div class="col-md-6" style="padding-top: 1em;">
 				<div id="speed-plot"></div>
@@ -37,8 +44,29 @@ var pos = {{ pos_json|safe }};
 	{% js 'd3/d3.min.js' %}
 	{% js 'activities/js/track_viewer.js' %}
 	{% js 'activities/js/speed_viewer.js' %}
+  {% js 'seiyria-bootstrap-slider/dist/bootstrap-slider.min.js' %}
+	
 		<script>
+$('#time-slider').slider({
+	max: pos.length,
+	value: 0,
+	formatter: function(value) {
+		if (value < 0) {
+			return pos[0].time;
+		} else if (value >= pos.length) {
+			return pos[pos.length-1].time;
+		} else {
+			return pos[value].time;
+		}
+	}
+});
+
 TrackViewer.drawmap(pos);
 SpeedViewer.drawplot(pos);
+
+$('#time-slider').on('slide', function(slideEvt) {
+		TrackViewer.movemarker(slideEvt.value);
+		SpeedViewer.movemarker(slideEvt.value);
+});
 		</script>
 {% endblock %}

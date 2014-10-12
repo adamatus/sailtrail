@@ -2,7 +2,11 @@
 
 var SpeedViewer = {
 	speeds: [],
+	times: [],
 	plot: undefined,
+	marker: undefined,
+	x: undefined,
+	y: undefined,
 
 	drawplot: function(spds) {
 		var width = $('#speed-plot').width(),
@@ -11,15 +15,20 @@ var SpeedViewer = {
 				mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3];
 				w = width - (ml + mr),
 				h = height - (mb + mt),
+				line = d3.svg.line(),
 				time_format = d3.time.format('%X'),
-				speeds = spds.map(function(d) { return d.speed; }),
-				times = spds.map(function(d) { return time_format.parse(d.time); }),
-				x = d3.time.scale().range([0, w]).domain([d3.min(times),
-				                                              d3.max(times)]),
-				xAxis = d3.svg.axis().scale(x).ticks(6).orient('bottom'),
-				y = d3.scale.linear().range([h, 0]).domain([0, d3.max(speeds)]),
-				yAxis = d3.svg.axis().scale(y).ticks(4).orient('left'),
-				line = d3.svg.line();
+				xAxis = undefined,
+				yAxis = undefined
+				that = this;;
+
+		this.speeds = spds.map(function(d) { return d.speed; }),
+		this.times = spds.map(function(d) { return time_format.parse(d.time); }),
+
+		this.x = d3.time.scale().range([0, w]).domain([d3.min(this.times),
+																									d3.max(this.times)]);
+		xAxis = d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
+		this.y = d3.scale.linear().range([h, 0]).domain([0, d3.max(this.speeds)]);
+		yAxis = d3.svg.axis().scale(this.y).ticks(4).orient('left');
 
 		var svg = d3.select('#speed-plot')
 			.append('svg:svg')
@@ -52,8 +61,8 @@ var SpeedViewer = {
 				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
 				.text('Speed (' + units['speed'] + ')');
 
-		line.x(function(d) { return x(time_format.parse(d.time)); })	
-			  .y(function(d) { return y(d.speed); });
+		line.x(function(d) { return that.x(time_format.parse(d.time)); })	
+			  .y(function(d) { return that.y(d.speed); });
 
 		this.plot.append('svg:path')
 			.attr('d', line(spds))
@@ -61,7 +70,20 @@ var SpeedViewer = {
 			.style('fill', 'none')
 			.style('stroke-width', 2);
 
+		this.marker = this.plot.append('svg:circle')
+			.attr('r', 5)
+			.attr('cx', this.x(this.times[0]))
+			.attr('cy', this.y(this.speeds[0]))
+			.style('fill', 'black')
+			.style('stroke', 'black')
+			.style('stroke-width', 3)
+	},
+
+	movemarker: function(i) {
+		if ((i >= 0) && (i < this.speeds.length)) {
+			this.marker
+				.attr('cx', this.x(this.times[i]))
+				.attr('cy', this.y(this.speeds[i]));
+		}
 	},
 };
-
-
