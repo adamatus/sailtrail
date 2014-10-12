@@ -12,8 +12,7 @@ var TrackViewer = {
 		}
 
 		this.map = L.map('map', {scrollWheelZoom: false});
-		L.tileLayer(this.tile_source,
-		{
+		L.tileLayer(this.tile_source, {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
 			maxZoom: 18
 		}).addTo(this.map);
@@ -28,8 +27,7 @@ var TrackViewer = {
 	},
 
 	movemarker: function(i) {
-		if ((i >= 0) && (i < this.latlng.length))
-		{
+		if ((i >= 0) && (i < this.latlng.length)) {
 			this.marker.setLatLng(this.latlng[i]);
 		}
 	}
