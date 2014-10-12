@@ -54,14 +54,13 @@ var units = {{ units|safe }};
 {% load js %}
 {% block extra_bottom_js %}
 		<script>
-var pos = {{ pos_json|safe }},
-    speed = {{ speed_json }};
+var pos = {{ pos_json|safe }};
 		</script>
 	{% js 'd3/d3.min.js' %}
 	{% js 'activities/track_viewer.js' %}
 	{% js 'activities/speed_viewer.js' %}
 		<script>
 TrackViewer.drawmap(pos);
-SpeedViewer.drawplot(speed);
+SpeedViewer.drawplot(pos);
 		</script>
 {% endblock %}

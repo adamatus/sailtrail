@@ -11,9 +11,13 @@ var SpeedViewer = {
 				mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3];
 				w = width - (ml + mr),
 				h = height - (mb + mt),
-				x = d3.scale.linear().range([0, w]).domain([0, spds.length]),
+				time_format = d3.time.format('%X'),
+				speeds = spds.map(function(d) { return d.speed; }),
+				times = spds.map(function(d) { return time_format.parse(d.time); }),
+				x = d3.time.scale().range([0, w]).domain([d3.min(times),
+				                                              d3.max(times)]),
 				xAxis = d3.svg.axis().scale(x).ticks(6).orient('bottom'),
-				y = d3.scale.linear().range([h, 0]).domain([0, d3.max(spds)]),
+				y = d3.scale.linear().range([h, 0]).domain([0, d3.max(speeds)]),
 				yAxis = d3.svg.axis().scale(y).ticks(4).orient('left'),
 				line = d3.svg.line();
 
@@ -48,8 +52,8 @@ var SpeedViewer = {
 				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
 				.text('Speed (' + units['speed'] + ')');
 
-		line.x(function(d,i) { return x(i); })	
-			  .y(function(d) { return y(d); });
+		line.x(function(d) { return x(time_format.parse(d.time)); })	
+			  .y(function(d) { return y(d.speed); });
 
 		this.plot.append('svg:path')
 			.attr('d', line(spds))
