@@ -44,7 +44,10 @@ class Stats(object):
     @property
     def tracks(self):
         return [{'lat': x['latitude'], 
-                 'lon': x['longitude']} for x in self.timepoints]
+                 'lon': x['longitude'],
+                 'speed': x['sog'] * (self.units.m / self.units.s),
+                 'time': x['time']}
+                for x in self.timepoints]
 
     @property
     def speeds(self):

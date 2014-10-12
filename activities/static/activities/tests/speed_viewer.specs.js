@@ -12,9 +12,10 @@ describe("Speed viewer", function() {
 	});
 
 	it("expects drawplot to create an svg element [SMOKE for SpeedViewer]", function() {
-		var spds = [10, 20];
+		var pos = [{'speed': 4.47084233261339, 'time': '20:25:51'},
+		           {'speed': 4.2570194384449245, 'time': '20:25:52'}];
 		units = {'speed': 'knots', 'dist': 'nmi'}; // Stick units into global... BAD!
-	  SpeedViewer.drawplot(spds);	
+	  SpeedViewer.drawplot(pos);	
 		expect(document.getElementById("speed-plot-svg")).not.toBeNull();
 	
 	});

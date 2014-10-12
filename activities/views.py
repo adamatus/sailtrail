@@ -63,15 +63,14 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = stats.tracks
-        speed = [x.to(UNITS['speed']).magnitude for x in stats.speeds]
+        for p in pos:
+            p['speed'] = p['speed'].to(UNITS['speed']).magnitude
     else:
         pos = None
-        speed = None
     return render(request, 
                   'activity.html', 
                   {'activity': activity,
                    'pos_json': pos,
-                   'speed_json': speed,
                    'units': UNITS,
                    })
 
