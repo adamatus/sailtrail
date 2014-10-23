@@ -14,6 +14,8 @@ from activities import UNITS, units
 
 class Activity(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
+    trim_start = models.IntegerField(null=True, default=None)
+    trim_end = models.IntegerField(null=True, default=None)
 
     class Meta:
         ordering = ['-stats__datetime']

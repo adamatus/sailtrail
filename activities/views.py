@@ -63,6 +63,12 @@ def view(request, activity_id):
     if os.path.exists(activity.upfile.path):
         stats = Stats(activity.upfile.path)
         pos = stats.tracks
+        start_sel = 0 if activity.trim_start is None else activity.trim_start
+        end_sel = (len(pos)) if activity.trim_end is None \
+            else activity.trim_end + 1
+        pos = pos[start_sel:end_sel]
+        trimmed = activity.trim_start is not None or \
+            activity.trim_end is not None
         for p in pos:
             p['speed'] = p['speed'].to(UNITS['speed']).magnitude
     else:
@@ -72,12 +78,35 @@ def view(request, activity_id):
                   {'activity': activity,
                    'pos_json': pos,
                    'units': UNITS,
+                   'trimmed': trimmed,
                    })
 
 
 def delete(request, activity_id):
     Activity.objects.get(id=activity_id).delete()
     return redirect('home')
+
+
+def trim(request, activity_id):
+    activity = Activity.objects.get(id=activity_id)
+    do_save = False
+    if request.POST['trim-start'] is not -1:
+        activity.trim_start = request.POST['trim-start']
+        do_save = True
+    if request.POST['trim-end'] is not -1:
+        activity.trim_end = request.POST['trim-end']
+        do_save = True
+    if do_save:
+        activity.save()
+    return redirect('view_activity', activity.id)
+
+
+def untrim(request, activity_id):
+    activity = Activity.objects.get(id=activity_id)
+    activity.trim_start = None
+    activity.trim_end = None
+    activity.save()
+    return redirect('view_activity', activity.id)
 
 
 def _compute_stats(activity_id):
