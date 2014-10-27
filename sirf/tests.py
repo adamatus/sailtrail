@@ -66,4 +66,3 @@ class StatsTest(unittest.TestCase):
             59.11451088, self.stats.distance(method='SphLawCos').magnitude)
         self.assertAlmostEquals(
             59.12590197, self.stats.distance(method='Equirect').magnitude)
-
