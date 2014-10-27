@@ -153,6 +153,10 @@ class ActivityStatModelTests(TestCase):
         self.stat.save()
         self.assertEqual('20.41 knots', self.stat.max_speed)
 
+    def test_get_model_distance_is_populated_on_call_to_distance(self):
+        self.assertEqual('6.86 nmi', self.stat.distance)
+        self.assertAlmostEqual(12706.7845031, self.stat.model_distance)
+
 
 class ActivityModelsIntegrationTests(TestCase):
 

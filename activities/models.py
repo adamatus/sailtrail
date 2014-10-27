@@ -41,6 +41,7 @@ class ActivityStat(models.Model):
                                    blank=False, null=False)
     datetime = models.DateTimeField()
     duration = timedelta.fields.TimedeltaField()
+    model_distance = models.FloatField(null=True)  # m
     model_max_speed = models.FloatField(null=True)  # m/s
 
     @property
@@ -67,3 +68,16 @@ class ActivityStat(models.Model):
 
         speed = (self.model_max_speed * units.m/units.s).to(UNITS['speed'])
         return '{:~.2f}'.format(speed)
+
+    @property
+    def distance(self):
+        if self.model_distance is None:
+            if os.path.exists(self.file_id.upfile.path):
+                stats = Stats(self.file_id.upfile.path)
+                self.model_distance = stats.distance().magnitude
+                self.save()
+            else:
+                return '--error--'
+
+        dist = (self.model_distance * units.m).to(UNITS['dist'])
+        return '{:~.2f}'.format(dist)
