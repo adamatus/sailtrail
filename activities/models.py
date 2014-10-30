@@ -4,8 +4,11 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
 from sirf.stats import Stats
+from sirf import read_sbn
 
 import timedelta
+from datetime import datetime as dt
+import pytz
 
 import os.path
 
@@ -20,6 +23,25 @@ class Activity(models.Model):
     class Meta:
         ordering = ['-stats__datetime']
 
+    def save(self, *args, **kwargs):
+        super(Activity, self).save(*args, **kwargs)
+
+        d = read_sbn(self.upfile.path)
+        d = [x for x in d.pktq if x is not None]  # filter out Nones
+
+        insert = []
+        app = insert.append  # cache append method for speed.. maybe?
+        for tp in d:
+            app(ActivityTrackpoint(
+                lat=tp['latitude'], 
+                lon=tp['longitude'], 
+                sog=tp['sog'], 
+                timepoint=dt.strptime('{} {}'.format(
+                    tp['time'], tp['date']),
+                    '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
+                file_id=self))
+        ActivityTrackpoint.objects.bulk_create(insert)
+
 
 @receiver(post_delete, sender=Activity)
 def auto_delete_file_on_model_delete(sender, instance, **kwargs):
@@ -27,6 +49,14 @@ def auto_delete_file_on_model_delete(sender, instance, **kwargs):
     if instance.upfile:
         if os.path.isfile(instance.upfile.path):
             os.remove(instance.upfile.path)
+
+
+class ActivityTrackpoint(models.Model):
+    timepoint = models.DateTimeField()
+    lat = models.FloatField()  # degrees
+    lon = models.FloatField()  # degrees
+    sog = models.FloatField()  # m/s
+    file_id = models.ForeignKey(Activity, related_name='trackpoint')
 
 
 class ActivityDetail(models.Model):

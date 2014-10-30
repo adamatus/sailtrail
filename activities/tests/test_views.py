@@ -15,7 +15,10 @@ from activities.forms import (UploadFileForm, ActivityDetailsForm,
 
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__), 
-                          '../../tests/functional/assets')
+                          'assets')
+
+with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
+    SBN_BIN = f.read()
 
 
 class HomePageTest(TestCase):
@@ -47,8 +50,7 @@ class HomePageTest(TestCase):
     def test_home_page_does_not_show_activities_without_details(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             Activity.objects.create(
-                upfile=SimpleUploadedFile('test1.txt', 
-                                          bytes('Testfile', 'ascii'))
+                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
             )
             
             response = self.client.get('/')
@@ -66,8 +68,7 @@ class FileUploadTest(TestCase):
     def test_saving_POST_request(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             """Make sure that the upload filename is saved"""
-            test_file = SimpleUploadedFile('test1.sbn',
-                                           bytes('Testfile', 'ascii'))
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
             self.client.post(reverse('upload'),
                              data={'upfile': test_file})
@@ -82,9 +83,7 @@ class FileUploadTest(TestCase):
     def test_POST_request_redirects_to_new_activity_page(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             """Make sure that we are redirected after POST"""
-            with open(os.path.join(ASSET_PATH, 
-                                   'kite-session1.sbn'), 'rb') as f:
-                test_file = SimpleUploadedFile('test1.sbn', f.read())
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
             response = self.client.post(reverse('upload'),
                                         data={'upfile': test_file})
@@ -150,9 +149,7 @@ class NewActivityDetailViewTest(TestCase):
     def test_initial_get_computes_statistics_for_file(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             """Make sure that we are redirected after POST"""
-            with open(os.path.join(ASSET_PATH, 
-                                   'kite-session1.sbn'), 'rb') as f:
-                test_file = SimpleUploadedFile('test-stats.sbn', f.read())
+            test_file = SimpleUploadedFile('test-stats.sbn', SBN_BIN)
 
             self.assertEquals(0, ActivityStat.objects.count())
             self.client.post(reverse('upload'),
@@ -246,8 +243,7 @@ class DeleteActivityTest(TestCase):
         self.temp_dir = tempfile.mkdtemp()
         with self.settings(MEDIA_ROOT=self.temp_dir):
             Activity.objects.create(
-                upfile=SimpleUploadedFile('test1.txt', 
-                                          bytes('Testfile', 'ascii'))
+                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
             )
 
     def tearDown(self):

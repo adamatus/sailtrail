@@ -2,11 +2,15 @@ from django.test import TestCase
 
 import shutil
 import tempfile
+import os.path
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from activities.forms import UploadFileForm, ActivityDetailsForm
 from activities.models import Activity, ActivityDetail
+
+ASSET_PATH = os.path.join(os.path.dirname(__file__), 
+                          'assets')
 
 
 class UploadFileFormTest(TestCase):
@@ -24,7 +28,9 @@ class UploadFileFormTest(TestCase):
 
     def test_form_save(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            upfile = SimpleUploadedFile('test.txt', bytes('TEST', 'ascii'))
+            with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
+                sbn_bin = f.read()
+            upfile = SimpleUploadedFile('test.txt', sbn_bin)
             form = UploadFileForm({}, {'upfile': upfile})
             form.is_valid()
             upactivity = form.save()

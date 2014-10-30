@@ -10,7 +10,13 @@ import os.path
 from datetime import datetime, timedelta, time, date
 from pytz import timezone
 
-from activities.models import Activity, ActivityDetail, ActivityStat
+from activities.models import (Activity, ActivityDetail, ActivityStat,
+                               ActivityTrackpoint)
+
+ASSET_PATH = os.path.join(os.path.dirname(__file__), 
+                          'assets')
+with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
+    SBN_BIN = f.read()
 
 
 class ActivityModelTest(TestCase):
@@ -24,8 +30,8 @@ class ActivityModelTest(TestCase):
 
     def test_upfile_field_creates_file(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.txt', 
-                                           bytes('This is testfile', 'ascii'))
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+                                           
             Activity.objects.create(upfile=test_file)
             a = Activity.objects.first()
 
@@ -34,26 +40,9 @@ class ActivityModelTest(TestCase):
                     os.path.join(self.temp_dir, a.upfile.url)
                 ))
 
-    def test_upfile_file_contents_are_correct(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            file_contents = 'This is testfile'
-            test_file = SimpleUploadedFile('test1.txt', 
-                                           bytes(file_contents, 'ascii'))
-                                           
-            Activity.objects.create(upfile=test_file)
-            a = Activity.objects.first()
-
-            with open(os.path.join(self.temp_dir, a.upfile.url), 'r') as f:
-                self.assertEqual(
-                    f.read(),
-                    file_contents
-                )
-
     def test_delete_removes_file(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            file_contents = 'This is testfile'
-            test_file = SimpleUploadedFile('test1.txt', 
-                                           bytes(file_contents, 'ascii'))
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
             Activity.objects.create(upfile=test_file)
             a = Activity.objects.first()
@@ -65,11 +54,8 @@ class ActivityModelTest(TestCase):
 
     def test_delete_removes_only_correct_file(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            file_contents = 'This is testfile'
-            test_file1 = SimpleUploadedFile('test1.txt', 
-                                            bytes(file_contents, 'ascii'))
-            test_file2 = SimpleUploadedFile('test2.txt', 
-                                            bytes(file_contents, 'ascii'))
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            test_file2 = SimpleUploadedFile('test2.sbn', SBN_BIN)
 
             Activity.objects.create(upfile=test_file1)
             Activity.objects.create(upfile=test_file2)
@@ -79,6 +65,38 @@ class ActivityModelTest(TestCase):
             a.delete()
             file_path = os.path.join(self.temp_dir, b.upfile.url)
             self.assertTrue(os.path.exists(file_path))
+
+
+class ActivityTrackpointTests(TestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_integration_upload_creates_trackpoints(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            self.assertEquals(0, len(ActivityTrackpoint.objects.all()))
+            Activity.objects.create(upfile=test_file)
+            self.assertEquals(4, len(ActivityTrackpoint.objects.all()))
+            first = ActivityTrackpoint.objects.first()
+            last = ActivityTrackpoint.objects.last()
+            self.assertAlmostEquals(43.0875531, first.lat)
+            self.assertAlmostEquals(-89.3895205, first.lon)
+            self.assertAlmostEquals(3.11, first.sog)
+            self.assertEquals(7, first.timepoint.month)
+            self.assertEquals(15, first.timepoint.day)
+            self.assertEquals(22, first.timepoint.hour)
+            self.assertEquals(54, first.timepoint.second)
+            self.assertAlmostEquals(43.0875511, last.lat)
+            self.assertAlmostEquals(-89.3896433, last.lon)
+            self.assertAlmostEquals(3.42, last.sog)
+            self.assertEquals(7, last.timepoint.month)
+            self.assertEquals(15, last.timepoint.day)
+            self.assertEquals(22, last.timepoint.hour)
+            self.assertEquals(57, last.timepoint.second)
 
 
 class ActivityDetailsModelTests(TestCase):
@@ -169,8 +187,8 @@ class ActivityModelsIntegrationTests(TestCase):
     def test_deleting_activity_removes_activity_details(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             Activity.objects.create(
-                upfile=SimpleUploadedFile('test.txt', 
-                                          bytes('file contents', 'ascii')))
+                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
+            )
 
             ActivityDetail.objects.create(
                 name='',
@@ -182,14 +200,11 @@ class ActivityModelsIntegrationTests(TestCase):
 
     def test_model_ordering_on_stat_dates_with_most_recent_first(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            file_contents = 'test file'
-            files = ['test{}.txt'.format(x) for x in [1, 2, 3]]
+            files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
             hours = [11, 10, 12]
             test_files = []
             for f, t in zip(files, hours):
-                test_files.append(SimpleUploadedFile(f, 
-                                                     bytes(file_contents, 
-                                                           'ascii')))
+                test_files.append(SimpleUploadedFile(f, SBN_BIN))
                 a = Activity.objects.create(upfile=test_files[-1])
 
                 ActivityStat.objects.create(
@@ -199,6 +214,6 @@ class ActivityModelsIntegrationTests(TestCase):
                     file_id=a)
 
             activities = Activity.objects.all()
-            self.assertIn('test3.txt', activities[0].upfile.url)
-            self.assertIn('test1.txt', activities[1].upfile.url)
-            self.assertIn('test2.txt', activities[2].upfile.url)
+            self.assertIn('test3.sbn', activities[0].upfile.url)
+            self.assertIn('test1.sbn', activities[1].upfile.url)
+            self.assertIn('test2.sbn', activities[2].upfile.url)
