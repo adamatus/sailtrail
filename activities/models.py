@@ -17,8 +17,8 @@ from activities import UNITS, units
 
 class Activity(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
-    trim_start = models.IntegerField(null=True, default=None)
-    trim_end = models.IntegerField(null=True, default=None)
+    trim_start = models.DateTimeField(null=True, default=None)
+    trim_end = models.DateTimeField(null=True, default=None)
 
     class Meta:
         ordering = ['-stats__datetime']
@@ -26,21 +26,37 @@ class Activity(models.Model):
     def save(self, *args, **kwargs):
         super(Activity, self).save(*args, **kwargs)
 
-        d = read_sbn(self.upfile.path)
-        d = [x for x in d.pktq if x is not None]  # filter out Nones
+        if self.trackpoint.count() == 0:
+            d = read_sbn(self.upfile.path)
+            d = [x for x in d.pktq if x is not None]  # filter out Nones
 
-        insert = []
-        app = insert.append  # cache append method for speed.. maybe?
-        for tp in d:
-            app(ActivityTrackpoint(
-                lat=tp['latitude'], 
-                lon=tp['longitude'], 
-                sog=tp['sog'], 
-                timepoint=dt.strptime('{} {}'.format(
-                    tp['time'], tp['date']),
-                    '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
-                file_id=self))
-        ActivityTrackpoint.objects.bulk_create(insert)
+            insert = []
+            app = insert.append  # cache append method for speed.. maybe?
+            for tp in d:
+                app(ActivityTrackpoint(
+                    lat=tp['latitude'], 
+                    lon=tp['longitude'], 
+                    sog=tp['sog'], 
+                    timepoint=dt.strptime('{} {}'.format(
+                        tp['time'], tp['date']),
+                        '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
+                    file_id=self))
+            ActivityTrackpoint.objects.bulk_create(insert)
+
+    def get_trackpoints(self):
+        if self.trim_start is not None and self.trim_end is not None:
+            return self.trackpoint.filter(
+                timepoint__range=(self.trim_start, self.trim_end)
+            )
+        if self.trim_start is not None:
+            return self.trackpoint.filter(
+                timepoint__gte=self.trim_start
+            )
+        if self.trim_end is not None:
+            return self.trackpoint.filter(
+                timepoint__lte=self.trim_end
+            )
+        return self.trackpoint.all()
 
 
 @receiver(post_delete, sender=Activity)

@@ -66,6 +66,55 @@ class ActivityModelTest(TestCase):
             file_path = os.path.join(self.temp_dir, b.upfile.url)
             self.assertTrue(os.path.exists(file_path))
 
+    def test_integration_get_trackpoints_returns_points(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity(upfile=test_file1)
+            a.save()
+            
+            tps = a.get_trackpoints()
+            self.assertEquals(4, len(tps))
+            self.assertAlmostEquals(1, tps[0].id)
+            self.assertAlmostEquals(4, tps[3].id)
+
+    def test_integration_get_trackpoints_returns_points_with_start_time(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity(upfile=test_file1)
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
+                                    tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(3, len(tps))
+            self.assertAlmostEquals(2, tps[0].id)
+            self.assertAlmostEquals(4, tps[2].id)
+
+    def test_integration_get_trackpoints_returns_points_with_end_time(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity(upfile=test_file1)
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
+                                  tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(3, len(tps))
+            self.assertAlmostEquals(1, tps[0].id)
+            self.assertAlmostEquals(3, tps[2].id)
+
+    def test_integration_get_trackpoints_returns_points_with_both_time(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity(upfile=test_file1)
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
+                                    tzinfo=timezone('UTC'))
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
+                                  tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(2, len(tps))
+            self.assertAlmostEquals(2, tps[0].id)
+            self.assertAlmostEquals(3, tps[1].id)
+
 
 class ActivityTrackpointTests(TestCase):
 
