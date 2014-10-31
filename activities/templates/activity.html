@@ -101,12 +101,12 @@ $(window).on('keydown', function(evnt) {
 
 $('#trim-start').on('click', function(evnt) {
 		var new_val = $('#time-slider').slider('getValue');
-		$('#input-trim-start').val(new_val);
+		$('#input-trim-start').val(pos[new_val].time);
 });
 
 $('#trim-end').on('click', function(evnt) {
 		var new_val = $('#time-slider').slider('getValue');
-		$('#input-trim-end').val(new_val);
+		$('#input-trim-end').val(pos[new_val].time);
 });
 		</script>
 {% endblock %}

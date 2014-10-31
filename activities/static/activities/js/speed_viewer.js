@@ -16,7 +16,8 @@ var SpeedViewer = {
 				w = width - (ml + mr),
 				h = height - (mb + mt),
 				line = d3.svg.line(),
-				time_format = d3.time.format('%X'),
+				time_format = d3.time.format('%Y-%m-%dT%X+00:00'),
+				'2014-09-28T01:22:08+00:00'
 				xAxis = undefined,
 				yAxis = undefined
 				that = this;;

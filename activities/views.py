@@ -4,6 +4,8 @@ from activities.models import Activity, ActivityStat
 from .forms import UploadFileForm, ActivityDetailsForm
 from sirf.stats import Stats
 
+import dateutil.parser
+
 import os.path
 
 from activities import UNITS
@@ -60,19 +62,19 @@ def details(request, activity_id):
 
 def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    if os.path.exists(activity.upfile.path):
-        stats = Stats(activity.upfile.path)
-        pos = stats.tracks
-        start_sel = 0 if activity.trim_start is None else activity.trim_start
-        end_sel = (len(pos)) if activity.trim_end is None \
-            else activity.trim_end + 1
-        pos = pos[start_sel:end_sel]
-        trimmed = activity.trim_start is not None or \
-            activity.trim_end is not None
-        for p in pos:
-            p['speed'] = p['speed'].to(UNITS['speed']).magnitude
-    else:
-        pos = None
+    trimmed = activity.trim_start is not None or \
+        activity.trim_end is not None
+
+    pos = list(activity.get_trackpoints().values('sog', 
+                                                 'lat', 
+                                                 'lon', 
+                                                 'timepoint'))
+    for p in pos:
+        p['speed'] = p['sog'] 
+        p['time'] = p['timepoint'].isoformat()
+        del p['timepoint']
+        del p['sog']
+
     return render(request, 
                   'activity.html', 
                   {'activity': activity,
@@ -91,10 +93,10 @@ def trim(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
     do_save = False
     if request.POST['trim-start'] is not -1:
-        activity.trim_start = request.POST['trim-start']
+        activity.trim_start = dateutil.parser.parse(request.POST['trim-start'])
         do_save = True
     if request.POST['trim-end'] is not -1:
-        activity.trim_end = request.POST['trim-end']
+        activity.trim_end = dateutil.parser.parse(request.POST['trim-end'])
         do_save = True
     if do_save:
         activity.save()
