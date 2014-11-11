@@ -8,7 +8,7 @@ import dateutil.parser
 
 import os.path
 
-from activities import UNITS
+from activities import UNITS, units
 
 
 def home_page(request, form=None):
@@ -70,7 +70,7 @@ def view(request, activity_id):
                                                  'lon', 
                                                  'timepoint'))
     for p in pos:
-        p['speed'] = p['sog'] 
+        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
         p['time'] = p['timepoint'].isoformat()
         del p['timepoint']
         del p['sog']
