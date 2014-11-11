@@ -19,6 +19,7 @@ class Activity(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
+    trimmed = models.BooleanField(null=False, default=False)
 
     class Meta:
         ordering = ['-stats__datetime']
@@ -42,21 +43,18 @@ class Activity(models.Model):
                         '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
                     file_id=self))
             ActivityTrackpoint.objects.bulk_create(insert)
+            self.reset_trim()
+
+    def reset_trim(self):
+            self.trim_start = self.trackpoint.first().timepoint
+            self.trim_end = self.trackpoint.last().timepoint
+            self.trimmed = False
+            self.save()
 
     def get_trackpoints(self):
-        if self.trim_start is not None and self.trim_end is not None:
-            return self.trackpoint.filter(
-                timepoint__range=(self.trim_start, self.trim_end)
-            )
-        if self.trim_start is not None:
-            return self.trackpoint.filter(
-                timepoint__gte=self.trim_start
-            )
-        if self.trim_end is not None:
-            return self.trackpoint.filter(
-                timepoint__lte=self.trim_end
-            )
-        return self.trackpoint.all()
+        return self.trackpoint.filter(
+            timepoint__range=(self.trim_start, self.trim_end)
+        )
 
 
 @receiver(post_delete, sender=Activity)

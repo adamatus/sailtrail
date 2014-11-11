@@ -62,8 +62,7 @@ def details(request, activity_id):
 
 def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    trimmed = activity.trim_start is not None or \
-        activity.trim_end is not None
+    trimmed = activity.trimmed 
 
     pos = list(activity.get_trackpoints().values('sog', 
                                                  'lat', 
@@ -99,15 +98,14 @@ def trim(request, activity_id):
         activity.trim_end = dateutil.parser.parse(request.POST['trim-end'])
         do_save = True
     if do_save:
+        activity.trimmed = True
         activity.save()
     return redirect('view_activity', activity.id)
 
 
 def untrim(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    activity.trim_start = None
-    activity.trim_end = None
-    activity.save()
+    activity.reset_trim()
     return redirect('view_activity', activity.id)
 
 

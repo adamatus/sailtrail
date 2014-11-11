@@ -69,9 +69,7 @@ class ActivityModelTest(TestCase):
     def test_integration_get_trackpoints_returns_points(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity(upfile=test_file1)
-            a.save()
-            
+            a = Activity.objects.create(upfile=test_file1)
             tps = a.get_trackpoints()
             self.assertEquals(4, len(tps))
             self.assertAlmostEquals(1, tps[0].id)
@@ -80,7 +78,7 @@ class ActivityModelTest(TestCase):
     def test_integration_get_trackpoints_returns_points_with_start_time(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity(upfile=test_file1)
+            a = Activity.objects.create(upfile=test_file1)
             a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
                                     tzinfo=timezone('UTC'))
             a.save()
@@ -92,7 +90,7 @@ class ActivityModelTest(TestCase):
     def test_integration_get_trackpoints_returns_points_with_end_time(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity(upfile=test_file1)
+            a = Activity.objects.create(upfile=test_file1)
             a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
                                   tzinfo=timezone('UTC'))
             a.save()
@@ -105,6 +103,7 @@ class ActivityModelTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = Activity(upfile=test_file1)
+            a.save()
             a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
                                     tzinfo=timezone('UTC'))
             a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
