@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'djangojs',
     'activities',
     'djangobower',
+    'django_nose',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,6 +91,14 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "djangobower.finders.BowerFinder",
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=activities,sirf',
+    '--cover-html',
+]
 
 BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../bower')
 
