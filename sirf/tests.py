@@ -3,18 +3,33 @@ import os
 import sirf
 from sirf.stats import Stats
 
-from datetime import date, time, timedelta
+from datetime import date, time, timedelta, datetime
+import pytz
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'test_assets')
 TEST_FILE = os.path.join(ASSET_DIR, 'test-small.sbn')
+
+# Read in the points for the testfile
+d = sirf.read_sbn(TEST_FILE)
+d = [x for x in d.pktq if x is not None]  # filter out Nones
+
+trackpoints = []
+app = trackpoints.append  # cache append method for speed
+for tp in d:
+    app(dict(lat=tp['latitude'],
+        lon=tp['longitude'],
+        sog=tp['sog'],
+        timepoint=datetime.strptime('{} {}'.format(
+            tp['time'], tp['date']),
+            '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC)))
 
 
 class SiRFTest(unittest.TestCase):
     """Tests for SiRF Processing"""
 
     def test_reading_of_sirf_file(self):
-        p = sirf.read_sbn(os.path.join(ASSET_DIR, 'test.sbn'))        
+        p = sirf.read_sbn(os.path.join(ASSET_DIR, 'test.sbn'))
         self.assertEquals(679, p.rx_cnt)
         self.assertEquals('2013/07/09', p.pktq[1]['date'])
         self.assertEquals('23:54:47', p.pktq[1]['time'])
@@ -31,7 +46,7 @@ class SiRFTest(unittest.TestCase):
 class StatsTest(unittest.TestCase):
 
     def setUp(self):
-        self.stats = Stats(TEST_FILE)
+        self.stats = Stats(trackpoints)
 
     def test_get_start_time(self):
         self.assertEquals(time(2, 45, 13), self.stats.start_time)
@@ -44,12 +59,6 @@ class StatsTest(unittest.TestCase):
 
     def test_get_duration(self):
         self.assertEquals(timedelta(0, 27), self.stats.duration)
-
-    def test_get_tracks(self):
-        tracks = self.stats.tracks
-        self.assertEquals(28, len(tracks))
-        self.assertAlmostEquals(-122.6243636, tracks[0]['lon'])
-        self.assertAlmostEquals(45.604354, tracks[0]['lat'])
 
     def test_get_speeds(self):
         speeds = self.stats.speeds

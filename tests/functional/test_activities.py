@@ -158,8 +158,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
             # They are taken to the new details page, where they notice 
             # the date and time and duration of the session listed 
             self.assertIn('Jan. 19, 2014', details_page.get_page_content())
-            self.assertIn('4:45 p.m.', details_page.get_page_content())
-            self.assertIn('1:29:04', details_page.get_page_content())
+            self.assertIn('4:44 p.m.', details_page.get_page_content())
+            self.assertIn('1:30:06', details_page.get_page_content())
 
             # They enter some session details and click ok
             name = 'First winter kite session!'
@@ -169,5 +169,5 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
             # They notice the same details on the activity page
             self.assertIn('Jan. 19, 2014', activity_page.get_page_content())
-            self.assertIn('4:45 p.m.', activity_page.get_page_content())
-            self.assertIn('1:29:04', activity_page.get_page_content())
+            self.assertIn('4:44 p.m.', activity_page.get_page_content())
+            self.assertIn('1:30:06', activity_page.get_page_content())
