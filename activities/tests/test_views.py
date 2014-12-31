@@ -103,7 +103,7 @@ class FileUploadTest(TestCase):
 # TODO Many of these tests are SLOOOOWWWW
 class NewActivityDetailViewTest(TestCase):
 
-    fixtures = ['partial-activity.json']
+    fixtures = ['full-activities.json']
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -151,11 +151,11 @@ class NewActivityDetailViewTest(TestCase):
             """Make sure that we are redirected after POST"""
             test_file = SimpleUploadedFile('test-stats.sbn', SBN_BIN)
 
-            self.assertEquals(0, ActivityStat.objects.count())
+            self.assertEquals(2, ActivityStat.objects.count())
             self.client.post(reverse('upload'),
                              data={'upfile': test_file})
             self.client.get(reverse('details', args=[2]))
-            self.assertEquals(1, ActivityStat.objects.count())
+            self.assertEquals(3, ActivityStat.objects.count())
 
 
 class ActivityDetailViewTest(TestCase):
@@ -173,7 +173,7 @@ class ActivityDetailViewTest(TestCase):
 
     def test_detail_view_shows_current_values(self):
         details = Activity.objects.first().details
-        response = self.client.get(reverse('details', args=[2]))
+        response = self.client.get(reverse('details', args=[1]))
         self.assertContains(response, details.name)
         self.assertContains(response, details.description)
 
