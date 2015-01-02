@@ -1,6 +1,9 @@
 /* FIXME Conversion from m/s to knots is currently hard coded into file! */
 
+var $ = require('jquery');
+
 module.exports = {
+	d3: require('d3'),
 	speeds: [],
 	times: [],
 	plot: undefined,
@@ -15,8 +18,8 @@ module.exports = {
 				mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3],
 				w = width - (ml + mr),
 				h = height - (mb + mt),
-				line = d3.svg.line(),
-				time_format = d3.time.format('%Y-%m-%dT%X+00:00'),
+				line = this.d3.svg.line(),
+				time_format = this.d3.time.format('%Y-%m-%dT%X+00:00'),
 				xAxis,
 				yAxis,
 				that = this;
@@ -24,13 +27,13 @@ module.exports = {
 		this.speeds = spds.map(function(d) { return d.speed; });
 		this.times = spds.map(function(d) { return time_format.parse(d.time); });
 
-		this.x = d3.time.scale().range([0, w]).domain([d3.min(this.times),
-																									d3.max(this.times)]);
-		xAxis = d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
-		this.y = d3.scale.linear().range([h, 0]).domain([0, d3.max(this.speeds)]);
-		yAxis = d3.svg.axis().scale(this.y).ticks(4).orient('left');
+		this.x = this.d3.time.scale().range([0, w]).domain([this.d3.min(this.times),
+																									this.d3.max(this.times)]);
+		xAxis = this.d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
+		this.y = this.d3.scale.linear().range([h, 0]).domain([0, this.d3.max(this.speeds)]);
+		yAxis = this.d3.svg.axis().scale(this.y).ticks(4).orient('left');
 
-		var svg = d3.select('#speed-plot')
+		var svg = this.d3.select('#speed-plot')
 			.append('svg:svg')
 			  .attr('id', 'speed-plot-svg')
 				.attr('width', width)

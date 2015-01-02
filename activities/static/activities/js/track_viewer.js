@@ -1,4 +1,5 @@
 module.exports = {
+	L: require("leaflet"),
 	latlng: [],
 	map: null,
 	trackline: null,
@@ -11,14 +12,14 @@ module.exports = {
 			this.latlng.push(L.latLng(pos[i].lat, pos[i].lon));
 		}
 
-		this.map = L.map('map', {scrollWheelZoom: false});
-		L.tileLayer(this.tile_source, {
+		this.map = this.L.map('map', {scrollWheelZoom: false});
+		this.L.tileLayer(this.tile_source, {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
 			maxZoom: 18
 		}).addTo(this.map);
 
-		this.trackline = L.polyline(this.latlng, {color: 'red'}).addTo(this.map);
-		this.marker = L.circleMarker(this.latlng[0], {
+		this.trackline = this.L.polyline(this.latlng, {color: 'red'}).addTo(this.map);
+		this.marker = this.L.circleMarker(this.latlng[0], {
 			radius: 6,
 			color: 'red',
 			weight: 3,

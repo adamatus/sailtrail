@@ -1,23 +1,35 @@
-describe("Track viewer", function() {
-	it("expects to find a div with id map", function() {
-		expect(document.getElementById("map")).not.toBeNull();
+var should = require('chai').should(),
+		track_viewer = require('../track_viewer');
+
+describe("track_viewer", function() {
+
+	var element;
+
+	beforeEach(function() {
+		// Create a map element so we can attach map to it
+		element = document.createElement("div");
+		element.id = "map";
+		document.body.appendChild(element);
 	});
 
-	it("expects L to be defined", function() {
-	  expect(L).toBeDefined();
+	afterEach(function() {
+		element.parentNode.removeChild(element);
 	});
 
-	it("expects TrackViewer to be defined", function() {
-	  expect(TrackViewer).toBeDefined();
-	});
+	describe("drawmap", function() {
 
-	it("expects drawmap to populate latlng [SMOKE for TrackView.drawmap]", function(){
-		var pos = [{lat: 45, lon: -90}, {lat: 46, lon: -91}];
+		it("should respond", function() {
+			track_viewer.should.respondTo("drawmap");
+		});
 
-		expect(TrackViewer.latlng.length).toEqual(0)
-			TrackViewer.tile_source = ''; // Don't download map tiles
-			TrackViewer.drawmap(pos);
-		expect(TrackViewer.latlng.length).not.toEqual(0)
-	
+		it("should populate latlng", function(){
+			var pos = [{lat: 45, lon: -90}, {lat: 46, lon: -91}];
+
+			track_viewer.latlng.should.have.length(0);
+			track_viewer.tile_source = ''; // Don't download map tiles
+			track_viewer.drawmap(pos);
+			track_viewer.latlng.should.have.length(2);
+		
+		});
 	});
 });
