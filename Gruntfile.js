@@ -33,6 +33,49 @@ module.exports = function(grunt) {
 				}
 			}
 		},
+		
+		"django-manage": {
+			options: {
+				app: 'sailstats'
+			},
+
+			test: {
+				options: {
+					command: 'test'
+				}
+			},
+			
+			unittest: {
+				options: {
+					command: 'test',
+					args: [
+						'activities sirf'
+					]
+				}
+			},
+
+			functest: {
+				options: {
+					command: 'test',
+					args: [
+						'tests'
+					]
+				}
+			},
+		},
+
+		karma: {
+			options: {
+				configFile: 'karma.conf.js'
+			},
+
+			jstest: {
+				singleRun: true,
+			},
+
+			"jstest-watch": {
+			},
+		},
 
 		sass: {
 			dev: {
@@ -45,12 +88,19 @@ module.exports = function(grunt) {
 
   // Load plugins here
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-django');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-karma');
 
   // Register tasks here
   grunt.registerTask('default', []);
+
+	grunt.registerTask('test', ['karma:jstest', 'django-manage:test']);
+	grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
+	grunt.registerTask('functest', ['django-manage:functest']);
 	
 	grunt.registerTask('dev', ['browserify', 'watch']);
+	grunt.registerTask('jsdev', ['karma:jstest-watch']);
 
 };
