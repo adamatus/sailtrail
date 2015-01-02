@@ -102,6 +102,7 @@ NOSE_ARGS = [
     '--cover-erase',
     '--cover-package=activities,sirf',
     '--cover-html',
+    '--cover-html-dir=cover/python',
     '--cover-inclusive',
     '--with-spec',
     '--spec-color',
