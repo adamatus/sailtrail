@@ -2,10 +2,17 @@
   "name": "sailstats",
   "description": "a webapp for windpower sailing activities",
   "version": "0.0.1",
-	"browserify": {
-		"transform": ["debowerify"]
+  "browserify": {
+    "transform": [
+      "debowerify"
+    ]
+  },
+	"browserify-shim": {
+		"jquery": "global:jQuery"
 	},
   "devDependencies": {
+    "browserify": "^8.0.3",
+    "browserify-shim": "^3.8.2",
     "chai": "^1.10.0",
     "debowerify": "^1.2.0",
     "grunt": "^0.4.5",

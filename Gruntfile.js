@@ -28,7 +28,8 @@ module.exports = function(grunt) {
 				
 				},
 				options: {
-					watch: true
+					watch: true,
+					transform: ['browserify-shim', 'debowerify']
 				}
 			}
 		},
