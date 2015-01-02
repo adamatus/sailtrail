@@ -4,3 +4,5 @@ __pycache__
 cover
 node_modules
 *.bundle.js
+*.css
+*.css.map
