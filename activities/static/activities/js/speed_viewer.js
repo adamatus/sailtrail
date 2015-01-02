@@ -1,6 +1,6 @@
 /* FIXME Conversion from m/s to knots is currently hard coded into file! */
 
-var SpeedViewer = {
+module.exports = {
 	speeds: [],
 	times: [],
 	plot: undefined,
@@ -12,18 +12,17 @@ var SpeedViewer = {
 		var width = $('#speed-plot').width(),
 			  height = $('#speed-plot').height(),
 				margins = [40, 40, 10, 10],
-				mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3];
+				mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3],
 				w = width - (ml + mr),
 				h = height - (mb + mt),
 				line = d3.svg.line(),
 				time_format = d3.time.format('%Y-%m-%dT%X+00:00'),
-				'2014-09-28T01:22:08+00:00'
-				xAxis = undefined,
-				yAxis = undefined
-				that = this;;
+				xAxis,
+				yAxis,
+				that = this;
 
-		this.speeds = spds.map(function(d) { return d.speed; }),
-		this.times = spds.map(function(d) { return time_format.parse(d.time); }),
+		this.speeds = spds.map(function(d) { return d.speed; });
+		this.times = spds.map(function(d) { return time_format.parse(d.time); });
 
 		this.x = d3.time.scale().range([0, w]).domain([d3.min(this.times),
 																									d3.max(this.times)]);
@@ -60,7 +59,7 @@ var SpeedViewer = {
 		    .attr('class', 'y label')
 				.attr('text-anchor', 'middle')
 				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
-				.text('Speed (' + units['speed'] + ')');
+				.text('Speed (' + units.speed + ')');
 
 		line.x(function(d) { return that.x(time_format.parse(d.time)); })	
 			  .y(function(d) { return that.y(d.speed); });
@@ -77,7 +76,7 @@ var SpeedViewer = {
 			.attr('cy', this.y(this.speeds[0]))
 			.style('fill', 'black')
 			.style('stroke', 'black')
-			.style('stroke-width', 3)
+			.style('stroke-width', 3);
 	},
 
 	movemarker: function(i) {

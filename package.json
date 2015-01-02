@@ -1,0 +1,11 @@
+{
+  "name": "sailstats",
+  "description": "a webapp for windpower sailing activities",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^3.2.1",
+    "grunt-contrib-sass": "^0.8.1",
+    "grunt-contrib-watch": "^0.6.1"
+  }
+}

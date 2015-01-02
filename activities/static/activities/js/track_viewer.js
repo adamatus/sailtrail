@@ -1,4 +1,4 @@
-var TrackViewer = {
+module.exports = {
 	latlng: [],
 	map: null,
 	trackline: null,
