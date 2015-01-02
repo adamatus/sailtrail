@@ -99,6 +99,8 @@ module.exports = function(grunt) {
 	grunt.registerTask('test', ['karma:jstest', 'django-manage:test']);
 	grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
 	grunt.registerTask('functest', ['django-manage:functest']);
+	grunt.registerTask('jstest', ['karma:jstest']);
+	grunt.registerTask('pytest', ['django-manage:unittest']);
 	
 	grunt.registerTask('dev', ['browserify', 'watch']);
 	grunt.registerTask('jsdev', ['karma:jstest-watch']);

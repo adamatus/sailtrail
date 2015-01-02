@@ -99,6 +99,10 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
     '--with-coverage',
+    '--cover-erase',
     '--cover-package=activities,sirf',
     '--cover-html',
+    '--cover-inclusive',
+    '--with-spec',
+    '--spec-color',
 ]
