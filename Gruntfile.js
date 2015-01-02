@@ -2,8 +2,9 @@ module.exports = function(grunt) {
 
 	var jslist = ['activities/static/activities/js/*.js'],
 			jsbundlelist = ['activities/static/activities/js/*.bundle.js'],
-			sasslist = ['activities/static/activities/css/scss/*.scss'];
-			csslist = ['activities/static/activities/css/*.css'];
+			sasslist = ['activities/static/activities/css/scss/*.scss'],
+			csslist = ['activities/static/activities/css/*.css'],
+			templatelist = ['activities/templates/**/*.html'];
 
   // Project configuration
   grunt.initConfig({
@@ -16,7 +17,7 @@ module.exports = function(grunt) {
 			},
 			livereload: {
 				options: { livereload: true },
-				files: csslist.concat(jsbundlelist),
+				files: csslist.concat(jsbundlelist, templatelist),
 			},
 		},
 
