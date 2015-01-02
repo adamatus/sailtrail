@@ -1,0 +1,34 @@
+{
+  "name": "sailstats",
+  "version": "0.0.1",
+  "homepage": "https://github.com/adamatus/sailstats",
+  "description": "Windsports tracker",
+  "main": "index.html",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "windsports",
+    "sailing",
+    "stats"
+  ],
+  "authors": [
+    "Adam Riggall"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "blanket": "~1.1.5",
+    "d3": "~3.4.12",
+    "bootstrap": "~3.2.0",
+    "leaflet": "~0.7.3",
+    "seiyria-bootstrap-slider": "~4.0.1"
+  }
+}

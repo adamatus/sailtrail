@@ -93,6 +93,8 @@ STATICFILES_FINDERS = (
     "djangobower.finders.BowerFinder",
 )
 
+BOWER_COMPONENTS_ROOT = BASE_DIR
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
@@ -100,13 +102,3 @@ NOSE_ARGS = [
     '--cover-package=activities,sirf',
     '--cover-html',
 ]
-
-BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../bower')
-
-BOWER_INSTALLED_APPS = (
-    'bootstrap',
-    'leaflet',
-    'blanket',
-    'd3',
-    'seiyria-bootstrap-slider',
-)
