@@ -4,6 +4,7 @@ module.exports = {
 	map: null,
 	trackline: null,
 	marker: null,
+	marker_pos: 0,
 	tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
 	drawmap: function(pos) {
@@ -19,7 +20,7 @@ module.exports = {
 		}).addTo(this.map);
 
 		this.trackline = this.L.polyline(this.latlng, {color: 'red'}).addTo(this.map);
-		this.marker = this.L.circleMarker(this.latlng[0], {
+		this.marker = this.L.circleMarker(this.latlng[this.marker_pos], {
 			radius: 6,
 			color: 'red',
 			weight: 3,
@@ -28,9 +29,8 @@ module.exports = {
 	},
 
 	movemarker: function(i) {
-		if ((i >= 0) && (i < this.latlng.length)) {
-			this.marker.setLatLng(this.latlng[i]);
-		}
+		this.marker_pos = (i < 0) ? 0 : (i >= this.latlng.length) ? this.latlng.length - 1 : i;
+		this.marker.setLatLng(this.latlng[this.marker_pos]);
 	}
 };
 
