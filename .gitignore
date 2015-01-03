@@ -7,3 +7,6 @@ bower_components
 *.bundle.js
 *.css
 *.css.map
+.uploads
+.cover
+.database

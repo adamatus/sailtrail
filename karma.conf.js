@@ -15,7 +15,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-			'activities/static/activities/js/tests/*.specs.js'
+			'django/activities/static/activities/js/tests/*.specs.js'
     ],
 
 
@@ -28,7 +28,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-			'activities/static/activities/js/tests/*.specs.js': ['browserify']
+			'django/activities/static/activities/js/tests/*.specs.js': ['browserify']
     },
 
 
@@ -46,7 +46,7 @@ module.exports = function(config) {
 
     // coverage reporter configuration
     coverageReporter: {
-      dir: 'cover/js',
+      dir: '.cover/js',
       reporters: [
         // reporters not supporting the `file` property
         { type: 'html' },
