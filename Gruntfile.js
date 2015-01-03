@@ -42,7 +42,10 @@ module.exports = function(grunt) {
 
 			test: {
 				options: {
-					command: 'test'
+					command: 'test',
+					args: [
+						'activities sirf tests'
+					]
 				}
 			},
 			
