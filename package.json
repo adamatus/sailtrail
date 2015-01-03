@@ -2,23 +2,27 @@
   "name": "sailstats",
   "description": "A webapp for tracking windpowered activities",
   "version": "0.0.1",
-  "keywords": ["windsports", "sailings", "stats"],
+  "keywords": [
+    "windsports",
+    "sailings",
+    "stats"
+  ],
   "homepage": "https://github.com/adamatus/sailstats",
-	"author": {
-	  "name": "Adam Riggall",
-	  "email": "adam@riggall.info",
-	  "url": "http://adam.riggall.info"
-	},
-	"repository" :{ 
-	  "type" : "git",
-    "url" : "http://github.com/adamatus/sailstats.git"
+  "author": {
+    "name": "Adam Riggall",
+    "email": "adam@riggall.info",
+    "url": "http://adam.riggall.info"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/adamatus/sailstats.git"
   },
   "bugs": {
     "url": "https://github.com/adamatus/sailstats/issues",
-		"email": "adam@riggall.info"
-	},
-	"private": true,
-	"license": "CC-BY-NC-SA-4.0",
+    "email": "adam@riggall.info"
+  },
+  "private": true,
+  "license": "CC-BY-NC-SA-4.0",
   "browserify": {
     "transform": [
       "debowerify",
