@@ -1,3 +1,8 @@
+<a name="0.0.3"></a>
+### 0.0.3 (2015-01-03)
+
+* Internal build changes, including the ability to generate this nice changelog
+
 <a name="0.0.2"></a>
 ### 0.0.2 (2015-01-03)
 

@@ -1,7 +1,7 @@
 {
   "name": "sailstats",
   "description": "A webapp for tracking windpowered activities",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "keywords": [
     "windsports",
     "sailings",
