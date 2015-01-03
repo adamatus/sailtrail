@@ -28,9 +28,54 @@ module.exports = function(grunt) {
 				
 				},
 				options: {
-					watch: true
+					watch: true,
+					transform: ['browserify-shim', 'debowerify']
 				}
 			}
+		},
+		
+		"django-manage": {
+			options: {
+				app: 'sailstats',
+				manage_path: 'django/'
+			},
+
+			test: {
+				options: {
+					command: 'test'
+				}
+			},
+			
+			unittest: {
+				options: {
+					command: 'test',
+					args: [
+						'activities sirf'
+					]
+				}
+			},
+
+			functest: {
+				options: {
+					command: 'test',
+					args: [
+						'tests'
+					]
+				}
+			},
+		},
+
+		karma: {
+			options: {
+				configFile: 'karma.conf.js'
+			},
+
+			jstest: {
+				singleRun: true,
+			},
+
+			"jstest-watch": {
+			},
 		},
 
 		sass: {
@@ -44,12 +89,21 @@ module.exports = function(grunt) {
 
   // Load plugins here
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-django');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-karma');
 
   // Register tasks here
   grunt.registerTask('default', []);
+
+	grunt.registerTask('test', ['karma:jstest', 'django-manage:test']);
+	grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
+	grunt.registerTask('functest', ['django-manage:functest']);
+	grunt.registerTask('jstest', ['karma:jstest']);
+	grunt.registerTask('pytest', ['django-manage:unittest']);
 	
 	grunt.registerTask('dev', ['browserify', 'watch']);
+	grunt.registerTask('jsdev', ['karma:jstest-watch']);
 
 };

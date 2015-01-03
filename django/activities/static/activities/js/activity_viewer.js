@@ -1,6 +1,8 @@
 var SpeedViewer = require('./speed_viewer'),
 	  TrackViewer = require('./track_viewer');
 
+require('seiyria-bootstrap-slider');
+
 $('#time-slider').slider({
 	max: pos.length,
 	value: 0,

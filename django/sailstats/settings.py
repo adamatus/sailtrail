@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '../uploads')
+MEDIA_ROOT = os.path.join(BASE_DIR, '../.uploads')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -65,7 +65,7 @@ WSGI_APPLICATION = 'sailstats.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, '../database/db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '../.database/db.sqlite3'),
     }
 }
 
@@ -93,20 +93,17 @@ STATICFILES_FINDERS = (
     "djangobower.finders.BowerFinder",
 )
 
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../')
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
     '--with-coverage',
+    '--cover-erase',
     '--cover-package=activities,sirf',
     '--cover-html',
+    '--cover-html-dir=../.cover/python',
+    '--cover-inclusive',
+    '--with-spec',
+    '--spec-color',
 ]
-
-BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../bower')
-
-BOWER_INSTALLED_APPS = (
-    'bootstrap',
-    'leaflet',
-    'blanket',
-    'd3',
-    'seiyria-bootstrap-slider',
-)

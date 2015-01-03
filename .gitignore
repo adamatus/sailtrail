@@ -3,6 +3,10 @@
 __pycache__
 cover
 node_modules
+bower_components
 *.bundle.js
 *.css
 *.css.map
+.uploads
+.cover
+.database
