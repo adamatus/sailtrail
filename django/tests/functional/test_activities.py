@@ -11,7 +11,7 @@ from .pages import HomePage, ActivityPage, ActivityDetailsPage
 
 
 class ActivitiesTest(StaticLiveServerTestCase):
-    """Test the uploading of SBN files"""
+    """Functional tests for activities"""
 
     def setUp(self):
         """Initialize testing setup"""
@@ -26,7 +26,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_visit_homepage_and_upload_activity(self):
-        """Functional tests for visiting homepage and uploading file"""
+        """Tests for visiting homepage and uploading file"""
 
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
@@ -144,7 +144,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
             self.assertTrue(homepage.activity_list_is_empty())
 
     def test_activity_stats(self):
-        """Functional tests for visiting homepage and uploading file"""
+        """Tests for activitiy stats"""
 
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
