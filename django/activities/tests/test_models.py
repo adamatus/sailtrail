@@ -13,14 +13,13 @@ from pytz import timezone
 from activities.models import (Activity, ActivityDetail, ActivityStat,
                                ActivityTrackpoint)
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__), 
+ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
 with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
 
 
 class ActivityModelTest(TestCase):
-    """Tests for the Activity model"""
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -29,9 +28,10 @@ class ActivityModelTest(TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_upfile_field_creates_file(self):
+        """[save] should create a file on filesystem"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-                                           
+
             Activity.objects.create(upfile=test_file)
             a = Activity.objects.first()
 
@@ -41,6 +41,7 @@ class ActivityModelTest(TestCase):
                 ))
 
     def test_delete_removes_file(self):
+        """[delete] should remove file from filesystem"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
@@ -53,6 +54,7 @@ class ActivityModelTest(TestCase):
             self.assertFalse(os.path.exists(file_path))
 
     def test_delete_removes_only_correct_file(self):
+        """[delete] should remove correct file (and only that file)"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             test_file2 = SimpleUploadedFile('test2.sbn', SBN_BIN)
@@ -67,6 +69,7 @@ class ActivityModelTest(TestCase):
             self.assertTrue(os.path.exists(file_path))
 
     def test_model_ordering_on_dates_with_most_recent_first(self):
+        """should order activites with most recent first"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
             hours = [11, 10, 12]
@@ -75,8 +78,8 @@ class ActivityModelTest(TestCase):
                 test_files.append(SimpleUploadedFile(f, SBN_BIN))
                 a = Activity.objects.create(upfile=test_files[-1])
 
-                a.trim_start=datetime(2014, 10, 12, t, 20, 15, 
-                                          tzinfo=timezone('UTC'))
+                a.trim_start = datetime(2014, 10, 12, t, 20, 15,
+                                        tzinfo=timezone('UTC'))
                 a.save()
 
             activities = Activity.objects.all()
@@ -85,6 +88,7 @@ class ActivityModelTest(TestCase):
             self.assertIn('test2.sbn', activities[2].upfile.url)
 
     def test_integration_get_trackpoints_returns_points(self):
+        """[get_trackpoints] should return trackpoints"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = Activity.objects.create(upfile=test_file1)
@@ -94,10 +98,11 @@ class ActivityModelTest(TestCase):
             self.assertAlmostEquals(4, tps[3].id)
 
     def test_integration_get_trackpoints_returns_points_with_start_time(self):
+        """[get_trackpoints] should trim to only start_time"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = Activity.objects.create(upfile=test_file1)
-            a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
                                     tzinfo=timezone('UTC'))
             a.save()
             tps = a.get_trackpoints()
@@ -106,10 +111,11 @@ class ActivityModelTest(TestCase):
             self.assertAlmostEquals(4, tps[2].id)
 
     def test_integration_get_trackpoints_returns_points_with_end_time(self):
+        """[get_trackpoints] should trim to only end_time"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = Activity.objects.create(upfile=test_file1)
-            a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
                                   tzinfo=timezone('UTC'))
             a.save()
             tps = a.get_trackpoints()
@@ -118,13 +124,14 @@ class ActivityModelTest(TestCase):
             self.assertAlmostEquals(3, tps[2].id)
 
     def test_integration_get_trackpoints_returns_points_with_both_time(self):
+        """[get_trackpoints] should trim to both start_time and end_time"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = Activity(upfile=test_file1)
             a.save()
-            a.trim_start = datetime(2014, 7, 15, 22, 37, 55, 
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
                                     tzinfo=timezone('UTC'))
-            a.trim_end = datetime(2014, 7, 15, 22, 37, 56, 
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
                                   tzinfo=timezone('UTC'))
             a.save()
             tps = a.get_trackpoints()
@@ -133,7 +140,7 @@ class ActivityModelTest(TestCase):
             self.assertAlmostEquals(3, tps[1].id)
 
 
-class ActivityTrackpointTests(TestCase):
+class ActivitytrackpointModelTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -141,7 +148,118 @@ class ActivityTrackpointTests(TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
+
+class ActivitydetailsModelTest(TestCase):
+
+    fixtures = ['partial-activity.json']
+
+    def test_smoke_model_has_expected_fields(self):
+        """should have the expected fields"""
+        name = 'Test name'
+        desc = 'Test description'
+
+        ActivityDetail.objects.create(
+            name=name,
+            description=desc,
+            file_id=Activity.objects.first())  # Should not raise
+
+    def test_cannot_associate_two_details_with_one_file(self):
+        """[save] should not allow one file to have multiple details"""
+        ActivityDetail.objects.create(
+            name='Test', file_id=Activity.objects.first())
+        self.assertRaises(
+            IntegrityError,
+            lambda:
+                ActivityDetail.objects.create(
+                    name='Test2', file_id=Activity.objects.first())
+        )
+
+    def test_cannot_create_details_without_file_ref(self):
+        """[save] should throw if missing a file_id"""
+        self.assertRaises(
+            IntegrityError,
+            lambda:
+                ActivityDetail.objects.create(
+                    name='Test')
+        )
+
+    def test_cannot_create_details_without_name(self):
+        """[save] should throw if missing a name"""
+        with self.assertRaises(ValidationError):
+            a = ActivityDetail.objects.create(
+                file_id=Activity.objects.first())
+            a.full_clean()
+
+
+class ActivitystatModelTest(TestCase):
+
+    fixtures = ['partial-activity.json']
+
+    def setUp(self):
+        self.stat = ActivityStat(
+            duration=timedelta(days=0, hours=1, minutes=10),
+            file_id=Activity.objects.first())  # Should not raise
+        self.stat.save()
+
+    def test_get_start_time_returns_time(self):
+        """[start_time] should return correct time"""
+        self.assertEqual(time(22, 37, 54), self.stat.start_time)
+
+    def test_get_end_time_returns_correct_time(self):
+        """[end_time] should return correct time"""
+        self.assertEqual(time(22, 37, 57), self.stat.end_time)
+
+    def test_get_date_returns_date(self):
+        """[date] should return correct date"""
+        self.assertEqual(date(2014, 7, 15), self.stat.date)
+
+    def test_get_model_max_speed_is_initially_null(self):
+        """[model_max_speed] should be null initially"""
+        self.assertEqual(None, self.stat.model_max_speed)
+
+    # TODO This test is very slow, definitely need to mock somehow
+    def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
+        """[max_speed] should populate model_max_speed if null"""
+        self.assertEqual('6.65 knots', self.stat.max_speed)
+        self.assertEqual(3.42, self.stat.model_max_speed)
+
+    def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
+        """[max_speed] should not populate model_max_speed if populated"""
+        self.stat.model_max_speed = 10.5
+        self.stat.save()
+        self.assertEqual('20.41 knots', self.stat.max_speed)
+
+    def test_get_model_distance_is_populated_on_call_to_distance(self):
+        """[distance] should populate model_distance"""
+        self.assertEqual('0.01 nmi', self.stat.distance)
+        self.assertAlmostEqual(9.9789472033, self.stat.model_distance)
+
+
+class IntegrationOfActivityModelsTest(TestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_deleting_activity_removes_activity_details(self):
+        """should delete activity details on activity delete"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            Activity.objects.create(
+                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
+            )
+
+            ActivityDetail.objects.create(
+                name='',
+                file_id=Activity.objects.first())
+
+            self.assertEqual(1, len(ActivityDetail.objects.all()))
+            Activity.objects.first().delete()
+            self.assertEqual(0, len(ActivityDetail.objects.all()))
+
     def test_integration_upload_creates_trackpoints(self):
+        """should create trackpoints on upload"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
             self.assertEquals(0, len(ActivityTrackpoint.objects.all()))
@@ -163,102 +281,3 @@ class ActivityTrackpointTests(TestCase):
             self.assertEquals(15, last.timepoint.day)
             self.assertEquals(22, last.timepoint.hour)
             self.assertEquals(57, last.timepoint.second)
-
-
-class ActivityDetailsModelTests(TestCase):
-
-    fixtures = ['partial-activity.json']
-
-    def test_smoke_model_has_expected_fields(self):
-        name = 'Test name'
-        desc = 'Test description'
-
-        ActivityDetail.objects.create(
-            name=name,
-            description=desc,
-            file_id=Activity.objects.first())  # Should not raise
-
-    def test_cannot_associate_two_details_with_one_file(self):
-        ActivityDetail.objects.create(
-            name='Test', file_id=Activity.objects.first())
-        self.assertRaises(
-            IntegrityError,
-            lambda:
-                ActivityDetail.objects.create(
-                    name='Test2', file_id=Activity.objects.first())
-        )
-
-    def test_cannot_create_details_without_file_ref(self):
-        self.assertRaises(
-            IntegrityError,
-            lambda:
-                ActivityDetail.objects.create(
-                    name='Test')
-        )
-
-    def test_cannot_create_details_without_name(self):
-        with self.assertRaises(ValidationError):
-            a = ActivityDetail.objects.create(
-                file_id=Activity.objects.first())
-            a.full_clean()
-
-
-class ActivityStatModelTests(TestCase):
-
-    fixtures = ['partial-activity.json']
-
-    def setUp(self):
-        self.stat = ActivityStat(
-            duration=timedelta(days=0, hours=1, minutes=10),
-            file_id=Activity.objects.first())  # Should not raise
-        self.stat.save()
-
-    def test_get_start_time_returns_time(self):
-        self.assertEqual(time(22, 37, 54), self.stat.start_time)
-
-    def test_get_end_time_returns_correct_time(self):
-        self.assertEqual(time(22, 37, 57), self.stat.end_time)
-
-    def test_get_end_date_returns_date(self):
-        self.assertEqual(date(2014, 7, 15), self.stat.date)
-
-    def test_get_model_max_speed_is_initially_null(self):
-        self.assertEqual(None, self.stat.model_max_speed)
-
-    # TODO This test is very slow, definitely need to mock somehow 
-    def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
-        self.assertEqual('6.65 knots', self.stat.max_speed)
-        self.assertEqual(3.42, self.stat.model_max_speed)
-
-    def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
-        self.stat.model_max_speed = 10.5
-        self.stat.save()
-        self.assertEqual('20.41 knots', self.stat.max_speed)
-
-    def test_get_model_distance_is_populated_on_call_to_distance(self):
-        self.assertEqual('0.01 nmi', self.stat.distance)
-        self.assertAlmostEqual(9.9789472033, self.stat.model_distance)
-
-
-class ActivityModelsIntegrationTests(TestCase):
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
-
-    def test_deleting_activity_removes_activity_details(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            Activity.objects.create(
-                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
-            )
-
-            ActivityDetail.objects.create(
-                name='',
-                file_id=Activity.objects.first())  
-
-            self.assertEqual(1, len(ActivityDetail.objects.all()))
-            Activity.objects.first().delete()
-            self.assertEqual(0, len(ActivityDetail.objects.all()))
-

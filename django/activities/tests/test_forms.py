@@ -9,11 +9,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from activities.forms import UploadFileForm, ActivityDetailsForm
 from activities.models import Activity, ActivityDetail
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__), 
+ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
 
 
-class UploadFileFormTest(TestCase):
+class UploadfileFormTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -22,11 +22,12 @@ class UploadFileFormTest(TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_form_renders_file_upload_field(self):
-        """Smoke test to make sure we get the input type we want"""
+        """should include the correct input field id"""
         form = UploadFileForm()
         self.assertIn('id_upfile', form.as_p())
 
     def test_form_save(self):
+        """[save] should succeed on valid upload"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
                 sbn_bin = f.read()
@@ -39,18 +40,20 @@ class UploadFileFormTest(TestCase):
                              Activity.objects.first())
 
 
-class ActivityDetailsFormTest(TestCase):
+class ActivitydetailsFormTest(TestCase):
 
     fixtures = ['partial-activity.json']
 
     def test_form_renders_correct_fields(self):
+        """should include the correct input field id"""
         form = ActivityDetailsForm()
         self.assertIn('id_name', form.as_p())
 
     def test_from_save(self):
+        """[save] should succeed with valid name"""
         a = Activity.objects.first()
-        form = ActivityDetailsForm({'name': 'Test', 
-                                    'description': '', 
+        form = ActivityDetailsForm({'name': 'Test',
+                                    'description': '',
                                     'file_id': a.id})
         form.is_valid()
         upactivity = form.save()
