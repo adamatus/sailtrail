@@ -25,10 +25,10 @@ for tp in d:
             '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC)))
 
 
-class SiRFTest(unittest.TestCase):
-    """Tests for SiRF Processing"""
+class SirfTest(unittest.TestCase):
 
     def test_reading_of_sirf_file(self):
+        """[read_sbn] should correctly parse SBN file"""
         p = sirf.read_sbn(os.path.join(ASSET_DIR, 'test.sbn'))
         self.assertEquals(679, p.rx_cnt)
         self.assertEquals('2013/07/09', p.pktq[1]['date'])
@@ -49,29 +49,42 @@ class StatsTest(unittest.TestCase):
         self.stats = Stats(trackpoints)
 
     def test_get_start_time(self):
+        """[start_time] should return correct start time"""
         self.assertEquals(time(2, 45, 13), self.stats.start_time)
 
     def test_get_end_time(self):
+        """[end_time] should return correct end time"""
         self.assertEquals(time(2, 45, 40), self.stats.end_time)
 
     def test_get_start_date(self):
+        """[start_date] should return correct start date"""
         self.assertEquals(date(2014, 9, 28), self.stats.start_date)
 
     def test_get_duration(self):
+        """[duration] should return correct duration"""
         self.assertEquals(timedelta(0, 27), self.stats.duration)
 
     def test_get_speeds(self):
+        """[speeds] should return array of speeds"""
         speeds = self.stats.speeds
         self.assertEquals(28, len(speeds))
         self.assertAlmostEquals(2.19, speeds[0].magnitude)
 
     def test_get_max_speed(self):
+        """[max_speed] should return correct max speed (in m/s)"""
         self.assertEqual('2.53 m / s', '{:~}'.format(self.stats.max_speed))
 
-    def test_get_distance(self):
+    def test_get_distance_haversine_method(self):
+        """[get_distance] should return correct haversine distance"""
         self.assertAlmostEquals(
             59.12590197, self.stats.distance(method='Haversine').magnitude)
+
+    def test_get_distance_sphlawcos_method(self):
+        """[get_distance] should return correct sph. law of cosines distance"""
         self.assertAlmostEquals(
             59.11451088, self.stats.distance(method='SphLawCos').magnitude)
+
+    def test_get_distance_equirect_method(self):
+        """[get_distance] should return correct equirect distance"""
         self.assertAlmostEquals(
             59.12590197, self.stats.distance(method='Equirect').magnitude)
