@@ -10,6 +10,22 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
+		bump: {
+			options: {
+				files: ['package.json', 'bower.json'],
+				commit: true,
+				commitMessage: 'Release v%VERSION%',
+			  commitFiles: ['package.json'],
+        createTag: true,
+        tagName: 'v%VERSION%',
+        tagMessage: 'Version %VERSION%',
+        push: true,
+        pushTo: '',
+        gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+        globalReplace: false
+			}
+		},
+
 		watch: {
 			sass: {
 				files: sasslist,
@@ -92,6 +108,7 @@ module.exports = function(grunt) {
 
   // Load plugins here
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-bump');
   grunt.loadNpmTasks('grunt-contrib-django');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
