@@ -31,7 +31,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
             details_page = ActivityDetailsPage(self)
-            activity_page = ActivityPage(self) 
+            activity_page = ActivityPage(self)
 
             # Visitor comes to homepage and notices title is SailStats
             homepage.go_to_homepage()
@@ -40,7 +40,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
             # They notice a file upload box and are prompted to upload a file
             homepage.upload_file('kite-session1.sbn')
 
-            # They are taken to the new activity page, where they are 
+            # They are taken to the new activity page, where they are
             # prompted to enter details about the uploaded file
             name = 'First winter kite session!'
             desc = 'The very first session of the year'
@@ -56,7 +56,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
             homepage.go_to_homepage()
             self.assertIn(name, homepage.get_page_content())
 
-            # The user clicks on the link for their uploaded sessions and 
+            # The user clicks on the link for their uploaded sessions and
             # are taken to back to a page which shows the details
             homepage.go_to_activity(name)
             self.assertIn(name, activity_page.get_page_content())
@@ -75,8 +75,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
             homepage.go_to_activity(name)
             activity_page.click_edit()
 
-            # They are taken to a page where they can edit their page.  
-            # They make a change to the description 
+            # They are taken to a page where they can edit their page.
+            # They make a change to the description
             new_desc = 'Updated description'
             details_page.enter_description(new_desc)
 
@@ -102,12 +102,12 @@ class ActivitiesTest(StaticLiveServerTestCase):
             self.assertNotIn(desc, activity_page.get_page_content())
 
             # They click the edit button again, blank out the name, get
-            # warned that it's not okay, 
+            # warned that it's not okay,
             activity_page.click_edit()
             new_name = ''
             details_page.enter_name(new_name)
             details_page.click_ok()
-            self.assertIn(ERROR_ACTIVITY_NAME_MISSING, 
+            self.assertIn(ERROR_ACTIVITY_NAME_MISSING,
                           details_page.get_alerts())
 
             # They then change their mind and hit 'cancel'
@@ -120,7 +120,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
             # The click the 'delete' link and are returned to the homepage,
             activity_page.click_delete()
-            self.assertTrue(homepage.is_current_url()) 
+            self.assertTrue(homepage.is_current_url())
 
             # They notice that their activity is no longer listed
             self.assertNotIn(name, homepage.get_page_content())
@@ -132,7 +132,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
             # They are taken back to the homepage, and their session is
             # not shown in the list
-            self.assertTrue(homepage.is_current_url()) 
+            self.assertTrue(homepage.is_current_url())
             self.assertTrue(homepage.activity_list_is_empty())
 
             # They upload another file, but this time on the details screen
@@ -149,14 +149,14 @@ class ActivitiesTest(StaticLiveServerTestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
             details_page = ActivityDetailsPage(self)
-            activity_page = ActivityPage(self) 
+            activity_page = ActivityPage(self)
 
             # Visitor uploads file
             homepage.go_to_homepage()
             homepage.upload_file('kite-session1.sbn')
 
-            # They are taken to the new details page, where they notice 
-            # the date and time and duration of the session listed 
+            # They are taken to the new details page, where they notice
+            # the date and time and duration of the session listed
             self.assertIn('Jan. 19, 2014', details_page.get_page_content())
             self.assertIn('4:44 p.m.', details_page.get_page_content())
             self.assertIn('1:30:06', details_page.get_page_content())
