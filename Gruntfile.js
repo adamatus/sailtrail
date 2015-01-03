@@ -14,15 +14,20 @@ module.exports = function(grunt) {
 			options: {
 				files: ['package.json', 'bower.json'],
 				commit: true,
-				commitMessage: 'Release v%VERSION%',
-			  commitFiles: ['package.json', 'bower.json'],
-        createTag: true,
-        tagName: 'v%VERSION%',
-        tagMessage: 'Version %VERSION%',
-        push: true,
-        pushTo: '',
-        gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
-        globalReplace: false
+				commitMessage: 'chore: Release v%VERSION%',
+				commitFiles: ['package.json', 'bower.json', 'CHANGELOG.md'],
+				createTag: true,
+				tagName: 'v%VERSION%',
+				tagMessage: 'Version %VERSION%',
+				push: true,
+				pushTo: '',
+				gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+				globalReplace: false
+			}
+		},
+
+		changelog: {
+			options: {
 			}
 		},
 
@@ -109,6 +114,7 @@ module.exports = function(grunt) {
   // Load plugins here
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-bump');
+	grunt.loadNpmTasks('grunt-conventional-changelog');
   grunt.loadNpmTasks('grunt-contrib-django');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
