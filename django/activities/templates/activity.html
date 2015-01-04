@@ -53,8 +53,9 @@ var units = {{ units|safe }};
 {% endblock %}
 
 {% block extra_bottom_js %}
+	{% js 'activities/js/activity_viewer.bundle.js' %}
 		<script>
 var pos = {{ pos_json|safe }};
+activity_viewer.init(pos);
 		</script>
-	{% js 'activities/js/activity_viewer.bundle.js' %}
 {% endblock %}

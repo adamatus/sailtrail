@@ -10,6 +10,7 @@ module.exports = {
 	marker: undefined,
 	x: undefined,
 	y: undefined,
+	marker_pos: 0,
 
 	drawplot: function(spds) {
 		var width = $('#speed-plot').width(),
@@ -75,18 +76,17 @@ module.exports = {
 
 		this.marker = this.plot.append('svg:circle')
 			.attr('r', 5)
-			.attr('cx', this.x(this.times[0]))
-			.attr('cy', this.y(this.speeds[0]))
+			.attr('cx', this.x(this.times[this.marker_pos]))
+			.attr('cy', this.y(this.speeds[this.marker_pos]))
 			.style('fill', 'black')
 			.style('stroke', 'black')
 			.style('stroke-width', 3);
 	},
 
 	movemarker: function(i) {
-		if ((i >= 0) && (i < this.speeds.length)) {
-			this.marker
-				.attr('cx', this.x(this.times[i]))
-				.attr('cy', this.y(this.speeds[i]));
-		}
+		this.marker_pos = (i < 0) ? 0 : (i >= this.speeds.length) ? this.speeds.length - 1 : i;
+		this.marker
+			.attr('cx', this.x(this.times[this.marker_pos]))
+			.attr('cy', this.y(this.speeds[this.marker_pos]));
 	},
 };
