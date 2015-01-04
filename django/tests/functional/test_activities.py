@@ -118,8 +118,19 @@ class ActivitiesTest(StaticLiveServerTestCase):
             self.assertIn(name, activity_page.get_page_content())
             self.assertIn(new_desc, activity_page.get_page_content())
 
-            # The click the 'delete' link and are returned to the homepage,
+            # The click the 'delete' link and are prompted to confirm
             activity_page.click_delete()
+            self.assertTrue(activity_page.delete_modal_is_visible())
+
+            # They decide not to click cancel and the modal goes away
+            activity_page.click_cancel_delete()
+            self.assertFalse(activity_page.delete_modal_is_visible())
+
+            # The click the 'delete' link again, decide to confirm,
+            # and are returned to the homepage,
+            activity_page.click_delete()
+            self.assertTrue(activity_page.delete_modal_is_visible())
+            activity_page.click_confirm_delete()
             self.assertTrue(homepage.is_current_url())
 
             # They notice that their activity is no longer listed

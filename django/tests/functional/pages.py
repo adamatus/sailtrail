@@ -1,4 +1,5 @@
 import os
+import time
 
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
 
@@ -41,14 +42,28 @@ class HomePage(BasePage):
     def activity_list_is_empty(self):
         return [] == self.browser.find_elements_by_css_selector('.activity')
 
-        
+
 class ActivityPage(BasePage):
 
     def click_edit(self):
         self.browser.find_element_by_link_text('Edit').click()
 
     def click_delete(self):
-        self.browser.find_element_by_link_text('Delete').click()
+        self.browser.find_element_by_id('activity_delete_button').click()
+
+    def click_confirm_delete(self):
+        self.browser.find_element_by_link_text('Delete It').click()
+
+    def click_cancel_delete(self):
+        self.browser.find_element_by_id("activity_delete_cancel").click()
+
+    def delete_modal_is_visible(self):
+        # Silly sleeps to deal with fade effect of modal
+        time.sleep(.2)
+        is_visible = self.browser.find_element_by_id(
+            'delete_modal').is_displayed()
+        time.sleep(.2)
+        return is_visible
 
 
 class ActivityDetailsPage(BasePage):
@@ -73,4 +88,3 @@ class ActivityDetailsPage(BasePage):
 
     def click_cancel(self):
         self.browser.find_element_by_link_text('Cancel').click()
-
