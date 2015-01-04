@@ -25,15 +25,8 @@
   "license": "CC-BY-NC-SA-4.0",
   "browserify": {
     "transform": [
-      "debowerify",
-      [
-        "browserify-istanbul",
-        {
-          "ignore": [
-            "**/bower_components/**"
-          ]
-        }
-      ]
+			"browserify-shim",
+      "debowerify"
     ]
   },
   "browserify-shim": {
@@ -62,6 +55,8 @@
     "karma-mocha": "0.1.10",
     "karma-mocha-reporter": "0.3.1",
     "karma-phantomjs-launcher": "0.1.4",
-    "mocha": "2.1.0"
+    "mocha": "2.1.0",
+    "sinon": "^1.12.2",
+    "sinon-chai": "^2.6.0"
   }
 }

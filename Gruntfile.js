@@ -1,10 +1,10 @@
 module.exports = function(grunt) {
 
-	var jslist = ['activities/static/activities/js/*.js'],
-			jsbundlelist = ['activities/static/activities/js/*.bundle.js'],
-			sasslist = ['activities/static/activities/css/scss/*.scss'],
-			csslist = ['activities/static/activities/css/*.css'],
-			templatelist = ['activities/templates/**/*.html'];
+	var jslist = ['django/activities/static/activities/js/*.js'],
+			jsbundlelist = ['django/activities/static/activities/js/*.bundle.js'],
+			sasslist = ['django/activities/static/activities/css/scss/*.scss'],
+			csslist = ['django/activities/static/activities/css/*.css'],
+			templatelist = ['django/activities/templates/**/*.html'];
 
   // Project configuration
   grunt.initConfig({
@@ -45,12 +45,11 @@ module.exports = function(grunt) {
 		browserify: {
 			dev: {
 				files: {
-					"activities/static/activities/js/activity_viewer.bundle.js": "activities/static/activities/js/activity_viewer.js"
+					"django/activities/static/activities/js/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
 				
 				},
 				options: {
 					watch: true,
-					transform: ['browserify-shim', 'debowerify']
 				}
 			}
 		},
@@ -87,6 +86,12 @@ module.exports = function(grunt) {
 					]
 				}
 			},
+
+			runserver: {
+				options: {
+					command: 'runlivereloadserver',
+				}
+			},
 		},
 
 		karma: {
@@ -105,7 +110,7 @@ module.exports = function(grunt) {
 		sass: {
 			dev: {
 				files: {
-					"activities/static/activities/css/plots.css": "activities/static/activities/css/scss/plots.scss"
+					"django/activities/static/activities/css/plots.css": "django/activities/static/activities/css/scss/plots.scss"
 				}
 			}
 		}
@@ -131,5 +136,6 @@ module.exports = function(grunt) {
 	
 	grunt.registerTask('dev', ['browserify', 'watch']);
 	grunt.registerTask('jsdev', ['karma:jstest-watch']);
+	grunt.registerTask('runserver', ['django-manage:runserver']);
 
 };

@@ -35,6 +35,10 @@ module.exports = function(config) {
 		// settings for browserify
 		browserify: {
 			debug: true,
+			transform: [
+				"debowerify", 
+				["browserify-istanbul", {"ignore": ["**/bower_components/**"]}]
+			]
 		},
 
 
