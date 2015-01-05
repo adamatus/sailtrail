@@ -87,58 +87,6 @@ class ActivityModelTest(TestCase):
             self.assertIn('test1.sbn', activities[1].upfile.url)
             self.assertIn('test2.sbn', activities[2].upfile.url)
 
-    def test_integration_get_trackpoints_returns_points(self):
-        """[get_trackpoints] should return trackpoints"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity.objects.create(upfile=test_file1)
-            tps = a.get_trackpoints()
-            self.assertEquals(4, len(tps))
-            self.assertAlmostEquals(1, tps[0].id)
-            self.assertAlmostEquals(4, tps[3].id)
-
-    def test_integration_get_trackpoints_returns_points_with_start_time(self):
-        """[get_trackpoints] should trim to only start_time"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity.objects.create(upfile=test_file1)
-            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
-                                    tzinfo=timezone('UTC'))
-            a.save()
-            tps = a.get_trackpoints()
-            self.assertEquals(3, len(tps))
-            self.assertAlmostEquals(2, tps[0].id)
-            self.assertAlmostEquals(4, tps[2].id)
-
-    def test_integration_get_trackpoints_returns_points_with_end_time(self):
-        """[get_trackpoints] should trim to only end_time"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity.objects.create(upfile=test_file1)
-            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
-                                  tzinfo=timezone('UTC'))
-            a.save()
-            tps = a.get_trackpoints()
-            self.assertEquals(3, len(tps))
-            self.assertAlmostEquals(1, tps[0].id)
-            self.assertAlmostEquals(3, tps[2].id)
-
-    def test_integration_get_trackpoints_returns_points_with_both_time(self):
-        """[get_trackpoints] should trim to both start_time and end_time"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            a = Activity(upfile=test_file1)
-            a.save()
-            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
-                                    tzinfo=timezone('UTC'))
-            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
-                                  tzinfo=timezone('UTC'))
-            a.save()
-            tps = a.get_trackpoints()
-            self.assertEquals(2, len(tps))
-            self.assertAlmostEquals(2, tps[0].id)
-            self.assertAlmostEquals(3, tps[1].id)
-
 
 class ActivitytrackpointModelTest(TestCase):
 
@@ -281,3 +229,55 @@ class IntegrationOfActivityModelsTest(TestCase):
             self.assertEquals(15, last.timepoint.day)
             self.assertEquals(22, last.timepoint.hour)
             self.assertEquals(57, last.timepoint.second)
+
+    def test_integration_get_trackpoints_returns_points(self):
+        """[get_trackpoints] should return trackpoints"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity.objects.create(upfile=test_file1)
+            tps = a.get_trackpoints()
+            self.assertEquals(4, len(tps))
+            self.assertAlmostEquals(1, tps[0].id)
+            self.assertAlmostEquals(4, tps[3].id)
+
+    def test_integration_get_trackpoints_returns_points_with_start_time(self):
+        """[get_trackpoints] should trim to only start_time"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity.objects.create(upfile=test_file1)
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
+                                    tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(3, len(tps))
+            self.assertAlmostEquals(2, tps[0].id)
+            self.assertAlmostEquals(4, tps[2].id)
+
+    def test_integration_get_trackpoints_returns_points_with_end_time(self):
+        """[get_trackpoints] should trim to only end_time"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity.objects.create(upfile=test_file1)
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
+                                  tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(3, len(tps))
+            self.assertAlmostEquals(1, tps[0].id)
+            self.assertAlmostEquals(3, tps[2].id)
+
+    def test_integration_get_trackpoints_returns_points_with_both_time(self):
+        """[get_trackpoints] should trim to both start_time and end_time"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
+            a = Activity(upfile=test_file1)
+            a.save()
+            a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
+                                    tzinfo=timezone('UTC'))
+            a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
+                                  tzinfo=timezone('UTC'))
+            a.save()
+            tps = a.get_trackpoints()
+            self.assertEquals(2, len(tps))
+            self.assertAlmostEquals(2, tps[0].id)
+            self.assertAlmostEquals(3, tps[1].id)
