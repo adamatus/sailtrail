@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import os.path
 
-from activities.models import Activity, ActivityDetail, ActivityStat
+from activities.models import ActivityTrack, ActivityDetail, ActivityStat
 from activities.forms import (UploadFileForm, ActivityDetailsForm,
                               ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING)
@@ -50,7 +50,7 @@ class HomepageViewTest(TestCase):
     def test_home_page_does_not_show_activities_without_details(self):
         """[get] should not show activities that are missing details"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            Activity.objects.create(
+            ActivityTrack.objects.create(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
             )
 
@@ -74,8 +74,8 @@ class FileuploadViewTest(TestCase):
             self.client.post(reverse('upload'),
                              data={'upfile': test_file})
 
-            self.assertEqual(Activity.objects.count(), 1)
-            new_activity = Activity.objects.first()
+            self.assertEqual(ActivityTrack.objects.count(), 1)
+            new_activity = ActivityTrack.objects.first()
             self.assertEqual(new_activity.upfile.url,
                              'activities/test1.sbn')
 
@@ -182,7 +182,7 @@ class ActivitydetailViewTest(TestCase):
 
     def test_detail_view_shows_current_values(self):
         """[get] should include the activity name/description"""
-        details = Activity.objects.first().details
+        details = ActivityTrack.objects.first().details
         response = self.client.get(reverse('details', args=[1]))
         self.assertContains(response, details.name)
         self.assertContains(response, details.description)
@@ -259,7 +259,7 @@ class DeleteactivityViewTest(TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            Activity.objects.create(
+            ActivityTrack.objects.create(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN)
             )
 
@@ -279,5 +279,5 @@ class DeleteactivityViewTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             self.client.get(reverse('delete_activity', args=[1]))
             self.assertRaises(ObjectDoesNotExist,
-                              lambda: Activity.objects.get(id=1)
+                              lambda: ActivityTrack.objects.get(id=1)
                               )

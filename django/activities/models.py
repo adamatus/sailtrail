@@ -14,7 +14,7 @@ import os.path
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
 
-class Activity(models.Model):
+class ActivityTrack(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
@@ -24,7 +24,7 @@ class Activity(models.Model):
         ordering = ['-trim_start']
 
     def save(self, *args, **kwargs):
-        super(Activity, self).save(*args, **kwargs)
+        super(ActivityTrack, self).save(*args, **kwargs)
 
         if self.trackpoint.count() == 0:
             d = read_sbn(self.upfile.path)
@@ -89,7 +89,7 @@ class Activity(models.Model):
         )
 
 
-@receiver(post_delete, sender=Activity)
+@receiver(post_delete, sender=ActivityTrack)
 def auto_delete_file_on_model_delete(sender, instance, **kwargs):
     """Remove file when corresponding model object has been deleted"""
     if instance.upfile:
@@ -102,18 +102,18 @@ class ActivityTrackpoint(models.Model):
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
-    file_id = models.ForeignKey(Activity, related_name='trackpoint')
+    file_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
 
 
 class ActivityDetail(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
-    file_id = models.OneToOneField(Activity, related_name='details',
+    file_id = models.OneToOneField(ActivityTrack, related_name='details',
                                    blank=False, null=False)
 
 
 class ActivityStat(models.Model):
-    file_id = models.OneToOneField(Activity, related_name='stats',
+    file_id = models.OneToOneField(ActivityTrack, related_name='stats',
                                    blank=False, null=False)
     model_distance = models.FloatField(null=True)  # m
     model_max_speed = models.FloatField(null=True)  # m/s

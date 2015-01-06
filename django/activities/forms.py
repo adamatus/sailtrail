@@ -1,5 +1,5 @@
 from django import forms
-from .models import Activity, ActivityDetail
+from .models import ActivityTrack, ActivityDetail
 
 ERROR_NO_UPLOAD_FILE_SELECTED = 'Please choose a file before clicking upload!'
 ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
@@ -8,7 +8,7 @@ ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
 class UploadFileForm(forms.models.ModelForm):
 
     class Meta:
-        model = Activity
+        model = ActivityTrack
         fields = ('upfile',)
         error_messages = {
             'upfile': {'required': ERROR_NO_UPLOAD_FILE_SELECTED},
@@ -34,4 +34,3 @@ class ActivityDetailsForm(forms.models.ModelForm):
         error_messages = {
             'name': {'required': ERROR_ACTIVITY_NAME_MISSING},
         }
-

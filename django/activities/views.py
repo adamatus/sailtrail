@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from activities.models import Activity
+from activities.models import ActivityTrack
 from .forms import UploadFileForm, ActivityDetailsForm
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
@@ -11,7 +11,7 @@ def home_page(request, form=None):
         form = UploadFileForm()
     return render(request, 'home.html',
                   {'activities':
-                      Activity.objects.filter(details__isnull=False),
+                      ActivityTrack.objects.filter(details__isnull=False),
                    'form': form
                    })
 
@@ -29,7 +29,7 @@ def upload(request):
 
 
 def details(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
+    activity = ActivityTrack.objects.get(id=activity_id)
     cancel_link = reverse('view_activity', args=[activity.id])
 
     if request.method == 'POST':
@@ -56,7 +56,7 @@ def details(request, activity_id):
 
 
 def view(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
+    activity = ActivityTrack.objects.get(id=activity_id)
     trimmed = activity.trimmed
 
     pos = list(activity.get_trackpoints().values('sog',
@@ -79,17 +79,17 @@ def view(request, activity_id):
 
 
 def delete(request, activity_id):
-    Activity.objects.get(id=activity_id).delete()
+    ActivityTrack.objects.get(id=activity_id).delete()
     return redirect('home')
 
 
 def trim(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
+    activity = ActivityTrack.objects.get(id=activity_id)
     activity.trim(request.POST['trim-start'], request.POST['trim-end'])
     return redirect('view_activity', activity.id)
 
 
 def untrim(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
+    activity = ActivityTrack.objects.get(id=activity_id)
     activity.reset_trim()
     return redirect('view_activity', activity.id)

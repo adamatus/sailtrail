@@ -7,7 +7,7 @@ import os.path
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from activities.forms import UploadFileForm, ActivityDetailsForm
-from activities.models import Activity, ActivityDetail
+from activities.models import ActivityTrack, ActivityDetail
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -37,7 +37,7 @@ class UploadfileFormTest(TestCase):
             upactivity = form.save()
             self.assertNotEquals(upactivity, None)
             self.assertEqual(upactivity,
-                             Activity.objects.first())
+                             ActivityTrack.objects.first())
 
 
 class ActivitydetailsFormTest(TestCase):
@@ -51,7 +51,7 @@ class ActivitydetailsFormTest(TestCase):
 
     def test_from_save(self):
         """[save] should succeed with valid name"""
-        a = Activity.objects.first()
+        a = ActivityTrack.objects.first()
         form = ActivityDetailsForm({'name': 'Test',
                                     'description': '',
                                     'file_id': a.id})
