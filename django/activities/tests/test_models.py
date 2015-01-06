@@ -3,6 +3,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 
+# from unittest.mock import patch, Mock
+
 import shutil
 import tempfile
 import os.path
@@ -86,6 +88,90 @@ class ActivityModelTest(TestCase):
             self.assertIn('test3.sbn', activities[0].upfile.url)
             self.assertIn('test1.sbn', activities[1].upfile.url)
             self.assertIn('test2.sbn', activities[2].upfile.url)
+
+    def test_empty_trim_should_do_nothing(self):
+        """[trim] should do nothing if no times are passed"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
+                                                   tzinfo=timezone('UTC')))
+            a.trim()
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
+                                                   tzinfo=timezone('UTC')))
+
+    def test_trim_with_only_start_should_trim_start(self):
+        """[trim] should trim start with only trim_start"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            a.trim(trim_start="2014-07-15T22:37:55+0000")
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
+                                                   tzinfo=timezone('UTC')))
+
+    def test_trim_with_only_end_should_trim_end(self):
+        """[trim] should trim end with only trim_end"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            a.trim(trim_end="2014-07-15T22:37:56+0000")
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
+                                                   tzinfo=timezone('UTC')))
+
+    def test_trim_with_both_should_trim_both(self):
+        """[trim] should trim both with only trim_both"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            a.trim(trim_start="2014-07-15T22:37:55+0000",
+                   trim_end="2014-07-15T22:37:56+0000")
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
+                                                   tzinfo=timezone('UTC')))
+
+    def test_trim_with_end_before_start_should_flip_and_trim(self):
+        """[trim] should flip and trim with start after end"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            a.trim(trim_start="2014-07-15T22:37:56+0000",
+                   trim_end="2014-07-15T22:37:55+0000")
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
+                                                   tzinfo=timezone('UTC')))
+
+    def test_trim_with_bad_input_should_gracefully_ignore(self):
+        """[trim] should gracefully ignore bad input"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+
+            Activity.objects.create(upfile=test_file)
+            a = Activity.objects.first()
+            a.trim(trim_start='aa', trim_end='1995')
+            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
+                                                     tzinfo=timezone('UTC')))
+            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
+                                                   tzinfo=timezone('UTC')))
 
 
 class ActivitytrackpointModelTest(TestCase):

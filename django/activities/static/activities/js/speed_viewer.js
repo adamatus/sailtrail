@@ -20,7 +20,8 @@ module.exports = {
 				w = width - (ml + mr),
 				h = height - (mb + mt),
 				line = this.d3.svg.line(),
-				time_format = this.d3.time.format('%Y-%m-%dT%X+00:00'),
+				// FIXME Not handling timezones currently...
+				time_format = this.d3.time.format('%Y-%m-%dT%X+0000'),
 				xAxis,
 				yAxis,
 				that = this;
