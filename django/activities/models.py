@@ -6,13 +6,12 @@ from django.dispatch import receiver
 from sirf.stats import Stats
 from sirf import read_sbn
 
-import dateutil.parser
 from datetime import datetime as dt
 import pytz
 
 import os.path
 
-from activities import UNITS, units
+from activities import UNITS, units, DATETIME_FORMAT_STR
 
 
 class Activity(models.Model):
@@ -48,15 +47,30 @@ class Activity(models.Model):
 
     def trim(self, trim_start=-1, trim_end=-1):
         """Trim the activity to the given time interval"""
-        # FIXME Check to make sure trim_start is less than trim_end,
-        #       otherwise flip them.
+
         do_save = False
+
         if trim_start is not -1:
-            self.trim_start = dateutil.parser.parse(trim_start)
-            do_save = True
+            try:
+                self.trim_start = dt.strptime(trim_start, DATETIME_FORMAT_STR)
+                do_save = True
+            except ValueError:
+                # Silently ignore bad input
+                pass
+
         if trim_end is not -1:
-            self.trim_end = dateutil.parser.parse(trim_end)
-            do_save = True
+            try:
+                self.trim_end = dt.strptime(trim_end, DATETIME_FORMAT_STR)
+                do_save = True
+            except ValueError:
+                # Silently ignore bad input
+                pass
+
+        # Swap the trim points if they are backwards
+        if trim_start is not -1 and trim_end is not -1:
+            if self.trim_start > self.trim_end:
+                self.trim_start, self.trim_end = self.trim_end, self.trim_start
+
         if do_save:
             self.trimmed = True
             self.save()

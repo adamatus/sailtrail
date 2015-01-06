@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from activities.models import Activity
 from .forms import UploadFileForm, ActivityDetailsForm
 
-from activities import UNITS, units
+from activities import UNITS, units, DATETIME_FORMAT_STR
 
 
 def home_page(request, form=None):
@@ -65,7 +65,7 @@ def view(request, activity_id):
                                                  'timepoint'))
     for p in pos:
         p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
-        p['time'] = p['timepoint'].isoformat()
+        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
         del p['timepoint']
         del p['sog']
 
