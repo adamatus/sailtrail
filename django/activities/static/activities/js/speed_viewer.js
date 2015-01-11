@@ -61,17 +61,37 @@ module.exports = {
 			.call(yAxis);
 
 		this.plot.append("text")
-		    .attr('class', 'y label')
-				.attr('text-anchor', 'middle')
-				.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
-				.text('Speed (' + units.speed + ')');
+		  .attr('class', 'y label')
+			.attr('text-anchor', 'middle')
+			.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
+			.text('Speed (' + units.speed + ')');
 
 		line.x(function(d) { return that.x(time_format.parse(d.time)); })	
-			  .y(function(d) { return that.y(d.speed); });
+			.y(function(d) { return that.y(d.speed); });
+
+		this.plot.append("linearGradient")
+			.attr('id', 'speed-gradient')
+			.attr('gradientUnits', 'userSpaceOnUse')
+			.attr('x1', 0)
+			.attr('x2', 0)
+			.attr('y1', this.y(0))
+			.attr('y2', this.y(this.y.domain()[1]))
+			.selectAll("stop")
+				.data([
+					{offset: "0%", color: "#1a9850"},
+					{offset: "20%", color: "#91cf60"},
+					{offset: "40%", color: "#d9ef8b"},
+					{offset: "60%", color: "#fee08b"},
+					{offset: "80%", color: "#fc8d59"},
+					{offset: "100%", color: "#d73027"}
+				])
+				.enter().append("stop")
+					.attr("offset", function(d) { return d.offset; })
+					.attr("stop-color", function(d) { return d.color; });
 
 		this.plot.append('svg:path')
 			.attr('d', line(spds))
-			.style('stroke', 'black')
+			.style('stroke', 'url(#speed-gradient)')
 			.style('fill', 'none')
 			.style('stroke-width', 2);
 
