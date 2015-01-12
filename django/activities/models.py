@@ -14,11 +14,21 @@ import os.path
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
 
+class Activity(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def add_track(self, upfile):
+        ActivityTrack.objects.create(upfile=upfile, activity_id=self)
+
+
 class ActivityTrack(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
     trimmed = models.BooleanField(null=False, default=False)
+    activity_id = models.OneToOneField(Activity, related_name='track',
+                                       blank=False, null=False)
 
     class Meta:
         ordering = ['-trim_start']
@@ -40,9 +50,9 @@ class ActivityTrack(models.Model):
                     timepoint=dt.strptime('{} {}'.format(
                         tp['time'], tp['date']),
                         '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
-                    file_id=self))
+                    track_id=self))
             ActivityTrackpoint.objects.bulk_create(insert)
-            ActivityStat.objects.create(file_id=self)
+            ActivityStat.objects.create(activity_id=self.activity_id)
             self.reset_trim()
 
     def trim(self, trim_start=-1, trim_end=-1):
@@ -74,14 +84,14 @@ class ActivityTrack(models.Model):
         if do_save:
             self.trimmed = True
             self.save()
-            self.stats.compute_stats()
+            self.activity_id.stats.compute_stats()
 
     def reset_trim(self):
         self.trim_start = self.trackpoint.first().timepoint
         self.trim_end = self.trackpoint.last().timepoint
         self.trimmed = False
         self.save()
-        self.stats.compute_stats()
+        self.activity_id.stats.compute_stats()
 
     def get_trackpoints(self):
         return self.trackpoint.filter(
@@ -102,45 +112,44 @@ class ActivityTrackpoint(models.Model):
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
-    file_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
+    track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
 
 
 class ActivityDetail(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
-    file_id = models.OneToOneField(ActivityTrack, related_name='details',
-                                   blank=False, null=False)
+    activity_id = models.OneToOneField(Activity, related_name='details',
+                                       blank=False, null=False)
 
 
 class ActivityStat(models.Model):
-    file_id = models.OneToOneField(ActivityTrack, related_name='stats',
-                                   blank=False, null=False)
+    activity_id = models.OneToOneField(Activity, related_name='stats',
+                                       blank=False, null=False)
     model_distance = models.FloatField(null=True)  # m
     model_max_speed = models.FloatField(null=True)  # m/s
 
     @property
     def end_time(self):
-        return self.file_id.trim_end.time()
+        return self.activity_id.track.trim_end.time()
 
     @property
     def start_time(self):
-        return self.file_id.trim_start.time()
+        return self.activity_id.track.trim_start.time()
 
     @property
     def date(self):
-        return self.file_id.trim_start.date()
+        return self.activity_id.track.trim_start.date()
 
     @property
     def duration(self):
-        return self.file_id.trim_end - self.file_id.trim_start
+        return (self.activity_id.track.trim_end -
+                self.activity_id.track.trim_start)
 
     @property
     def max_speed(self):
         if self.model_max_speed is None:
-            pos = list(self.file_id.get_trackpoints().values('sog',
-                                                             'lat',
-                                                             'lon',
-                                                             'timepoint'))
+            pos = list(self.activity_id.track.get_trackpoints().values(
+                'sog', 'lat', 'lon', 'timepoint'))
             stats = Stats(pos)
             self.model_max_speed = stats.max_speed.magnitude
             self.save()
@@ -151,10 +160,8 @@ class ActivityStat(models.Model):
     @property
     def distance(self):
         if self.model_distance is None:
-            pos = list(self.file_id.get_trackpoints().values('sog',
-                                                             'lat',
-                                                             'lon',
-                                                             'timepoint'))
+            pos = list(self.activity_id.track.get_trackpoints().values(
+                'sog', 'lat', 'lon', 'timepoint'))
             stats = Stats(pos)
             self.model_distance = stats.distance().magnitude
             self.save()
@@ -163,10 +170,8 @@ class ActivityStat(models.Model):
         return '{:~.2f}'.format(dist)
 
     def compute_stats(self):
-        pos = list(self.file_id.get_trackpoints().values('sog',
-                                                         'lat',
-                                                         'lon',
-                                                         'timepoint'))
+        pos = list(self.activity_id.track.get_trackpoints().values(
+            'sog', 'lat', 'lon', 'timepoint'))
         stats = Stats(pos)
         self.model_distance = stats.distance().magnitude
         self.model_max_speed = stats.max_speed.magnitude

@@ -7,7 +7,7 @@ import os.path
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from activities.forms import UploadFileForm, ActivityDetailsForm
-from activities.models import ActivityTrack, ActivityDetail
+from activities.models import Activity, ActivityDetail
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -27,17 +27,13 @@ class UploadfileFormTest(TestCase):
         self.assertIn('id_upfile', form.as_p())
 
     def test_form_save(self):
-        """[save] should succeed on valid upload"""
+        """[save] should be valid with good input"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
                 sbn_bin = f.read()
             upfile = SimpleUploadedFile('test.txt', sbn_bin)
             form = UploadFileForm({}, {'upfile': upfile})
-            form.is_valid()
-            upactivity = form.save()
-            self.assertNotEquals(upactivity, None)
-            self.assertEqual(upactivity,
-                             ActivityTrack.objects.first())
+            self.assertTrue(form.is_valid())
 
 
 class ActivitydetailsFormTest(TestCase):
@@ -51,10 +47,10 @@ class ActivitydetailsFormTest(TestCase):
 
     def test_from_save(self):
         """[save] should succeed with valid name"""
-        a = ActivityTrack.objects.first()
+        a = Activity.objects.first()
         form = ActivityDetailsForm({'name': 'Test',
                                     'description': '',
-                                    'file_id': a.id})
+                                    'activity_id': a.id})
         form.is_valid()
         upactivity = form.save()
         self.assertNotEquals(upactivity, None)

@@ -98,12 +98,13 @@ BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../')
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-erase',
-    '--cover-package=activities,sirf',
-    '--cover-html',
-    '--cover-html-dir=.cover/python',
-    '--cover-inclusive',
+#    '--with-coverage',
+#    '--cover-erase',
+#    '--cover-package=activities,sirf',
+#    '--cover-html',
+#    '--cover-html-dir=.cover/python',
+#    '--cover-inclusive',
     '--with-spec',
     '--spec-color',
+    '--nologcapture',
 ]

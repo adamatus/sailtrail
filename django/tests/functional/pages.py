@@ -59,10 +59,10 @@ class ActivityPage(BasePage):
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal
-        time.sleep(.2)
+        time.sleep(.4)
         is_visible = self.browser.find_element_by_id(
             'delete_modal').is_displayed()
-        time.sleep(.2)
+        time.sleep(.4)
         return is_visible
 
 

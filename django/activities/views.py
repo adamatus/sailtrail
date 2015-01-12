@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from activities.models import ActivityTrack
+from activities.models import Activity
 from .forms import UploadFileForm, ActivityDetailsForm
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
@@ -8,10 +8,11 @@ from activities import UNITS, units, DATETIME_FORMAT_STR
 
 def home_page(request, form=None):
     if form is None:
+        # form = UploadFileForm()
         form = UploadFileForm()
     return render(request, 'home.html',
                   {'activities':
-                      ActivityTrack.objects.filter(details__isnull=False),
+                      Activity.objects.filter(details__isnull=False),
                    'form': form
                    })
 
@@ -20,7 +21,8 @@ def upload(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            activity = form.save()
+            activity = Activity.objects.create()
+            activity.add_track(request.FILES['upfile'])
             return redirect('details', activity.id)
     else:
         form = UploadFileForm()
@@ -29,11 +31,11 @@ def upload(request):
 
 
 def details(request, activity_id):
-    activity = ActivityTrack.objects.get(id=activity_id)
+    activity = Activity.objects.get(id=activity_id)
     cancel_link = reverse('view_activity', args=[activity.id])
 
     if request.method == 'POST':
-        request.POST['file_id'] = activity_id
+        request.POST['activity_id'] = activity_id
         if hasattr(activity, 'details'):
             form = ActivityDetailsForm(request.POST, instance=activity.details)
         else:
@@ -56,13 +58,11 @@ def details(request, activity_id):
 
 
 def view(request, activity_id):
-    activity = ActivityTrack.objects.get(id=activity_id)
-    trimmed = activity.trimmed
+    activity = Activity.objects.get(id=activity_id)
+    trimmed = activity.track.trimmed
 
-    pos = list(activity.get_trackpoints().values('sog',
-                                                 'lat',
-                                                 'lon',
-                                                 'timepoint'))
+    pos = list(activity.track.get_trackpoints().values(
+        'sog', 'lat', 'lon', 'timepoint'))
     for p in pos:
         p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
         p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
@@ -79,17 +79,17 @@ def view(request, activity_id):
 
 
 def delete(request, activity_id):
-    ActivityTrack.objects.get(id=activity_id).delete()
+    Activity.objects.get(id=activity_id).delete()
     return redirect('home')
 
 
 def trim(request, activity_id):
-    activity = ActivityTrack.objects.get(id=activity_id)
-    activity.trim(request.POST['trim-start'], request.POST['trim-end'])
+    activity = Activity.objects.get(id=activity_id)
+    activity.track.trim(request.POST['trim-start'], request.POST['trim-end'])
     return redirect('view_activity', activity.id)
 
 
 def untrim(request, activity_id):
-    activity = ActivityTrack.objects.get(id=activity_id)
-    activity.reset_trim()
+    activity = Activity.objects.get(id=activity_id)
+    activity.track.reset_trim()
     return redirect('view_activity', activity.id)
