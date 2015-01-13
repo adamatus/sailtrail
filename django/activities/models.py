@@ -2,6 +2,7 @@ from django.db import models
 
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.core.exceptions import ObjectDoesNotExist
 
 from sirf.stats import Stats
 from sirf import read_sbn
@@ -60,7 +61,12 @@ class ActivityTrack(models.Model):
                         '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
                     track_id=self))
             ActivityTrackpoint.objects.bulk_create(insert)
-            ActivityStat.objects.create(activity_id=self.activity_id)
+
+            # Create stats model entry if necessary
+            try:
+                self.activity_id.stats.compute_stats()
+            except ObjectDoesNotExist:
+                ActivityStat.objects.create(activity_id=self.activity_id)
             self.reset_trim()
 
     def trim(self, trim_start=-1, trim_end=-1):

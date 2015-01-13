@@ -46,9 +46,11 @@ class ActivitytrackModelTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
+            activity = Activity.objects.create()
+            activity.add_track(test_file)
+
+            a = ActivityTrack.objects.create(upfile=test_file,
+                                             activity_id=self.activity)
 
             self.assertTrue(
                 os.path.exists(

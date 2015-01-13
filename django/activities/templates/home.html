@@ -19,7 +19,8 @@
 				<hr>
 				{% endfor %}
 				{% include 'components/form-errors.html' %}
-				{% include 'components/upload-modal.html' with header="Upload new activity" %}
+				{% url "upload" as upload_url %}
+				{% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
 				<button id="upload-file-modal-btn" type="submit" class="btn btn-default" data-toggle="modal" data-target="#upload-modal">Upload New Activity</button>
 			</form>
 {% endblock %}

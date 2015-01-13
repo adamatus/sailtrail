@@ -8,7 +8,6 @@ from activities import UNITS, units, DATETIME_FORMAT_STR
 
 def home_page(request, form=None):
     if form is None:
-        # form = UploadFileForm()
         form = UploadFileForm()
     return render(request, 'home.html',
                   {'activities':
@@ -26,6 +25,19 @@ def upload(request):
             return redirect('details', activity.id)
     else:
         form = UploadFileForm()
+
+    return home_page(request, form=form)
+
+
+def upload_track(request, activity_id):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            activity = Activity.objects.get(id=activity_id)
+            activity.add_track(request.FILES['upfile'])
+            return redirect('view_activity', activity.id)
+    else:
+        form = UploadFileForm({'activity': activity_id})
 
     return home_page(request, form=form)
 
@@ -57,8 +69,11 @@ def details(request, activity_id):
                                                      cancel_link})
 
 
-def view(request, activity_id):
+def view(request, activity_id, form=None):
     activity = Activity.objects.get(id=activity_id)
+
+    if form is None:
+        form = UploadFileForm({'activity': activity_id})
 
     pos = activity.get_trackpoints()
     for p in pos:
@@ -72,6 +87,7 @@ def view(request, activity_id):
                   {'activity': activity,
                    'pos_json': pos,
                    'units': UNITS,
+                   'form': form,
                    })
 
 

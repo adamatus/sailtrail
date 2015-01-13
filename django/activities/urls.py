@@ -7,5 +7,8 @@ urlpatterns = patterns(
     url(r'(\d+)/trim$', 'activities.views.trim', name='trim_activity'),
     url(r'(\d+)/untrim$', 'activities.views.untrim', name='untrim_activity'),
     url(r'(\d+)/details/$', 'activities.views.details', name='details'),
+    url(r'(\d+)/tracks/upload$',
+        'activities.views.upload_track',
+        name='upload_track'),
     url(r'(\d+)/$', 'activities.views.view', name='view_activity'),
 )
