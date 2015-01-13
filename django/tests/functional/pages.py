@@ -24,6 +24,7 @@ class HomePage(BasePage):
         self.browser.get(self.test.live_server_url)
 
     def upload_file(self, filename):
+        self.browser.find_element_by_id('upload-file-modal-btn').click()
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
@@ -31,6 +32,7 @@ class HomePage(BasePage):
         self.browser.find_element_by_id('upload-file-btn').click()
 
     def upload_without_file(self):
+        self.browser.find_element_by_id('upload-file-modal-btn').click()
         self.browser.find_element_by_id('upload-file-btn').click()
 
     def go_to_activity(self, name):
@@ -59,10 +61,10 @@ class ActivityPage(BasePage):
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal
-        time.sleep(.4)
+        time.sleep(.1)
         is_visible = self.browser.find_element_by_id(
             'delete_modal').is_displayed()
-        time.sleep(.4)
+        time.sleep(.1)
         return is_visible
 
 

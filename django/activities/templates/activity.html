@@ -27,7 +27,7 @@ var units = {{ units|safe }};
 		<p>Max speed: {{ activity.stats.max_speed }}</p>
 		<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete</button>
-		<div class="modal fade" id="delete_modal" tabindex="-1" role="dialog" labelledby="delete_modal_label" aria-hidden="true">
+		<div class="modal" id="delete_modal" tabindex="-1" role="dialog" labelledby="delete_modal_label" aria-hidden="true">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
