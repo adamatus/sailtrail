@@ -87,7 +87,7 @@ class ActivitytrackModelTest(TestCase):
             file_path = os.path.join(self.temp_dir, b.upfile.url)
             self.assertTrue(os.path.exists(file_path))
 
-    def test_model_ordering_on_dates_with_most_recent_first(self):
+    def test_model_ordering_on_dates_with_most_last_first(self):
         """should order activites with most recent first"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
@@ -104,9 +104,9 @@ class ActivitytrackModelTest(TestCase):
                 a.save()
 
             activities = ActivityTrack.objects.all()
-            self.assertIn('test3.sbn', activities[0].upfile.url)
+            self.assertIn('test3.sbn', activities[2].upfile.url)
             self.assertIn('test1.sbn', activities[1].upfile.url)
-            self.assertIn('test2.sbn', activities[2].upfile.url)
+            self.assertIn('test2.sbn', activities[0].upfile.url)
 
     def test_empty_trim_should_do_nothing(self):
         """[trim] should do nothing if no times are passed"""
@@ -255,43 +255,46 @@ class ActivitystatModelTest(TestCase):
     fixtures = ['partial-activity.json']
 
     def setUp(self):
-        self.stat = ActivityStat(
+        self.stat1 = ActivityStat(
             duration=timedelta(days=0, hours=1, minutes=10),
             activity_id=Activity.objects.first())  # Should not raise
-        self.stat.save()
+        self.stat2 = ActivityStat(
+            duration=timedelta(days=0, hours=1, minutes=10),
+            activity_id=Activity.objects.last())  # Should not raise
+        self.stat1.save()
+        self.stat2.save()
 
     def test_get_start_time_returns_time(self):
-        """[start_time] should return correct time"""
-        self.assertEqual(time(22, 37, 54), self.stat.start_time)
+        """[start_time] should return correct time with multiple tracks"""
+        self.assertEqual(time(22, 37, 50), self.stat2.start_time)
 
     def test_get_end_time_returns_correct_time(self):
-        """[end_time] should return correct time"""
-        self.assertEqual(time(22, 37, 57), self.stat.end_time)
+        """[end_time] should return correct time with multiple tracks"""
+        self.assertEqual(time(22, 38, 1), self.stat2.end_time)
 
     def test_get_date_returns_date(self):
         """[date] should return correct date"""
-        self.assertEqual(date(2014, 7, 15), self.stat.date)
+        self.assertEqual(date(2014, 7, 15), self.stat2.date)
 
     def test_get_model_max_speed_is_initially_null(self):
         """[model_max_speed] should be null initially"""
-        self.assertEqual(None, self.stat.model_max_speed)
+        self.assertEqual(None, self.stat1.model_max_speed)
 
-    # TODO This test is very slow, definitely need to mock somehow
     def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
         """[max_speed] should populate model_max_speed if null"""
-        self.assertEqual('6.65 knots', self.stat.max_speed)
-        self.assertEqual(3.42, self.stat.model_max_speed)
+        self.assertEqual('6.65 knots', self.stat1.max_speed)
+        self.assertEqual(3.42, self.stat1.model_max_speed)
 
     def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
         """[max_speed] should not populate model_max_speed if populated"""
-        self.stat.model_max_speed = 10.5
-        self.stat.save()
-        self.assertEqual('20.41 knots', self.stat.max_speed)
+        self.stat1.model_max_speed = 10.5
+        self.stat1.save()
+        self.assertEqual('20.41 knots', self.stat1.max_speed)
 
     def test_get_model_distance_is_populated_on_call_to_distance(self):
         """[distance] should populate model_distance"""
-        self.assertEqual('0.01 nmi', self.stat.distance)
-        self.assertAlmostEqual(9.9789472033, self.stat.model_distance)
+        self.assertEqual('0.01 nmi', self.stat1.distance)
+        self.assertAlmostEqual(9.9789472033, self.stat1.model_distance)
 
 
 class IntegrationOfActivityModelsTest(TestCase):

@@ -59,10 +59,8 @@ def details(request, activity_id):
 
 def view(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    trimmed = activity.track.trimmed
 
-    pos = list(activity.track.get_trackpoints().values(
-        'sog', 'lat', 'lon', 'timepoint'))
+    pos = activity.get_trackpoints()
     for p in pos:
         p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
         p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
@@ -74,7 +72,6 @@ def view(request, activity_id):
                   {'activity': activity,
                    'pos_json': pos,
                    'units': UNITS,
-                   'trimmed': trimmed,
                    })
 
 
