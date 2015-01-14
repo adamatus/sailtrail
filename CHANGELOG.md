@@ -1,3 +1,20 @@
+<a name="0.0.4"></a>
+### 0.0.4 (2015-01-13)
+
+
+#### Bug Fixes
+
+* **activities:** Add error handling to trimming ([9d6f11e1](http://github.com/adamatus/sailstats/commit/9d6f11e14811ee09b83593fff9577acbe9fec0ef))
+
+
+#### Features
+
+* **activities:**
+  * Add ability to have multiple tracks per activity ([bbba5cbc](http://github.com/adamatus/sailstats/commit/bbba5cbcee5cdc955e8047930960e96d354c6ad7))
+  * Add speed color-gradient to track and speed plot ([bb2d1fee](http://github.com/adamatus/sailstats/commit/bb2d1fee065ca2563e5a6d99f7499b9eb90954da))
+  * Add deletion confirmation dialog ([5efa56c8](http://github.com/adamatus/sailstats/commit/5efa56c83e7dacae8164470ca321c1c6348fccda))
+
+
 <a name="0.0.3"></a>
 ### 0.0.3 (2015-01-03)
 
