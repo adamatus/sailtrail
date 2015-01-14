@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from activities.models import Activity
+from activities.models import Activity, ActivityTrack
 from .forms import UploadFileForm, ActivityDetailsForm
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
@@ -39,7 +39,7 @@ def upload_track(request, activity_id):
     else:
         form = UploadFileForm({'activity': activity_id})
 
-    return home_page(request, form=form)
+    return view(request, activity_id, form=form)
 
 
 def details(request, activity_id):
@@ -91,18 +91,48 @@ def view(request, activity_id, form=None):
                    })
 
 
+def view_track(request, activity_id, track_id, form=None):
+
+    track = ActivityTrack.objects.get(id=track_id)
+
+    if form is None:
+        form = UploadFileForm({'activity': activity_id})
+
+    pos = list(track.get_trackpoints()
+                    .values('sog', 'lat', 'lon', 'timepoint'))
+    for p in pos:
+        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
+        del p['timepoint']
+        del p['sog']
+
+    return render(request,
+                  'track.html',
+                  {'track': track,
+                   'activity': track.activity_id,
+                   'pos_json': pos,
+                   'units': UNITS,
+                   'trimmed': track.trimmed,
+                   'form': form,
+                   })
+
+
 def delete(request, activity_id):
     Activity.objects.get(id=activity_id).delete()
     return redirect('home')
 
 
-def trim(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
-    activity.track.trim(request.POST['trim-start'], request.POST['trim-end'])
-    return redirect('view_activity', activity.id)
+def delete_track(request, activity_id, track_id):
+    pass
 
 
-def untrim(request, activity_id):
-    activity = Activity.objects.get(id=activity_id)
-    activity.track.reset_trim()
-    return redirect('view_activity', activity.id)
+def trim(request, activity_id, track_id):
+    track = ActivityTrack.objects.get(id=track_id)
+    track.trim(request.POST['trim-start'], request.POST['trim-end'])
+    return redirect('view_activity', activity_id)
+
+
+def untrim(request, activity_id, track_id):
+    track = ActivityTrack.objects.get(id=track_id)
+    track.reset_trim()
+    return redirect('view_activity', activity_id)
