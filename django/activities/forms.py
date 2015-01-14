@@ -1,25 +1,23 @@
 from django import forms
-from .models import Activity, ActivityDetail
+from .models import ActivityDetail
 
 ERROR_NO_UPLOAD_FILE_SELECTED = 'Please choose a file before clicking upload!'
 ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
 
 
-class UploadFileForm(forms.models.ModelForm):
-
-    class Meta:
-        model = Activity
-        fields = ('upfile',)
-        error_messages = {
-            'upfile': {'required': ERROR_NO_UPLOAD_FILE_SELECTED},
-        }
+class UploadFileForm(forms.Form):
+    upfile = forms.FileField(
+        widget=forms.FileInput,
+        label='Activity file',
+        error_messages={'required': ERROR_NO_UPLOAD_FILE_SELECTED})
+    activity = forms.CharField(widget=forms.HiddenInput, required=False)
 
 
 class ActivityDetailsForm(forms.models.ModelForm):
 
     class Meta:
         model = ActivityDetail
-        fields = ('name', 'description', 'file_id')
+        fields = ('name', 'description', 'activity_id')
         widgets = {
             'name': forms.TextInput(attrs={
                 'placeholder': 'Enter activity name',
@@ -34,4 +32,3 @@ class ActivityDetailsForm(forms.models.ModelForm):
         error_messages = {
             'name': {'required': ERROR_ACTIVITY_NAME_MISSING},
         }
-

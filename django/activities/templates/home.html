@@ -18,16 +18,9 @@
 				</div>
 				<hr>
 				{% endfor %}
-				<form class="form-horizontal" role="form" method="POST" action="{% url "upload" %}" enctype="multipart/form-data">
-				{{ form.title }}
-				<div class="form-group">
-				  <label for="id_upfile" class="col-sm-2">Upload new activity:</label>
-					<div class="col-sm-10">
-					{{ form.upfile }}
-					</div>
-        </div>
 				{% include 'components/form-errors.html' %}
-				{% csrf_token %}
-				<button id="upload-file-btn" type="submit" class="btn btn-default">Upload</button>
+				{% url "upload" as upload_url %}
+				{% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
+				<button id="upload-file-modal-btn" type="submit" class="btn btn-default" data-toggle="modal" data-target="#upload-modal">Upload New Activity</button>
 			</form>
 {% endblock %}

@@ -106,4 +106,5 @@ NOSE_ARGS = [
     '--cover-inclusive',
     '--with-spec',
     '--spec-color',
+    '--nologcapture',
 ]
