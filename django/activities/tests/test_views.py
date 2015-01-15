@@ -12,7 +12,8 @@ from activities.models import (Activity, ActivityTrack,
                                ActivityDetail, ActivityStat)
 from activities.forms import (UploadFileForm, ActivityDetailsForm,
                               ERROR_NO_UPLOAD_FILE_SELECTED,
-                              ERROR_ACTIVITY_NAME_MISSING)
+                              ERROR_ACTIVITY_NAME_MISSING,
+                              ERROR_ACTIVITY_CATEGORY_MISSING)
 
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
@@ -142,6 +143,7 @@ class NewactivitydetailViewTest(TestCase):
         response = self.client.post(
             reverse('details', args=[1]),
             data={'name': 'Test post',
+                  'category': 'SK',
                   'description': 'Test description'})
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
@@ -152,6 +154,7 @@ class NewactivitydetailViewTest(TestCase):
         self.client.post(
             reverse('details', args=[1]),
             data={'name': name,
+                  'category': 'SK',
                   'description': desc})
         new_details = ActivityDetail.objects.first()
         self.assertEqual(new_details.name, name)
@@ -163,8 +166,19 @@ class NewactivitydetailViewTest(TestCase):
         response = self.client.post(
             reverse('details', args=[1]),
             data={'name': name,
+                  'category': 'SK',
                   'description': desc})
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
+
+    def test_POST_without_category_displays_error(self):
+        """[post] should display error when missing category"""
+        name = 'Name'
+        desc = 'Test description'
+        response = self.client.post(
+            reverse('details', args=[1]),
+            data={'name': name,
+                  'description': desc})
+        self.assertContains(response, ERROR_ACTIVITY_CATEGORY_MISSING)
 
 
 class ActivitydetailViewTest(TestCase):
@@ -194,6 +208,7 @@ class ActivitydetailViewTest(TestCase):
         response = self.client.post(
             reverse('details', args=[1]),
             data={'name': 'Test post',
+                  'category': 'SK',
                   'description': 'Test description'})
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
@@ -204,6 +219,7 @@ class ActivitydetailViewTest(TestCase):
         self.client.post(
             reverse('details', args=[1]),
             data={'name': name,
+                  'category': 'SK',
                   'description': desc})
         new_details = ActivityDetail.objects.first()
         self.assertEqual(new_details.name, name)

@@ -130,10 +130,27 @@ class ActivityTrackpoint(models.Model):
 
 
 class ActivityDetail(models.Model):
+    SAILING = 'SL'
+    WINDSURFING = 'WS'
+    KITEBOARDING = 'KB'
+    SNOWKITING = 'SK'
+    ICEBOATING = 'IB'
+    ACTIVITY_CHOICES = (
+        (SAILING, 'Sailing'),
+        (WINDSURFING, 'Windsurfing'),
+        (KITEBOARDING, 'Kite Boarding'),
+        (SNOWKITING, 'Snow Kiting'),
+        (ICEBOATING, 'Ice Boating'),
+    )
+
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
     activity_id = models.OneToOneField(Activity, related_name='details',
                                        blank=False, null=False)
+    category = models.CharField(max_length=2,
+                                blank=False,
+                                choices=ACTIVITY_CHOICES,
+                                default=SAILING)
 
 
 class ActivityStat(models.Model):

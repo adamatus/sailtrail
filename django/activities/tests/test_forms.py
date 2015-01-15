@@ -50,6 +50,7 @@ class ActivitydetailsFormTest(TestCase):
         a = Activity.objects.first()
         form = ActivityDetailsForm({'name': 'Test',
                                     'description': '',
+                                    'category': 'IB',
                                     'activity_id': a.id})
         form.is_valid()
         upactivity = form.save()
