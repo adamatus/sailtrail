@@ -18,6 +18,10 @@ from activities import UNITS, units, DATETIME_FORMAT_STR
 class Activity(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ['-datetime']
 
     def add_track(self, upfile):
         ActivityTrack.objects.create(upfile=upfile, activity_id=self)
@@ -68,6 +72,13 @@ class ActivityTrack(models.Model):
             except ObjectDoesNotExist:
                 ActivityStat.objects.create(activity_id=self.activity_id)
             self.reset_trim()
+
+            if self.activity_id.datetime is None:
+                self.activity_id.datetime = self.trim_start
+                self.activity_id.save()
+            elif self.activity_id.datetime > self.trim_start:
+                self.activity_id.datetime = self.trim_start
+                self.activity_id.save()
 
     def trim(self, trim_start=-1, trim_end=-1):
         """Trim the activity to the given time interval"""
