@@ -58,6 +58,8 @@ ROOT_URLCONF = 'sailstats.urls'
 
 WSGI_APPLICATION = 'sailstats.wsgi.application'
 
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases

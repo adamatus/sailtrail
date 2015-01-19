@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
+from django.contrib.auth import authenticate, login
 from activities.models import Activity, ActivityTrack
-from .forms import UploadFileForm, ActivityDetailsForm
+from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
@@ -136,3 +137,23 @@ def untrim(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
     track.reset_trim()
     return redirect('view_activity', activity_id)
+
+
+def register(request, form=None):
+    if request.method == 'POST':
+        print(request.POST)
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            print('Form is valid!')
+            username = form.clean_username()
+            password = form.clean_password2()
+            form.save()
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return redirect('home')
+        print('Form is not valid!')
+    else:
+        if form is None:
+            form = NewUserForm()
+    return render(request, 'register.html',
+                  {'form': form})

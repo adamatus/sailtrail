@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import ActivityDetail
 
 ERROR_NO_UPLOAD_FILE_SELECTED = 'Please choose a file before clicking upload!'
@@ -34,3 +36,11 @@ class ActivityDetailsForm(forms.models.ModelForm):
             'name': {'required': ERROR_ACTIVITY_NAME_MISSING},
             'category': {'required': ERROR_ACTIVITY_CATEGORY_MISSING},
         }
+
+
+class NewUserForm(UserCreationForm):
+    email = forms.EmailField(label="Email", required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "email")
