@@ -2,6 +2,9 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # from unittest.mock import patch, Mock
 
@@ -26,7 +29,10 @@ class ActivityModelTest(TestCase):
     def test_fields_exist_as_expected(self):
         """should have the correct fields"""
 
-        a = Activity()
+        u = User(username="test", email="a@b.com", password="pass")
+        u.save()
+
+        a = Activity(user=u)
         a.save()
         self.assertIsNotNone(a.modified)
         self.assertIsNotNone(a.created)
@@ -36,7 +42,9 @@ class ActivitytrackModelTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.activity = Activity.objects.create()
+        self.user = User(username="test", email="a@b.com", password="pass")
+        self.user.save()
+        self.activity = Activity.objects.create(user=self.user)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -46,7 +54,7 @@ class ActivitytrackModelTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-            activity = Activity.objects.create()
+            activity = Activity.objects.create(user=self.user)
             activity.add_track(test_file)
 
             a = ActivityTrack.objects.create(upfile=test_file,
@@ -76,7 +84,7 @@ class ActivitytrackModelTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             test_file2 = SimpleUploadedFile('test2.sbn', SBN_BIN)
-            activity2 = Activity.objects.create()
+            activity2 = Activity.objects.create(user=self.user)
 
             ActivityTrack.objects.create(upfile=test_file1,
                                          activity_id=self.activity)
@@ -99,7 +107,7 @@ class ActivitytrackModelTest(TestCase):
                 test_files.append(SimpleUploadedFile(f, SBN_BIN))
                 a = ActivityTrack.objects.create(
                     upfile=test_files[-1],
-                    activity_id=Activity.objects.create())
+                    activity_id=Activity.objects.create(user=self.user))
 
                 a.trim_start = datetime(2014, 10, 12, t, 20, 15,
                                         tzinfo=timezone('UTC'))
@@ -303,6 +311,8 @@ class IntegrationOfActivityModelsTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.user = User(username="test", email="a@b.com", password="pass")
+        self.user.save()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -310,7 +320,7 @@ class IntegrationOfActivityModelsTest(TestCase):
     def test_deleting_activity_removes_activity_details(self):
         """should delete activity details on activity delete"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            activity = Activity.objects.create()
+            activity = Activity.objects.create(user=self.user)
 
             ActivityDetail.objects.create(
                 name='',
@@ -327,7 +337,7 @@ class IntegrationOfActivityModelsTest(TestCase):
             self.assertEquals(0, len(ActivityTrackpoint.objects.all()))
             ActivityTrack.objects.create(
                 upfile=test_file,
-                activity_id=Activity.objects.create())
+                activity_id=Activity.objects.create(user=self.user))
             self.assertEquals(4, len(ActivityTrackpoint.objects.all()))
             first = ActivityTrackpoint.objects.first()
             last = ActivityTrackpoint.objects.last()
@@ -352,7 +362,7 @@ class IntegrationOfActivityModelsTest(TestCase):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = ActivityTrack.objects.create(
                 upfile=test_file1,
-                activity_id=Activity.objects.create())
+                activity_id=Activity.objects.create(user=self.user))
             tps = a.get_trackpoints()
             self.assertEquals(4, len(tps))
             self.assertAlmostEquals(1, tps[0].id)
@@ -364,7 +374,7 @@ class IntegrationOfActivityModelsTest(TestCase):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = ActivityTrack.objects.create(
                 upfile=test_file1,
-                activity_id=Activity.objects.create())
+                activity_id=Activity.objects.create(user=self.user))
             a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
                                     tzinfo=timezone('UTC'))
             a.save()
@@ -379,7 +389,7 @@ class IntegrationOfActivityModelsTest(TestCase):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = ActivityTrack.objects.create(
                 upfile=test_file1,
-                activity_id=Activity.objects.create())
+                activity_id=Activity.objects.create(user=self.user))
             a.trim_end = datetime(2014, 7, 15, 22, 37, 56,
                                   tzinfo=timezone('UTC'))
             a.save()
@@ -393,7 +403,8 @@ class IntegrationOfActivityModelsTest(TestCase):
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
             a = ActivityTrack(upfile=test_file1,
-                              activity_id=Activity.objects.create())
+                              activity_id=Activity.objects.create(
+                                  user=self.user))
             a.save()
             a.trim_start = datetime(2014, 7, 15, 22, 37, 55,
                                     tzinfo=timezone('UTC'))

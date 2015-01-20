@@ -3,6 +3,9 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 import shutil
 import tempfile
@@ -28,6 +31,8 @@ class HomepageViewTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.user = User(username="test2", email="a@b.com", password="pass")
+        self.user.save()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -52,7 +57,7 @@ class HomepageViewTest(TestCase):
     def test_home_page_does_not_show_activities_without_details(self):
         """[get] should not show activities that are missing details"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            a = Activity.objects.create()
+            a = Activity.objects.create(user=self.user)
             ActivityTrack.objects.create(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
                 activity_id=a
@@ -64,8 +69,11 @@ class HomepageViewTest(TestCase):
 
 class FileuploadViewTest(TestCase):
 
+    fixtures = ['users.json']
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.client.login(username='test', password='password')
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -123,6 +131,7 @@ class NewactivitydetailViewTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.client.login(username='test', password='password')
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -184,6 +193,10 @@ class NewactivitydetailViewTest(TestCase):
 class ActivitydetailViewTest(TestCase):
 
     fixtures = ['full-activities.json']
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        self.client.login(username='test', password='password')
 
     def test_detail_view_uses_activity_details_template(self):
         """[get] should render the correct template"""
@@ -274,10 +287,14 @@ class ActivityViewTest(TestCase):
 
 class DeleteactivityViewTest(TestCase):
 
+    fixtures = ['users.json']
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.client.login(username='test', password='password')
+        self.user = User.objects.filter(username='test').first()
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            Activity.objects.create()
+            Activity.objects.create(user=self.user)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
