@@ -1,5 +1,6 @@
 coverage==4.0a1
 django-livereload==1.1
+factory_boy==2.4.1
 flake8==2.2.5
 pinocchio==0.4.2
 selenium==2.44.0
