@@ -1,3 +1,14 @@
+<a name="0.1.0"></a>
+## 0.1.0 (2015-01-19) "Optimist"
+
+
+#### Features
+
+* **activities:**
+  * Add user accounts ([c2a62bb1](http://github.com/adamatus/sailstats/commit/c2a62bb1390acbf69fdc41f10fdea82126592c78))
+  * Add activity category field ([d53b97e0](http://github.com/adamatus/sailstats/commit/d53b97e007f3b3d88efbbe49b758df4cc9cdd81e))
+
+
 <a name="0.0.4"></a>
 ### 0.0.4 (2015-01-13)
 
