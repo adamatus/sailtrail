@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+
 from activities.models import Activity, ActivityTrack
-from .forms import UploadFileForm, ActivityDetailsForm
+from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
@@ -16,11 +19,12 @@ def home_page(request, form=None):
                    })
 
 
+@login_required
 def upload(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            activity = Activity.objects.create()
+            activity = Activity.objects.create(user=request.user)
             activity.add_track(request.FILES['upfile'])
             return redirect('details', activity.id)
     else:
@@ -29,6 +33,7 @@ def upload(request):
     return home_page(request, form=form)
 
 
+@login_required
 def upload_track(request, activity_id):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -42,11 +47,12 @@ def upload_track(request, activity_id):
     return view(request, activity_id, form=form)
 
 
+@login_required
 def details(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
     cancel_link = reverse('view_activity', args=[activity.id])
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user == activity.user:
         request.POST['activity_id'] = activity_id
         if hasattr(activity, 'details'):
             form = ActivityDetailsForm(request.POST, instance=activity.details)
@@ -88,6 +94,7 @@ def view(request, activity_id, form=None):
                    'pos_json': pos,
                    'units': UNITS,
                    'form': form,
+                   'owner': request.user == activity.user,
                    })
 
 
@@ -117,22 +124,50 @@ def view_track(request, activity_id, track_id, form=None):
                    })
 
 
+@login_required
 def delete(request, activity_id):
-    Activity.objects.get(id=activity_id).delete()
+    activity = Activity.objects.get(id=activity_id)
+    if request.user == activity.user:
+        activity.delete()
     return redirect('home')
 
 
+@login_required
 def delete_track(request, activity_id, track_id):
     pass
 
 
+@login_required
 def trim(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
-    track.trim(request.POST['trim-start'], request.POST['trim-end'])
+    if request.user == track.activity_id.user:
+        track.trim(request.POST['trim-start'], request.POST['trim-end'])
     return redirect('view_activity', activity_id)
 
 
+@login_required
 def untrim(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
-    track.reset_trim()
+    if request.user == track.activity_id.user:
+        track.reset_trim()
     return redirect('view_activity', activity_id)
+
+
+def register(request, form=None):
+    if request.method == 'POST':
+        print(request.POST)
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            print('Form is valid!')
+            username = form.clean_username()
+            password = form.clean_password2()
+            form.save()
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return redirect('home')
+        print('Form is not valid!')
+    else:
+        if form is None:
+            form = NewUserForm()
+    return render(request, 'register.html',
+                  {'form': form})

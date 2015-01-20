@@ -7,7 +7,8 @@ import tempfile
 from activities.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING)
 
-from .pages import HomePage, ActivityPage, ActivityDetailsPage
+from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
+                    RegistrationPage)
 
 
 class ActivitiesTest(StaticLiveServerTestCase):
@@ -30,12 +31,19 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
+            registration = RegistrationPage(self)
             details_page = ActivityDetailsPage(self)
             activity_page = ActivityPage(self)
 
             # Visitor comes to homepage and notices title is SailStats
             homepage.go_to_homepage()
             self.assertIn('SailStats', self.browser.title)
+
+            # The notice the register link and click it, fill in their info,
+            # submit, and are taken back to the homepage
+            homepage.go_to_registration()
+            registration.register('testuser')
+            self.assertTrue(homepage.is_current_url())
 
             # They notice a file upload box and are prompted to upload a file
             homepage.upload_file('kite-session1.sbn')
@@ -159,11 +167,14 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
         with self.settings(MEDIA_ROOT=self.temp_dir):
             homepage = HomePage(self)
+            registration = RegistrationPage(self)
             details_page = ActivityDetailsPage(self)
             activity_page = ActivityPage(self)
 
-            # Visitor uploads file
+            # Logged in visitor uploads file
             homepage.go_to_homepage()
+            homepage.go_to_registration()
+            registration.register('testuser')
             homepage.upload_file('kite-session1.sbn')
 
             # They are taken to the new details page, where they notice
