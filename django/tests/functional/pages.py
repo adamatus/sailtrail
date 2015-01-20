@@ -38,11 +38,28 @@ class HomePage(BasePage):
     def go_to_activity(self, name):
         self.browser.find_element_by_link_text(name).click()
 
+    def go_to_registration(self):
+        self.browser.find_element_by_link_text('Register').click()
+
     def is_current_url(self):
         return self.browser.current_url == (self.test.live_server_url + '/')
 
     def activity_list_is_empty(self):
         return [] == self.browser.find_elements_by_css_selector('.activity')
+
+
+class RegistrationPage(BasePage):
+
+    def register(self, username):
+        field = self.browser.find_element_by_id('id_username')
+        field.send_keys(username)
+        field = self.browser.find_element_by_id('id_email')
+        field.send_keys('test@example.com')
+        field = self.browser.find_element_by_id('id_password1')
+        field.send_keys('password')
+        field = self.browser.find_element_by_id('id_password2')
+        field.send_keys('password')
+        self.browser.find_element_by_id('register-btn').click()
 
 
 class ActivityPage(BasePage):
