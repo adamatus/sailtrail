@@ -1,3 +1,12 @@
+<a name="0.1.1"></a>
+### 0.1.1 (2015-01-20)
+
+
+#### Features
+
+* **activities:** Add GPX file import ([0fc94ae0](http://github.com/adamatus/sailstats/commit/0fc94ae047013eb2908fd24bedd43a8dcc911c78))
+
+
 <a name="0.1.0"></a>
 ## 0.1.0 (2015-01-19) "Optimist"
 
