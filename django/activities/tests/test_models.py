@@ -24,6 +24,8 @@ ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
 with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
+with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
+    GPX_BIN = f.read()
 
 
 class ActivityModelTest(TestCase):
@@ -322,8 +324,8 @@ class IntegrationOfActivityModelsTest(TestCase):
             activity.delete()
             self.assertEqual(0, len(ActivityDetail.objects.all()))
 
-    def test_integration_upload_creates_trackpoints(self):
-        """should create trackpoints on upload"""
+    def test_integration_upload_sbn_creates_trackpoints(self):
+        """should create trackpoints on SBN file upload"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
             self.assertEquals(0, len(ActivityTrackpoint.objects.all()))
@@ -346,6 +348,32 @@ class IntegrationOfActivityModelsTest(TestCase):
             self.assertEquals(7, last.timepoint.month)
             self.assertEquals(15, last.timepoint.day)
             self.assertEquals(22, last.timepoint.hour)
+            self.assertEquals(57, last.timepoint.second)
+
+    def test_integration_upload_gpx_creates_trackpoints(self):
+        """should create trackpoints on GPX file upload"""
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.gpx', GPX_BIN)
+            self.assertEquals(0, len(ActivityTrackpoint.objects.all()))
+            ActivityTrack.objects.create(
+                upfile=test_file,
+                activity_id=Activity.objects.create(user=self.user))
+            self.assertEquals(5, len(ActivityTrackpoint.objects.all()))
+            first = ActivityTrackpoint.objects.first()
+            last = ActivityTrackpoint.objects.last()
+            self.assertAlmostEquals(43.078269029, first.lat)
+            self.assertAlmostEquals(-89.384035754, first.lon)
+            self.assertAlmostEquals(0.0, first.sog)
+            self.assertEquals(3, first.timepoint.month)
+            self.assertEquals(16, first.timepoint.day)
+            self.assertEquals(17, first.timepoint.hour)
+            self.assertEquals(56, first.timepoint.second)
+            self.assertAlmostEquals(43.074852188, last.lat)
+            self.assertAlmostEquals(-89.380430865, last.lon)
+            self.assertAlmostEquals(2.847290744, last.sog)
+            self.assertEquals(3, last.timepoint.month)
+            self.assertEquals(16, last.timepoint.day)
+            self.assertEquals(17, last.timepoint.hour)
             self.assertEquals(57, last.timepoint.second)
 
     def test_integration_get_trackpoints_returns_points(self):

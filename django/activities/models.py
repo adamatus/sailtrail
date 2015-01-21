@@ -8,6 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from sirf.stats import Stats
 from sirf import read_sbn
 
+import gpxpy
+
 from datetime import datetime as dt
 import pytz
 
@@ -50,6 +52,62 @@ class Activity(models.Model):
         return out
 
 
+def create_sbn_trackpoints(track):
+    d = read_sbn(track.upfile.path)
+    d = [x for x in d.pktq if x is not None]  # filter out Nones
+
+    insert = []
+    app = insert.append  # cache append method for speed.. maybe?
+    for tp in d:
+        app(ActivityTrackpoint(
+            lat=tp['latitude'],
+            lon=tp['longitude'],
+            sog=tp['sog'],
+            timepoint=dt.strptime('{} {}'.format(
+                tp['time'], tp['date']),
+                '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
+            track_id=track))
+    ActivityTrackpoint.objects.bulk_create(insert)
+
+
+def create_gpx_trackpoints(track):
+    with open(track.upfile.path, 'r') as gpx_file:
+        gpx = gpxpy.parse(gpx_file)
+
+    insert = []
+    app = insert.append  # cache append method for speed.. maybe?
+
+    prev_point = None
+    speed = 0
+
+    for gpstrack in gpx.tracks:
+        for segment in gpstrack.segments:
+            for point in segment.points:
+                if prev_point is not None:
+                    speed = point.speed_between(prev_point)
+                if speed is None:
+                    speed = 0
+                prev_point = point
+                app(ActivityTrackpoint(
+                    lat=point.latitude,
+                    lon=point.longitude,
+                    sog=speed,
+                    timepoint=point.time.replace(tzinfo=pytz.UTC),
+                    track_id=track))
+    ActivityTrackpoint.objects.bulk_create(insert)
+
+
+def create_trackpoints(track):
+    filetype = os.path.splitext(track.upfile.path)[1][1:].upper()
+
+    if filetype == 'SBN':
+        create_sbn_trackpoints(track)
+    elif filetype == 'GPX':
+        create_gpx_trackpoints(track)
+    else:
+        raise Exception('Unknown filetype')
+
+
 class ActivityTrack(models.Model):
     upfile = models.FileField(upload_to='activities', null=False, blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
@@ -65,21 +123,7 @@ class ActivityTrack(models.Model):
         super(ActivityTrack, self).save(*args, **kwargs)
 
         if self.trackpoint.count() == 0:
-            d = read_sbn(self.upfile.path)
-            d = [x for x in d.pktq if x is not None]  # filter out Nones
-
-            insert = []
-            app = insert.append  # cache append method for speed.. maybe?
-            for tp in d:
-                app(ActivityTrackpoint(
-                    lat=tp['latitude'],
-                    lon=tp['longitude'],
-                    sog=tp['sog'],
-                    timepoint=dt.strptime('{} {}'.format(
-                        tp['time'], tp['date']),
-                        '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
-                    track_id=self))
-            ActivityTrackpoint.objects.bulk_create(insert)
+            create_trackpoints(self)
 
             # Create stats model entry if necessary
             try:
