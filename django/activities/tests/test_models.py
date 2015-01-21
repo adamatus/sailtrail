@@ -12,11 +12,13 @@ import shutil
 import tempfile
 import os.path
 
-from datetime import datetime, timedelta, time, date
+from datetime import datetime, time, date
 from pytz import timezone
 
 from activities.models import (Activity, ActivityTrack, ActivityDetail,
                                ActivityStat, ActivityTrackpoint)
+
+from .factories import UserFactory, ActivityFactory, ActivityTrackFactory
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -29,10 +31,7 @@ class ActivityModelTest(TestCase):
     def test_fields_exist_as_expected(self):
         """should have the correct fields"""
 
-        u = User(username="test", email="a@b.com", password="pass")
-        u.save()
-
-        a = Activity(user=u)
+        a = Activity(user=UserFactory.create())
         a.save()
         self.assertIsNotNone(a.modified)
         self.assertIsNotNone(a.created)
@@ -42,8 +41,7 @@ class ActivitytrackModelTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.user = User(username="test", email="a@b.com", password="pass")
-        self.user.save()
+        self.user = UserFactory.create()
         self.activity = Activity.objects.create(user=self.user)
 
     def tearDown(self):
@@ -220,7 +218,8 @@ class ActivitytrackpointModelTest(TestCase):
 
 class ActivitydetailsModelTest(TestCase):
 
-    fixtures = ['partial-activity.json']
+    def setUp(self):
+        self.activity = ActivityFactory.create()
 
     def test_smoke_model_has_expected_fields(self):
         """should have the expected fields"""
@@ -230,17 +229,17 @@ class ActivitydetailsModelTest(TestCase):
         ActivityDetail.objects.create(
             name=name,
             description=desc,
-            activity_id=Activity.objects.first())  # Should not raise
+            activity_id=self.activity)  # Should not raise
 
     def test_cannot_associate_two_details_with_one_file(self):
         """[save] should not allow one file to have multiple details"""
         ActivityDetail.objects.create(
-            name='Test', activity_id=Activity.objects.first())
+            name='Test', activity_id=self.activity)
         self.assertRaises(
             IntegrityError,
             lambda:
                 ActivityDetail.objects.create(
-                    name='Test2', activity_id=Activity.objects.first())
+                    name='Test2', activity_id=self.activity)
         )
 
     def test_cannot_create_details_without_activity_ref(self):
@@ -256,63 +255,56 @@ class ActivitydetailsModelTest(TestCase):
         """[save] should throw if missing a name"""
         with self.assertRaises(ValidationError):
             a = ActivityDetail.objects.create(
-                activity_id=Activity.objects.first())
+                activity_id=self.activity)
             a.full_clean()
 
 
 class ActivitystatModelTest(TestCase):
 
-    fixtures = ['partial-activity.json']
-
     def setUp(self):
-        self.stat1 = ActivityStat(
-            duration=timedelta(days=0, hours=1, minutes=10),
-            activity_id=Activity.objects.first())  # Should not raise
-        self.stat2 = ActivityStat(
-            duration=timedelta(days=0, hours=1, minutes=10),
-            activity_id=Activity.objects.last())  # Should not raise
-        self.stat1.save()
-        self.stat2.save()
+
+        # Ugliness to deal with upfile...
+        # https://github.com/rbarrois/factory_boy/issues/141
+        self.activity = ActivityFactory.create()
+        self.track = ActivityTrackFactory.build(
+            activity_id=self.activity)
+        self.track.save()
+        self.stat = ActivityStat.objects.first()
 
     def test_get_start_time_returns_time(self):
-        """[start_time] should return correct time with multiple tracks"""
-        self.assertEqual(time(22, 37, 50), self.stat2.start_time)
+        """[start_time] should return correct time"""
+        self.assertEqual(time(22, 37, 54), self.stat.start_time)
 
     def test_get_end_time_returns_correct_time(self):
-        """[end_time] should return correct time with multiple tracks"""
-        self.assertEqual(time(22, 38, 1), self.stat2.end_time)
+        """[end_time] should return correct time"""
+        self.assertEqual(time(22, 37, 57), self.stat.end_time)
 
     def test_get_date_returns_date(self):
         """[date] should return correct date"""
-        self.assertEqual(date(2014, 7, 15), self.stat2.date)
-
-    def test_get_model_max_speed_is_initially_null(self):
-        """[model_max_speed] should be null initially"""
-        self.assertEqual(None, self.stat1.model_max_speed)
+        self.assertEqual(date(2014, 7, 15), self.stat.date)
 
     def test_get_model_max_speed_is_populated_on_call_to_max_speed(self):
         """[max_speed] should populate model_max_speed if null"""
-        self.assertEqual('6.65 knots', self.stat1.max_speed)
-        self.assertEqual(3.42, self.stat1.model_max_speed)
+        self.assertEqual('6.65 knots', self.stat.max_speed)
+        self.assertEqual(3.42, self.stat.model_max_speed)
 
     def test_get_model_max_speed_is_not_pupulated_if_already_filled(self):
         """[max_speed] should not populate model_max_speed if populated"""
-        self.stat1.model_max_speed = 10.5
-        self.stat1.save()
-        self.assertEqual('20.41 knots', self.stat1.max_speed)
+        self.stat.model_max_speed = 10.5
+        self.stat.save()
+        self.assertEqual('20.41 knots', self.stat.max_speed)
 
     def test_get_model_distance_is_populated_on_call_to_distance(self):
         """[distance] should populate model_distance"""
-        self.assertEqual('0.01 nmi', self.stat1.distance)
-        self.assertAlmostEqual(9.9789472033, self.stat1.model_distance)
+        self.assertEqual('0.01 nmi', self.stat.distance)
+        self.assertAlmostEqual(9.9789472033, self.stat.model_distance)
 
 
 class IntegrationOfActivityModelsTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.user = User(username="test", email="a@b.com", password="pass")
-        self.user.save()
+        self.user = UserFactory.create()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)

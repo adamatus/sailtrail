@@ -7,7 +7,9 @@ import os.path
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from activities.forms import UploadFileForm, ActivityDetailsForm
-from activities.models import Activity, ActivityDetail
+from activities.models import ActivityDetail
+
+from .factories import ActivityFactory
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -38,8 +40,6 @@ class UploadfileFormTest(TestCase):
 
 class ActivitydetailsFormTest(TestCase):
 
-    fixtures = ['partial-activity.json']
-
     def test_form_renders_correct_fields(self):
         """should include the correct input field id"""
         form = ActivityDetailsForm()
@@ -47,7 +47,7 @@ class ActivitydetailsFormTest(TestCase):
 
     def test_from_save(self):
         """[save] should succeed with valid name"""
-        a = Activity.objects.first()
+        a = ActivityFactory.create()
         form = ActivityDetailsForm({'name': 'Test',
                                     'description': '',
                                     'category': 'IB',

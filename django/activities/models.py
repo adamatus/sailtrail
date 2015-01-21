@@ -15,6 +15,19 @@ import os.path
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
+SAILING = 'SL'
+WINDSURFING = 'WS'
+KITEBOARDING = 'KB'
+SNOWKITING = 'SK'
+ICEBOATING = 'IB'
+ACTIVITY_CHOICES = (
+    (SAILING, 'Sailing'),
+    (WINDSURFING, 'Windsurfing'),
+    (KITEBOARDING, 'Kite Boarding'),
+    (SNOWKITING, 'Snow Kiting'),
+    (ICEBOATING, 'Ice Boating'),
+)
+
 
 class Activity(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -143,18 +156,6 @@ class ActivityTrackpoint(models.Model):
 
 
 class ActivityDetail(models.Model):
-    SAILING = 'SL'
-    WINDSURFING = 'WS'
-    KITEBOARDING = 'KB'
-    SNOWKITING = 'SK'
-    ICEBOATING = 'IB'
-    ACTIVITY_CHOICES = (
-        (SAILING, 'Sailing'),
-        (WINDSURFING, 'Windsurfing'),
-        (KITEBOARDING, 'Kite Boarding'),
-        (SNOWKITING, 'Snow Kiting'),
-        (ICEBOATING, 'Ice Boating'),
-    )
 
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
@@ -174,7 +175,6 @@ class ActivityStat(models.Model):
 
     @property
     def end_time(self):
-        print('Track:', self.activity_id)
         return self.activity_id.track.last().trim_end.time()
 
     @property

@@ -155,17 +155,14 @@ def untrim(request, activity_id, track_id):
 
 def register(request, form=None):
     if request.method == 'POST':
-        print(request.POST)
         form = NewUserForm(request.POST)
         if form.is_valid():
-            print('Form is valid!')
             username = form.clean_username()
             password = form.clean_password2()
             form.save()
             user = authenticate(username=username, password=password)
             login(request, user)
             return redirect('home')
-        print('Form is not valid!')
     else:
         if form is None:
             form = NewUserForm()

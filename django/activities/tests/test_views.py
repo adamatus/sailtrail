@@ -18,6 +18,8 @@ from activities.forms import (UploadFileForm, ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
 
+from .factories import UserFactory, ActivityFactory, ActivityDetailFactory
+
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -27,12 +29,13 @@ with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
 
 
 class HomepageViewTest(TestCase):
-    fixtures = ['full-activities.json']
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.user = User(username="test2", email="a@b.com", password="pass")
-        self.user.save()
+        ActivityDetailFactory.create(
+            name="First snowkite of the season")
+        ActivityDetailFactory.create(
+            name="Snowkite lesson:")
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -51,13 +54,14 @@ class HomepageViewTest(TestCase):
     def test_home_page_shows_existing_activities(self):
         """[get] should show the existing activities"""
         response = self.client.get('/')
+        print(response.content)
         self.assertContains(response, 'First snowkite of the season')
         self.assertContains(response, 'Snowkite lesson:')
 
     def test_home_page_does_not_show_activities_without_details(self):
         """[get] should not show activities that are missing details"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            a = Activity.objects.create(user=self.user)
+            a = Activity.objects.create(user=UserFactory.create())
             ActivityTrack.objects.create(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
                 activity_id=a
@@ -69,10 +73,9 @@ class HomepageViewTest(TestCase):
 
 class FileuploadViewTest(TestCase):
 
-    fixtures = ['users.json']
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.user = UserFactory.create(username='test')
         self.client.login(username='test', password='password')
 
     def tearDown(self):
@@ -127,10 +130,11 @@ class FileuploadViewTest(TestCase):
 
 class NewactivitydetailViewTest(TestCase):
 
-    fixtures = ['full-activities.json']
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        user = UserFactory.create(username="test")
+        activity = ActivityFactory(user=user)
+        ActivityDetailFactory.create(activity_id=activity)
         self.client.login(username='test', password='password')
 
     def tearDown(self):
@@ -192,10 +196,11 @@ class NewactivitydetailViewTest(TestCase):
 
 class ActivitydetailViewTest(TestCase):
 
-    fixtures = ['full-activities.json']
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        user = UserFactory.create(username="test")
+        activity = ActivityFactory(user=user)
+        ActivityDetailFactory.create(activity_id=activity)
         self.client.login(username='test', password='password')
 
     def test_detail_view_uses_activity_details_template(self):
@@ -253,11 +258,15 @@ class ActivityViewTest(TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        ActivityDetailFactory.create(
+            name="First snowkite of the season",
+            description="Hooray ice!")
+        ActivityDetailFactory.create(
+            name="Snowkite Lesson: C-lesson",
+            description="Less riding during lessons")
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
-
-    fixtures = ['full-activities.json']
 
     def test_uses_activity_template(self):
         """[get] should render the correct template"""
@@ -287,12 +296,10 @@ class ActivityViewTest(TestCase):
 
 class DeleteactivityViewTest(TestCase):
 
-    fixtures = ['users.json']
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
+        self.user = UserFactory.create(username='test')
         self.client.login(username='test', password='password')
-        self.user = User.objects.filter(username='test').first()
         with self.settings(MEDIA_ROOT=self.temp_dir):
             Activity.objects.create(user=self.user)
 
