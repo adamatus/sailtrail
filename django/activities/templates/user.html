@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title_text %}Home{% endblock %}
+{% block title_text %}{{activities.1.user.username}}'s activities{% endblock %}
 
 {% block main_section %}
 			<h1>SailStats</h1>
 			<p>The best place to track your windsports activites</p>
-		  <h2>Activity List</h2>
+			<h2>Activity List for {{activities.1.user.username}}</h2>
 				<hr>
 				{% for activity in activities %}
 				<div class='activity'>
 					<h3><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></h3>
-					<p><a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
 					<ul class="list-inline">
 						<li class="activity-date">{{ activity.stats.date }}</li>
 						<li class="activity-time">{{ activity.stats.start_time }}</li>

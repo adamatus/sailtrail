@@ -19,6 +19,21 @@ def home_page(request, form=None):
                    })
 
 
+def user_page(request, username, form=None):
+    if form is None:
+        form = UploadFileForm()
+    activities = Activity.objects.filter(user__username=username).filter(
+            details__isnull=False)
+    return render(request, 'user.html',
+                  {'activities': activities,
+                   'form': form
+                   })
+
+
+def user_list(request, form=None):
+    pass
+
+
 @login_required
 def upload(request):
     if request.method == 'POST':

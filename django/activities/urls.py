@@ -20,6 +20,11 @@ urlpatterns = patterns(
         'activities.views.upload_track',
         name='upload_track'),
 
+    url(r'^users/$', 'activities.views.user_list', name='user_list'),
+    url(r'^users/(?P<username>\w+)/$',
+        'activities.views.user_page',
+        name='user'),
+
     url(r'(\d+)/details/$', 'activities.views.details', name='details'),
     url(r'(\d+)/delete$', 'activities.views.delete', name='delete_activity'),
     url(r'(\d+)/$', 'activities.views.view', name='view_activity'),
