@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 
 from activities.models import Activity, ActivityTrack
@@ -15,6 +16,30 @@ def home_page(request, form=None):
     return render(request, 'home.html',
                   {'activities':
                       Activity.objects.filter(details__isnull=False),
+                   'form': form
+                   })
+
+
+def activity_list(request, form=None):
+    return home_page(request, form)
+
+
+def user_page(request, username, form=None):
+    if form is None:
+        form = UploadFileForm()
+    activities = Activity.objects.filter(user__username=username).filter(
+        details__isnull=False)
+    return render(request, 'user.html',
+                  {'activities': activities,
+                   'username': username,
+                   'form': form
+                   })
+
+
+def user_list(request, form=None):
+    users = User.objects.all()
+    return render(request, 'user_list.html',
+                  {'users': users,
                    'form': form
                    })
 
