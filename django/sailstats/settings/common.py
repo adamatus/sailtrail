@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '../.uploads')
+MEDIA_ROOT = os.path.join(BASE_DIR, '../../.uploads')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -21,12 +21,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, '../.uploads')
 SECRET_KEY = 'c9n93(^++p*%siz2#o_kkmwfq(k#%qcp_hu9dil7c%ppvpwclb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    '.sailstats.com',
+    '.sailstats.com.'
+]
 
 # Application definition
 
@@ -37,11 +39,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'livereload',
     'djangojs',
     'activities',
     'djangobower',
-    'django_nose',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -67,7 +67,7 @@ LOGIN_REDIRECT_URL = '/'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, '../.database/db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, '../../../database/db.sqlite3'),
     }
 }
 
@@ -94,8 +94,9 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "djangobower.finders.BowerFinder",
 )
+STATIC_ROOT = os.path.join(BASE_DIR, '../../../static')
 
-BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../')
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../../')
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
