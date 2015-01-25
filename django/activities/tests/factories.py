@@ -7,10 +7,10 @@ from math import floor
 from activities.models import (Activity, ActivityTrack, ActivityDetail,
                                ActivityStat, ActivityTrackpoint)
 from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from datetime import datetime
 
-User = get_user_model()
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
