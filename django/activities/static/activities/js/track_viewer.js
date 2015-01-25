@@ -9,10 +9,10 @@ module.exports = {
 	marker_pos: 0,
 	tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
-	drawmap: function(pos) {
+	drawmap: function(pos, max_speed) {
 		var i, len, color_scale;
 
-		this.max_speed = d3.max(pos.map(function(d) { return d.speed; }));
+		this.max_speed = max_speed;
 
 		this.latlng = [];
 		for(i=0; i<pos.length; i++) { 
