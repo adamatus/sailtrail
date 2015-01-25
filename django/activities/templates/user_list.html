@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title_text %}User list{% endblock %}
+
+{% block main_section %}
+		  <h2>User List</h2>
+				<hr>
+				{% for user in users %}
+				<div class='user'>
+					<h3><a href="{% url "user" user.username %}">{{ user.username }}</a></h3>
+					<ul class="list-inline">
+						<li class="user-something">{{ user.activity.count }} activities</li>
+					</ul>
+				</div>
+				<hr>
+				{% endfor %}
+				{% url "upload" as upload_url %}
+				{% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
+				<button id="upload-file-modal-btn" class="btn btn-default" data-toggle="modal" data-target="#upload-modal">Upload New Activity</button>
+			</form>
+{% endblock %}

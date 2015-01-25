@@ -10,7 +10,7 @@
 				{% for activity in activities %}
 				<div class='activity'>
 					<h3><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></h3>
-					<p><a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
+					<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
 					<ul class="list-inline">
 						<li class="activity-date">{{ activity.stats.date }}</li>
 						<li class="activity-time">{{ activity.stats.start_time }}</li>

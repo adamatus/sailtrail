@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
     '',
+    url(r'^$', 'activities.views.activity_list', name='activity_list'),
     url(r'^upload$', 'activities.views.upload', name='upload'),
 
     url(r'(\d+)/tracks/(\d+)/delete$',

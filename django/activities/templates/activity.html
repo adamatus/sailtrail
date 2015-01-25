@@ -20,7 +20,9 @@ var units = {{ units|safe }};
 {% block main_section %}
 		<h1>{{ activity.details.name }}</h1>
 		<p>{{ activity.details.description }}</p>
-		<p>{{ activity.user.username }}</p>
+		{% if not owner %}
+		<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
+		{% endif %}
 		<p>{{ activity.details.get_category_display }}</p>
 		<p>Date: {{ activity.stats.date }}</p>
 		<p>Start Time: {{ activity.stats.start_time }}</p>
