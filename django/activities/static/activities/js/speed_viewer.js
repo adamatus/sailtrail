@@ -12,7 +12,7 @@ module.exports = {
 	y: undefined,
 	marker_pos: 0,
 
-	drawplot: function(spds) {
+	drawplot: function(spds, max_speed) {
 		var width = $('#speed-plot').width(),
 			  height = $('#speed-plot').height(),
 				margins = [40, 40, 10, 10],
@@ -29,10 +29,10 @@ module.exports = {
 		this.speeds = spds.map(function(d) { return d.speed; });
 		this.times = spds.map(function(d) { return time_format.parse(d.time); });
 
-		this.x = this.d3.time.scale().range([0, w]).domain([this.d3.min(this.times),
-																									this.d3.max(this.times)]);
+		this.x = this.d3.time.scale().range([0, w])
+			         .domain([this.times[0], this.times[this.times.length-1]]);
 		xAxis = this.d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
-		this.y = this.d3.scale.linear().range([h, 0]).domain([0, this.d3.max(this.speeds)]);
+		this.y = this.d3.scale.linear().range([h, 0]).domain([0, max_speed]);
 		yAxis = this.d3.svg.axis().scale(this.y).ticks(4).orient('left');
 
 		var svg = this.d3.select('#speed-plot')

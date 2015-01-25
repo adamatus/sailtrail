@@ -10,12 +10,12 @@ var activity_viewer = {
 	speed_viewer: SpeedViewer,
 	track_viewer: TrackViewer,
 
-	init: function(pos) {
+	init: function(pos, max_speed) {
 		this.pos = pos;
 		this.time_slider = $('#time-slider');
 		this.setup_slider();
-		this.track_viewer.drawmap(this.pos);
-		this.speed_viewer.drawplot(this.pos);
+		this.track_viewer.drawmap(this.pos, max_speed);
+		this.speed_viewer.drawplot(this.pos, max_speed);
 		this.setup_trim_events();
 	},
 
