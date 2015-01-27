@@ -1,3 +1,13 @@
+<a name="0.1.2"></a>
+### 0.1.2 (2015-01-26)
+
+
+#### Features
+
+* Add fabric-powered deployment to AWS ([fe343375](http://github.com/adamatus/sailstats/commit/fe343375c1c22a4a03ea7605165cb30e4c0387cd))
+* **activites:** Add user-specific list pages and user list page ([3b458afc](http://github.com/adamatus/sailstats/commit/3b458afcc46bc46af007b3916e6e46fd8308c20e))
+
+
 <a name="0.1.1"></a>
 ### 0.1.1 (2015-01-20)
 
