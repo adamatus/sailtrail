@@ -4,9 +4,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 from activities.models import Activity, ActivityTrack
 from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
+
+import json
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
@@ -124,6 +127,18 @@ def view(request, activity_id, form=None):
                    })
 
 
+def activity_json(request, activity_id, form=None):
+    activity = Activity.objects.get(id=activity_id)
+    pos = activity.get_trackpoints()
+    for p in pos:
+        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
+        del p['timepoint']
+        del p['sog']
+
+    return HttpResponse(json.dumps(pos), content_type="application/json")
+
+
 def view_track(request, activity_id, track_id, form=None):
 
     track = ActivityTrack.objects.get(id=track_id)
@@ -148,6 +163,21 @@ def view_track(request, activity_id, track_id, form=None):
                    'trimmed': track.trimmed,
                    'form': form,
                    })
+
+
+def track_json(request, activity_id, track_id, form=None):
+
+    track = ActivityTrack.objects.get(id=track_id)
+
+    pos = list(track.get_trackpoints()
+                    .values('sog', 'lat', 'lon', 'timepoint'))
+    for p in pos:
+        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
+        del p['timepoint']
+        del p['sog']
+
+    return HttpResponse(json.dumps(pos), content_type="application/json")
 
 
 @login_required

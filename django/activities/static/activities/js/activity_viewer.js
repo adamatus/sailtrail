@@ -10,13 +10,16 @@ var activity_viewer = {
 	speed_viewer: SpeedViewer,
 	track_viewer: TrackViewer,
 
-	init: function(pos, max_speed) {
-		this.pos = pos;
-		this.time_slider = $('#time-slider');
-		this.setup_slider();
-		this.track_viewer.drawmap(this.pos, max_speed);
-		this.speed_viewer.drawplot(this.pos, max_speed);
-		this.setup_trim_events();
+	init: function(pos_url, max_speed) {
+		var self = this;
+		d3.json(pos_url, function(error, data) {
+			self.pos = data;
+			self.time_slider = $('#time-slider');
+			self.setup_slider();
+			self.track_viewer.drawmap(self.pos, max_speed);
+			self.speed_viewer.drawplot(self.pos, max_speed);
+			self.setup_trim_events();
+		});
 	},
 
 	setup_slider: function() {

@@ -17,6 +17,9 @@ urlpatterns = patterns(
     url(r'(\d+)/tracks/(\d+)/$',
         'activities.views.view_track',
         name="view_track"),
+    url(r'(\d+)/tracks/(\d+)/json$',
+        'activities.views.track_json',
+        name="track_json"),
     url(r'(\d+)/tracks/upload$',
         'activities.views.upload_track',
         name='upload_track'),
@@ -28,5 +31,8 @@ urlpatterns = patterns(
 
     url(r'(\d+)/details/$', 'activities.views.details', name='details'),
     url(r'(\d+)/delete$', 'activities.views.delete', name='delete_activity'),
+    url(r'(\d+)/json$',
+        'activities.views.activity_json',
+        name='activity_json'),
     url(r'(\d+)/$', 'activities.views.view', name='view_activity'),
 )
