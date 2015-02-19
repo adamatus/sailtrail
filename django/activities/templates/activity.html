@@ -5,9 +5,6 @@
 
 {% block extra_styles %}
 {% css 'activities/css/plots.css' %}
-<script>
-var units = {{ units|safe }};
-</script>
 {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
 <style>
   .slider.slider-horizontal {
@@ -52,6 +49,7 @@ var units = {{ units|safe }};
 	{% js 'activities/js/activity_viewer.bundle.js' %}
 		<script>
 var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],
+		units = {{ units|safe }},
 		json_url = "{% url 'activity_json' activity.id %}";
 
 activity_viewer.init(json_url, max_speed);
