@@ -46,14 +46,16 @@ module.exports = function(grunt) {
 			dev: {
 				files: {
 					"django/activities/static/activities/js/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
-				
 				},
 				options: {
 					watch: true,
+					browserifyOptions: {
+						debug: true,
+					},
 				}
 			}
 		},
-		
+
 		"django-manage": {
 			options: {
 				app: 'sailstats',
