@@ -1,3 +1,12 @@
+<a name="0.1.3"></a>
+### 0.1.3 (2015-02-18)
+
+
+#### Bug Fixes
+
+* **activities:** Add server-side max speed to individual track pages ([39362b79](http://github.com/adamatus/sailstats/commit/39362b790957c9232b0e6a3843122d00ca974780))
+
+
 <a name="0.1.2"></a>
 ### 0.1.2 (2015-01-26)
 
