@@ -39,9 +39,9 @@ var activity_viewer = {
 		});
 
 		this.time_slider.on('slide', function(slideEvt, data) {
-				data = data | slideEvt.value;
-				TrackViewer.movemarker(data);
-				SpeedViewer.movemarker(data);
+				var newdata = data | slideEvt.value;
+				TrackViewer.movemarker(newdata);
+				SpeedViewer.movemarker(newdata);
 		});
 	},
 
