@@ -110,17 +110,9 @@ def view(request, activity_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
-    pos = activity.get_trackpoints()
-    for p in pos:
-        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
-        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
-        del p['timepoint']
-        del p['sog']
-
     return render(request,
                   'activity.html',
                   {'activity': activity,
-                   'pos_json': pos,
                    'units': UNITS,
                    'form': form,
                    'owner': request.user == activity.user,
@@ -140,19 +132,10 @@ def view_track(request, activity_id, track_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
-    pos = list(track.get_trackpoints()
-                    .values('sog', 'lat', 'lon', 'timepoint'))
-    for p in pos:
-        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
-        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
-        del p['timepoint']
-        del p['sog']
-
     return render(request,
                   'track.html',
                   {'track': track,
                    'activity': track.activity_id,
-                   'pos_json': pos,
                    'units': UNITS,
                    'trimmed': track.trimmed,
                    'form': form,
