@@ -282,11 +282,6 @@ class ActivityViewTest(TestCase):
         self.assertContains(response, 'Hooray ice!')
         self.assertNotContains(response, 'Snowkite lesson:')
 
-    def test_html_includes_embedded_track_json(self):
-        """[get] should include embedded track JSON"""
-        response = self.client.get(reverse('view_activity', args=[1]))
-        self.assertContains(response, 'var pos = [')
-
     def test_html_includes_max_speed(self):
         """[get] should include max speed"""
         response = self.client.get(reverse('view_activity', args=[1]))
