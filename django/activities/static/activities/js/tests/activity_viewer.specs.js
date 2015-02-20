@@ -2,6 +2,7 @@ var chai = require('chai'),
 		should = chai.should(),
 		sinon = require("sinon"),
 		sinon_chai = require("sinon-chai"),
+		d3 = require("d3"),
 		activity_viewer = require('../activity_viewer');
 
 chai.use(sinon_chai);
@@ -14,17 +15,19 @@ describe("Activity viewer", function() {
 		it("should respond", function() {
 			activity_viewer.should.respondTo("init");
 		});
+	});
 
+	describe("setup", function() {
 		it("should call trackviewer_viewer.drawmap", sinon.test(function() {
 			this.stub(activity_viewer.track_viewer, 'drawmap');
-			activity_viewer.init(pos);
+			activity_viewer.setup(null, pos);
 			activity_viewer.track_viewer.drawmap.should.have.been.called; // jshint ignore:line
 		}));
 
 		it("should call speed_viewer.drawplot", sinon.test(function() {
 			this.stub(activity_viewer.track_viewer, 'drawmap');
 			this.stub(activity_viewer.speed_viewer, 'drawplot');
-			activity_viewer.init(pos);
+			activity_viewer.setup(null, pos);
 			activity_viewer.speed_viewer.drawplot.should.have.been.called; // jshint ignore:line
 		}));
 	});
