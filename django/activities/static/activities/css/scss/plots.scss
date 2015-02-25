@@ -1,11 +1,9 @@
-#map { 	
-  height: 300px; 
+#map,
+#speed-plot,
+#polar-plot {
+  height: 300px;
 }
 
-#speed-plot { 
-  height: 300px; 
-}
-	
 .axis, .grid {
   shape-rendering: crispEdges;
 }
@@ -17,3 +15,39 @@
     stroke: #000;
   }
 }
+
+.r.axis,
+.a.axis{
+  shape-rendering: auto;
+
+  circle,
+  line {
+    fill: none;
+    stroke: #777;
+    stroke-dasharray: 1,4;
+  }
+}
+
+.r.axis :last-of-type circle {
+  stroke: #333;
+  stroke-dasharray: none;
+}
+
+.polar {
+  stroke: red;
+  stroke-width: 1.5px;
+  fill: rgba(255, 0, 0, .10);
+  stroke-dasharray: 2,2;
+
+  &.mean {
+    fill: rgba(255, 0, 0, .20);
+    stroke-dasharray: none;
+  }
+
+  &.bearing {
+    stroke: black;
+    stroke-width: 3px;
+    stroke-dasharray: none;
+  }
+}
+
