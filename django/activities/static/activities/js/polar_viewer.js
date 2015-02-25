@@ -1,5 +1,3 @@
-/* FIXME Conversion from m/s to knots is currently hard coded into file! */
-
 var $ = require('jquery');
 
 module.exports = {
