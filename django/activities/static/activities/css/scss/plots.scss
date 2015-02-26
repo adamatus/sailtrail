@@ -37,17 +37,22 @@
   stroke: red;
   stroke-width: 1.5px;
   fill: rgba(255, 0, 0, .10);
-  stroke-dasharray: 2,2;
+
+	&.max{
+		stroke-dasharray: 2,2;
+	}
 
   &.mean {
     fill: rgba(255, 0, 0, .20);
-    stroke-dasharray: none;
   }
 
   &.bearing {
     stroke: black;
     stroke-width: 3px;
-    stroke-dasharray: none;
   }
+
+  &.wind {
+    stroke: blue;
+	}
 }
 

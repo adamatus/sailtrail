@@ -21,6 +21,27 @@ module.exports = {
 		this.bearings = pos.map(function(d) { return d.bearing; });
 		this.speeds = pos.map(function(d) { return d.speed; });
 
+		this.pol_speeds = polars.map(function(d) { return d.mean; });
+		this.pol_bearings = polars.map(function(d) { return d.bearing; });
+
+		var len = this.pol_speeds.length,
+			mid = len/2,
+			temp_speeds = this.pol_speeds.slice(),
+			alignments = [],
+			diffs, i, j;
+
+		for (j=0; j < len; j++) {
+			if (j > 0) {
+				temp_speeds.push(temp_speeds.shift());
+			}
+			diffs = [];
+			for (i=0; i < mid; i++) {
+				diffs.push(temp_speeds[i]-temp_speeds[len-i-1]);
+			}
+			alignments.push(Math.abs(d3.sum(diffs)));
+		}
+		this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
+		console.log("Wind offset", this.wind_offset);
 
 		this.r = d3.scale.linear()
 			.domain([0, this.max_r*1.2])
@@ -28,10 +49,12 @@ module.exports = {
 
 		this.mean_line = d3.svg.line.radial()
 			.radius(function(d) { return that.r(d.mean); })
+			.interpolate("cardinal-closed")
 			.angle(function(d) { return Math.PI/180 * (-d.bearing); });
 
 		this.max_line = d3.svg.line.radial()
 			.radius(function(d) { return that.r(d.max); })
+			.interpolate("cardinal-closed")
 			.angle(function(d) { return Math.PI/180 * (-d.bearing); });
 
 		var svg = this.d3.select('#polar-plot')
@@ -94,6 +117,12 @@ module.exports = {
 			.attr('x2', this.r(this.speeds[this.marker_pos]))
 			.attr("class", "polar bearing")
 			.attr("transform", "rotate(" + (-(this.bearings[this.marker_pos]+90)) + ")");
+
+		// The estimated wind direction
+		this.wind = this.plot.append('svg:line')
+			.attr('x2', this.r(d3.max(this.pol_speeds)))
+			.attr("class", "polar wind")
+			.attr("transform", "rotate(" + (-this.wind_offset+90) + ")");
 
 	},
 
