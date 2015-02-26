@@ -83,6 +83,10 @@ var activity_viewer = {
 			$('#input-trim-end').val(self.pos[new_val].time);
 		});
 	},
+
+	toggle_polar: function() {
+		this.polar_viewer.toggle_mode();
+	},
 };
 
 module.exports = activity_viewer;

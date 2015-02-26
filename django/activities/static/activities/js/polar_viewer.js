@@ -8,6 +8,7 @@ module.exports = {
 	x: undefined,
 	y: undefined,
 	marker_pos: 0,
+	mode: 'actual',
 
 	drawplot: function(pos, polars) {
 		var width = $('#polar-plot').width(),
@@ -100,26 +101,32 @@ module.exports = {
 				.attr("transform", function(d) { return d > 180 ? "rotate(180 " + (radius + 6) + ",0)" : null; })
 				.text(function(d) { return d + "°"; });
 
+		this.polar_g = this.plot.append("g")
+			.on("click", function() {
+				console.log('got click');
+				that.toggle_mode();
+			});
+
 		// The mean line
-		this.plot.append("path")
+		this.polar_g.append("path")
 			.datum(polars)
 			.attr("class", "polar mean")
 			.attr("d", this.mean_line);
 
 		// The mean line
-		this.plot.append("path")
+		this.polar_g.append("path")
 			.datum(polars)
 			.attr("class", "polar max")
 			.attr("d", this.max_line);
 
 		// The current bearing line
-		this.marker = this.plot.append('svg:line')
+		this.marker = this.polar_g.append('svg:line')
 			.attr('x2', this.r(this.speeds[this.marker_pos]))
 			.attr("class", "polar bearing")
 			.attr("transform", "rotate(" + (-(this.bearings[this.marker_pos]+90)) + ")");
 
 		// The estimated wind direction
-		this.wind = this.plot.append('svg:line')
+		this.wind = this.polar_g.append('svg:line')
 			.attr('x2', this.r(d3.max(this.pol_speeds)))
 			.attr("class", "polar wind")
 			.attr("transform", "rotate(" + (-this.wind_offset+90) + ")");
@@ -133,4 +140,25 @@ module.exports = {
 			.attr("transform", "rotate(" + (-(this.bearings[this.marker_pos]+90)) + ")");
 	},
 
+	toggle_mode: function(mode) {
+		if (this.mode === 'actual') {
+			// Switch label to relative to wind
+			var data = d3.range(0, 181, 30);
+			for (var i = 5; i; i--) {
+				data.push(data[i]);
+			}
+			d3.selectAll('.a.axis text')
+					.data(data)
+				.text(function(d) { return d + "°"; });
+			this.polar_g.transition().attr("transform", "rotate(" + (+(this.wind_offset-180)) + ")");
+			this.mode = 'polar';
+		} else {
+			// Switch labels to cardinals
+			d3.selectAll('.a.axis text')
+					.data(d3.range(0, 360, 30))
+				.text(function(d) { return d + "°"; });
+			this.polar_g.transition().attr("transform", "rotate(0)");
+			this.mode = 'actual';
+		}
+	}
 };
