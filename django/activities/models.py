@@ -54,7 +54,8 @@ class Activity(models.Model):
 
 def create_sbn_trackpoints(track):
     d = read_sbn(track.upfile.path)
-    d = [x for x in d.pktq if x is not None]  # filter out Nones
+    d = [x for x in d.pktq
+         if x is not None and x['fixtype'] != 'none']  # filter out Nones
 
     insert = []
     app = insert.append  # cache append method for speed.. maybe?
