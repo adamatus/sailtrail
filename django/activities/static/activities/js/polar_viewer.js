@@ -42,7 +42,6 @@ module.exports = {
 			alignments.push(Math.abs(d3.sum(diffs)));
 		}
 		this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
-		console.log("Wind offset", this.wind_offset);
 
 		this.r = d3.scale.linear()
 			.domain([0, this.max_r*1.2])
@@ -103,7 +102,6 @@ module.exports = {
 
 		this.polar_g = this.plot.append("g")
 			.on("click", function() {
-				console.log('got click');
 				that.toggle_mode();
 			});
 
