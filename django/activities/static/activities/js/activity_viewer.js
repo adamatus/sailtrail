@@ -69,13 +69,13 @@ var activity_viewer = {
 		$('#trim-start').on('click', function(evnt) {
 			// Save selected value to hidden input field
 			var new_val = self.time_slider.slider('getValue');
-			$('#input-trim-start').val(pos[new_val].time);
+			$('#input-trim-start').val(self.pos[new_val].time);
 		});
 
 		$('#trim-end').on('click', function(evnt) {
 			// Save selected value to hidden input field
 			var new_val = self.time_slider.slider('getValue');
-			$('#input-trim-end').val(pos[new_val].time);
+			$('#input-trim-end').val(self.pos[new_val].time);
 		});
 	},
 };
