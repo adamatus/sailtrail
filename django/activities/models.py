@@ -206,6 +206,7 @@ class ActivityDetail(models.Model):
     description = models.TextField(null=True, blank=True)
     activity_id = models.OneToOneField(Activity, related_name='details',
                                        blank=False, null=False)
+    private = models.BooleanField(default=False)
     category = models.CharField(max_length=2,
                                 blank=False,
                                 choices=ACTIVITY_CHOICES,

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+
 User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -17,9 +19,15 @@ from activities import UNITS, units, DATETIME_FORMAT_STR
 def home_page(request, form=None):
     if form is None:
         form = UploadFileForm()
+
+    activities = Activity.objects.filter(details__isnull=False)
+
+    # Remove private activities for all but the current user
+    activities = activities.exclude(
+        ~Q(user__username=request.user.username), details__private=True)
+
     return render(request, 'home.html',
-                  {'activities':
-                      Activity.objects.filter(details__isnull=False),
+                  {'activities': activities,
                    'form': form
                    })
 
@@ -31,8 +39,14 @@ def activity_list(request, form=None):
 def user_page(request, username, form=None):
     if form is None:
         form = UploadFileForm()
+
     activities = Activity.objects.filter(user__username=username).filter(
         details__isnull=False)
+
+    # Filter out private activities is the user is not viewing themselves
+    if request.user.username != username:
+        activities = activities.filter(details__private=False)
+
     return render(request, 'user.html',
                   {'activities': activities,
                    'username': username,
@@ -106,6 +120,10 @@ def details(request, activity_id):
 
 def view(request, activity_id, form=None):
     activity = Activity.objects.get(id=activity_id)
+
+    # Redirect to home if trying to access another users private activity
+    if activity.details.private and request.user != activity.user:
+        return redirect('home')
 
     if form is None:
         form = UploadFileForm({'activity': activity_id})
