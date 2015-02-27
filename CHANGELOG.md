@@ -1,3 +1,20 @@
+<a name="0.1.4"></a>
+### 0.1.4 (2015-02-26)
+
+
+#### Bug Fixes
+
+* **activities:**
+  * Remove trackpoints without a satellite fix on upload ([bb8fc89f](http://github.com/adamatus/sailstats/commit/bb8fc89f615476f6d0085ae2e03ca5bd85fe864b))
+
+
+#### Features
+
+* **activities:**
+  * Add polar plots ([042b37a7](http://github.com/adamatus/sailstats/commit/042b37a794fb722dcf7f33ba9e2e58f98c44f245))
+  * Add flag to mark activities as private ([4cd17cd8](http://github.com/adamatus/sailstats/commit/4cd17cd887ef2f39d40a619adabd18ee28c2141b))
+
+
 <a name="0.1.3"></a>
 ### 0.1.3 (2015-02-18)
 
