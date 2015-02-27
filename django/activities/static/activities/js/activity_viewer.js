@@ -1,5 +1,6 @@
 var SpeedViewer = require('./speed_viewer'),
 	  TrackViewer = require('./track_viewer'),
+		PolarViewer = require('./polar_viewer'),
 		d3 = require("d3"),
 		$ = require('jquery');
 
@@ -11,6 +12,7 @@ var activity_viewer = {
 	max_speed: undefined,
 	speed_viewer: SpeedViewer,
 	track_viewer: TrackViewer,
+	polar_viewer: PolarViewer,
 
 	init: function(pos_url, max_speed) {
 		this.max_speed = max_speed;
@@ -18,11 +20,13 @@ var activity_viewer = {
 	},
 
 	setup: function(error, data) {
-			this.pos = data;
+			this.pos = data.details;
+			this.polars = data.polars;
 			this.time_slider = $('#time-slider');
 			this.setup_slider();
 			this.track_viewer.drawmap(this.pos, this.max_speed);
 			this.speed_viewer.drawplot(this.pos, this.max_speed);
+			this.polar_viewer.drawplot(this.pos, this.polars);
 			this.setup_trim_events();
 	},
 
@@ -46,6 +50,7 @@ var activity_viewer = {
 				var newdata = data | slideEvt.value;
 				TrackViewer.movemarker(newdata);
 				SpeedViewer.movemarker(newdata);
+				PolarViewer.movemarker(newdata);
 		});
 	},
 
@@ -77,6 +82,10 @@ var activity_viewer = {
 			var new_val = self.time_slider.slider('getValue');
 			$('#input-trim-end').val(self.pos[new_val].time);
 		});
+	},
+
+	toggle_polar: function() {
+		this.polar_viewer.toggle_mode();
 	},
 };
 

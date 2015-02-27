@@ -43,7 +43,7 @@ class Stats(object):
     def max_speed(self):
         return max(self.speeds)
 
-    def distance(self, method='EquirecApprox'):
+    def distances(self, method='EquirecApprox'):
         R = 6371.0  # Earth's radius in km
 
         lats = np.radians(np.asarray([x['lat'] for x in self.trackpoints]))
@@ -71,4 +71,23 @@ class Stats(object):
             y = (lat2-lat1)
             dist = np.sqrt(x**2 + y**2) * R
 
-        return np.sum(dist) * (self.units.m * 1000)
+        return dist * (self.units.m * 1000)
+
+    def distance(self, method='EquirecApprox'):
+        dist = self.distances(method)
+        return np.sum(dist)
+
+    def bearing(self):
+        """Calculate the instantaneous bearing at each trackpoint"""
+
+        lats = np.asarray([x['lat'] for x in self.trackpoints])
+        lons = np.asarray([x['lon'] for x in self.trackpoints])
+
+        lat1 = lats[0:-1]
+        lat2 = lats[1:]
+        dlon = lons[0:-1] - lons[1:]
+
+        y = np.sin(dlon) * np.cos(lat2)
+        x = np.cos(lat1)*np.sin(lat2) - np.sin(lat1)*np.cos(lat2)*np.cos(dlon)
+        brn = np.rad2deg(np.arctan2(y, x))
+        return np.mod(brn+360, 360)

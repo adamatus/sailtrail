@@ -1,5 +1,3 @@
-/* FIXME Conversion from m/s to knots is currently hard coded into file! */
-
 var $ = require('jquery');
 
 module.exports = {
@@ -66,7 +64,7 @@ module.exports = {
 			.attr('transform', 'translate(-32,'+(h/2)+') rotate(-90)')
 			.text('Speed (' + units.speed + ')');
 
-		line.x(function(d) { return that.x(time_format.parse(d.time)); })	
+		line.x(function(d) { return that.x(time_format.parse(d.time)); })
 			.y(function(d) { return that.y(d.speed); });
 
 		this.plot.append("linearGradient")

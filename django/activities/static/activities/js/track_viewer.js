@@ -15,7 +15,7 @@ module.exports = {
 		this.max_speed = max_speed;
 
 		this.latlng = [];
-		for(i=0; i<pos.length; i++) { 
+		for(i=0; i<pos.length; i++) {
 			var trkpnt = new L.latLng(pos[i].lat, pos[i].lon);
 			trkpnt.speed = pos[i].speed;
 			this.latlng.push(trkpnt);
@@ -30,9 +30,9 @@ module.exports = {
 		this.trackgroup = L.layerGroup().addTo(this.map);
 
 		color_scale = d3.scale.linear()
-			.domain([0, 
-							0.2*this.max_speed, 
-							0.4*this.max_speed, 
+			.domain([0,
+							0.2*this.max_speed,
+							0.4*this.max_speed,
 							0.6*this.max_speed,
 							0.8*this.max_speed,
 							this.max_speed])

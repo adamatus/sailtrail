@@ -12,7 +12,10 @@ from django.core.exceptions import PermissionDenied
 from activities.models import Activity, ActivityTrack
 from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
 
+from sirf.stats import Stats
+
 import json
+import numpy as np
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 
@@ -144,11 +147,14 @@ def view(request, activity_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
+    pos = activity.get_trackpoints()
+
     return render(request,
                   'activity.html',
                   {'activity': activity,
                    'units': UNITS,
                    'form': form,
+                   'polars': return_polar(pos),
                    'owner': request.user == activity.user,
                    })
 
@@ -198,13 +204,52 @@ def track_json(request, activity_id, track_id, form=None):
 
 def return_json(pos):
 
-    for p in pos:
-        p['speed'] = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+    stats = Stats(pos)
+    distances = stats.distances()
+    bearings = stats.bearing()
+
+    # hack to get same size arrays (just repeat final element)
+    distances = np.append(distances, distances[-1])
+    bearings = np.append(bearings, bearings[-1])
+
+    polars = return_polar(pos)
+
+    for i, p in enumerate(pos):
+        speed = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+        p['speed'] = round(speed, 2)
         p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
+        p['dist'] = round(distances[i], 3)
+        p['bearing'] = round(bearings[i], 2)
         del p['timepoint']
         del p['sog']
 
-    return HttpResponse(json.dumps(pos), content_type="application/json")
+    out = dict(polars=polars, details=pos)
+
+    return HttpResponse(json.dumps(out), content_type="application/json")
+
+
+def return_polar(pos):
+
+    stats = Stats(pos)
+    speeds = np.asarray(
+        [(p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
+            for p in pos]
+    )
+    bearings = stats.bearing()
+    bins = []
+    bin_size = 5
+
+    for i in range(0, 360, bin_size):
+        speed_bin = speeds[(bearings >= i) & (bearings < (i+bin_size))]
+        if len(speed_bin) == 0:
+            speed_bin = [0]
+        bins.append({
+            'mean': round(np.mean(speed_bin).tolist(), 3),
+            'max': round(np.max(speed_bin).tolist(), 3),
+            'bearing': i+(bin_size/2)
+            })
+
+    return bins
 
 
 @login_required
