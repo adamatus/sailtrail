@@ -21,7 +21,7 @@ class ActivityDetailsForm(forms.models.ModelForm):
 
     class Meta:
         model = ActivityDetail
-        fields = ('name', 'description', 'category', 'activity_id')
+        fields = ('name', 'description', 'private', 'category', 'activity_id')
         widgets = {
             'name': forms.TextInput(attrs={
                 'placeholder': 'Enter activity name',
@@ -31,6 +31,9 @@ class ActivityDetailsForm(forms.models.ModelForm):
                 'placeholder': 'Activity description',
                 'class': 'form-control',
                 'rows': 4,
+            }),
+            'private': forms.CheckboxInput(attrs={
+                'label': 'Private'
             }),
         }
         error_messages = {

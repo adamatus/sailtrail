@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+
 User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
 
 from activities.models import Activity, ActivityTrack
 from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
@@ -17,9 +20,15 @@ from activities import UNITS, units, DATETIME_FORMAT_STR
 def home_page(request, form=None):
     if form is None:
         form = UploadFileForm()
+
+    activities = Activity.objects.filter(details__isnull=False)
+
+    # Remove private activities for all but the current user
+    activities = activities.exclude(
+        ~Q(user__username=request.user.username), details__private=True)
+
     return render(request, 'home.html',
-                  {'activities':
-                      Activity.objects.filter(details__isnull=False),
+                  {'activities': activities,
                    'form': form
                    })
 
@@ -31,8 +40,14 @@ def activity_list(request, form=None):
 def user_page(request, username, form=None):
     if form is None:
         form = UploadFileForm()
+
     activities = Activity.objects.filter(user__username=username).filter(
         details__isnull=False)
+
+    # Filter out private activities is the user is not viewing themselves
+    if request.user.username != username:
+        activities = activities.filter(details__private=False)
+
     return render(request, 'user.html',
                   {'activities': activities,
                    'username': username,
@@ -64,10 +79,16 @@ def upload(request):
 
 @login_required
 def upload_track(request, activity_id):
+
+    activity = Activity.objects.get(id=activity_id)
+
+    # Check to see if current user owns this activity, if not 403
+    if request.user != activity.user:
+        raise PermissionDenied
+
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            activity = Activity.objects.get(id=activity_id)
             activity.add_track(request.FILES['upfile'])
             return redirect('view_activity', activity.id)
     else:
@@ -79,9 +100,14 @@ def upload_track(request, activity_id):
 @login_required
 def details(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
+
+    # Only allow the owner of the activity to access details
+    if request.user != activity.user:
+        raise PermissionDenied
+
     cancel_link = reverse('view_activity', args=[activity.id])
 
-    if request.method == 'POST' and request.user == activity.user:
+    if request.method == 'POST':
         request.POST['activity_id'] = activity_id
         if hasattr(activity, 'details'):
             form = ActivityDetailsForm(request.POST, instance=activity.details)
@@ -104,8 +130,16 @@ def details(request, activity_id):
                                                      cancel_link})
 
 
+def verify_private_owner(activity, request):
+    if activity.details.private and request.user != activity.user:
+        raise PermissionDenied
+
+
 def view(request, activity_id, form=None):
     activity = Activity.objects.get(id=activity_id)
+
+    # Check to see if current user can see this, 403 if necessary
+    verify_private_owner(activity, request)
 
     if form is None:
         form = UploadFileForm({'activity': activity_id})
@@ -121,6 +155,10 @@ def view(request, activity_id, form=None):
 
 def activity_json(request, activity_id, form=None):
     activity = Activity.objects.get(id=activity_id)
+
+    # Check to see if current user can see this, 403 if necessary
+    verify_private_owner(activity, request)
+
     pos = activity.get_trackpoints()
     return return_json(pos)
 
@@ -128,6 +166,9 @@ def activity_json(request, activity_id, form=None):
 def view_track(request, activity_id, track_id, form=None):
 
     track = ActivityTrack.objects.get(id=track_id)
+
+    # Check to see if current user can see this, 403 if necessary
+    verify_private_owner(track.activity_id, request)
 
     if form is None:
         form = UploadFileForm({'activity': activity_id})
@@ -145,6 +186,9 @@ def view_track(request, activity_id, track_id, form=None):
 def track_json(request, activity_id, track_id, form=None):
 
     track = ActivityTrack.objects.get(id=track_id)
+
+    # Check to see if current user can see this, 403 if necessary
+    verify_private_owner(track.activity_id, request)
 
     pos = list(track.get_trackpoints()
                     .values('sog', 'lat', 'lon', 'timepoint'))
@@ -166,8 +210,9 @@ def return_json(pos):
 @login_required
 def delete(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
-    if request.user == activity.user:
-        activity.delete()
+    if request.user != activity.user:
+        raise PermissionDenied
+    activity.delete()
     return redirect('home')
 
 
@@ -179,16 +224,18 @@ def delete_track(request, activity_id, track_id):
 @login_required
 def trim(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
-    if request.user == track.activity_id.user:
-        track.trim(request.POST['trim-start'], request.POST['trim-end'])
+    if request.user != track.activity_id.user:
+        raise PermissionDenied
+    track.trim(request.POST['trim-start'], request.POST['trim-end'])
     return redirect('view_activity', activity_id)
 
 
 @login_required
 def untrim(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
-    if request.user == track.activity_id.user:
-        track.reset_trim()
+    if request.user != track.activity_id.user:
+        raise PermissionDenied
+    track.reset_trim()
     return redirect('view_activity', activity_id)
 
 

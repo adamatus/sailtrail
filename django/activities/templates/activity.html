@@ -26,6 +26,9 @@
 		<p>Duration: {{ activity.stats.duration }}</p>
 		<p>Distance: {{ activity.stats.distance }}</p>
 		<p>Max speed: {{ activity.stats.max_speed }}</p>
+		{% if activity.details.private %}
+		<p><i>This activity is currently private</i></p>
+		{% endif %}
 		{% if owner %}
 			<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete</button>
