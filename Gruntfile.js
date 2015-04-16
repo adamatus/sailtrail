@@ -59,23 +59,26 @@ module.exports = function(grunt) {
 		"django-manage": {
 			options: {
 				app: 'sailstats',
-				manage_path: 'django/'
+				manage_path: './django/'
 			},
 
 			test: {
 				options: {
 					command: 'test',
 					args: [
-						'activities sirf tests'
+						'activities',
+						'sirf',
+						'tests'
 					]
 				}
 			},
-			
+
 			unittest: {
 				options: {
 					command: 'test',
 					args: [
-						'activities sirf'
+						'activities',
+						'sirf'
 					]
 				}
 			},
@@ -135,7 +138,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('functest', ['django-manage:functest']);
 	grunt.registerTask('jstest', ['karma:jstest']);
 	grunt.registerTask('pytest', ['django-manage:unittest']);
-	
+
 	grunt.registerTask('dev', ['browserify', 'watch']);
 	grunt.registerTask('jsdev', ['karma:jstest-watch']);
 	grunt.registerTask('runserver', ['django-manage:runserver']);

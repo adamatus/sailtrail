@@ -33,9 +33,9 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "3.3.1",
-    "d3": "3.5.3",
+    "bootstrap": "3.3.4",
+    "d3": "3.5.5",
     "leaflet": "0.7.3",
-    "seiyria-bootstrap-slider": "4.4.2"
+    "seiyria-bootstrap-slider": "4.8.1"
   }
 }

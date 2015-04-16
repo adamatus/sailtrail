@@ -99,7 +99,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, '../../../static')
 
 BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '../../')
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
     '--with-coverage',
