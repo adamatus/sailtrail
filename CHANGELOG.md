@@ -1,3 +1,12 @@
+<a name"0.1.5"></a>
+### 0.1.5 (2015-04-15)
+
+
+#### Bug Fixes
+
+* Update nginx config so it keeps track of port ([63b30f15](https://github.com/adamatus/sailstats/commit/63b30f15))
+
+
 <a name="0.1.4"></a>
 ### 0.1.4 (2015-02-26)
 
