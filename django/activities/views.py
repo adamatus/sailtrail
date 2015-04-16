@@ -288,8 +288,8 @@ def register(request, form=None):
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if form.is_valid():
-            username = form.clean_username()
-            password = form.clean_password2()
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password2")
             form.save()
             user = authenticate(username=username, password=password)
             login(request, user)
