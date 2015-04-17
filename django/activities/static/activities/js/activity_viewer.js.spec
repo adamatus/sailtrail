@@ -1,10 +1,4 @@
-var chai = require('chai'),
-		should = chai.should(),
-		sinon = require("sinon"),
-		sinon_chai = require("sinon-chai"),
-		activity_viewer = require('./activity_viewer');
-
-chai.use(sinon_chai);
+var activity_viewer = require('./activity_viewer');
 
 describe("Activity viewer", function() {
 

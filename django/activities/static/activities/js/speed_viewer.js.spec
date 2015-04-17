@@ -1,5 +1,4 @@
-var should = require('chai').should(),
-		speed_viewer = require('./speed_viewer');
+var speed_viewer = require('./speed_viewer');
 
 describe("Speed viewer", function() {
 
