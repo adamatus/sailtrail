@@ -1,5 +1,5 @@
 var should = require('chai').should(),
-		track_viewer = require('../track_viewer');
+		track_viewer = require('./track_viewer');
 
 describe("track_viewer", function() {
 

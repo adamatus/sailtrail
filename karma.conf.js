@@ -15,7 +15,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-			'django/activities/static/activities/js/tests/*.specs.js'
+			'django/activities/static/activities/js/*.js.spec'
     ],
 
 
@@ -28,7 +28,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-			'django/activities/static/activities/js/tests/*.specs.js': ['browserify']
+			'django/activities/static/activities/js/*.js.spec': ['browserify']
     },
 
 
@@ -36,8 +36,8 @@ module.exports = function(config) {
 		browserify: {
 			debug: true,
 			transform: [
-				"debowerify", 
-				["browserify-istanbul", {"ignore": ["**/bower_components/**"]}]
+				"debowerify",
+				["browserify-istanbul", {"ignore": ["**/*.spec", "**/bower_components/**"]}]
 			]
 		},
 
