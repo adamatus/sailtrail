@@ -45,7 +45,7 @@ module.exports = function(grunt) {
 		browserify: {
 			dev: {
 				files: {
-					"django/activities/static/activities/js/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
+					"django/activities/static/activities/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
 				},
 				options: {
 					watch: true,
