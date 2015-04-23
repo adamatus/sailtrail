@@ -1,7 +1,8 @@
+'use strict';
+
 module.exports = function(grunt) {
 
-    var jslist = ['django/activities/static/activities/js/*.js'],
-        jsbundlelist = ['django/activities/static/activities/js/*.bundle.js'],
+    var jsbundlelist = ['django/activities/static/activities/js/*.bundle.js'],
         sasslist = ['django/activities/static/activities/css/scss/*.scss'],
         csslist = ['django/activities/static/activities/css/*.css'],
         templatelist = ['django/activities/templates/**/*.html'];
@@ -22,13 +23,20 @@ module.exports = function(grunt) {
                 push: true,
                 pushTo: '',
                 gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
-                globalReplace: false
-            }
+                globalReplace: false,
+            },
         },
 
         changelog: {
             options: {
-            }
+            },
+        },
+
+        eslint: {
+            options: {
+                configFile: 'eslint.json',
+            },
+            target: ['django/**/*.js', 'django/**/*.spec', '!**/*.bundle.js'],
         },
 
         watch: {
@@ -45,21 +53,21 @@ module.exports = function(grunt) {
         browserify: {
             dev: {
                 files: {
-                    "django/activities/static/activities/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
+                    'django/activities/static/activities/activity_viewer.bundle.js': 'django/activities/static/activities/js/activity_viewer.js',
                 },
                 options: {
                     watch: true,
                     browserifyOptions: {
                         debug: true,
                     },
-                }
-            }
+                },
+            },
         },
 
-        "django-manage": {
+        'django-manage': {
             options: {
                 app: 'sailstats',
-                manage_path: './django/'
+                manage_path: './django/',
             },
 
             test: {
@@ -68,9 +76,9 @@ module.exports = function(grunt) {
                     args: [
                         'activities',
                         'sirf',
-                        'tests'
-                    ]
-                }
+                        'tests',
+                    ],
+                },
             },
 
             unittest: {
@@ -78,47 +86,47 @@ module.exports = function(grunt) {
                     command: 'test',
                     args: [
                         'activities',
-                        'sirf'
-                    ]
-                }
+                        'sirf',
+                    ],
+                },
             },
 
             functest: {
                 options: {
                     command: 'test',
                     args: [
-                        'tests'
-                    ]
-                }
+                        'tests',
+                    ],
+                },
             },
 
             runserver: {
                 options: {
                     command: 'runlivereloadserver',
-                }
+                },
             },
         },
 
         karma: {
             options: {
-                configFile: 'karma.conf.js'
+                configFile: 'karma.conf.js',
             },
 
             jstest: {
                 singleRun: true,
             },
 
-            "jstest-watch": {
+            'jstest-watch': {
             },
         },
 
         sass: {
             dev: {
                 files: {
-                    "django/activities/static/activities/css/plots.css": "django/activities/static/activities/css/scss/plots.scss"
-                }
-            }
-        }
+                    'django/activities/static/activities/css/plots.css': 'django/activities/static/activities/css/scss/plots.scss',
+                },
+            },
+        },
     });
 
     // Load plugins here
@@ -128,19 +136,19 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-django');
     grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-karma');
 
     // Register tasks here
     grunt.registerTask('default', []);
 
-    grunt.registerTask('test', ['karma:jstest', 'django-manage:test']);
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'django-manage:test']);
     grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
     grunt.registerTask('functest', ['django-manage:functest']);
-    grunt.registerTask('jstest', ['karma:jstest']);
+    grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
     grunt.registerTask('pytest', ['django-manage:unittest']);
 
     grunt.registerTask('dev', ['browserify', 'watch']);
     grunt.registerTask('jsdev', ['karma:jstest-watch']);
     grunt.registerTask('runserver', ['django-manage:runserver']);
-
 };

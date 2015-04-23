@@ -1,92 +1,102 @@
+'use strict';
+
+var d3 = require('d3'),
+    $ = require('jquery');
+
 var SpeedViewer = require('./speed_viewer'),
-	  TrackViewer = require('./track_viewer'),
-		PolarViewer = require('./polar_viewer'),
-		d3 = require("d3"),
-		$ = require('jquery');
+    TrackViewer = require('./track_viewer'),
+    PolarViewer = require('./polar_viewer');
+
+var activity_viewer;
 
 require('seiyria-bootstrap-slider');
 
-var activity_viewer = {
-	time_slider: undefined,
-	pos: undefined,
-	max_speed: undefined,
-	speed_viewer: SpeedViewer,
-	track_viewer: TrackViewer,
-	polar_viewer: PolarViewer,
+activity_viewer = {
+    time_slider: undefined,
+    pos: undefined,
+    max_speed: undefined,
+    speed_viewer: SpeedViewer,
+    track_viewer: TrackViewer,
+    polar_viewer: PolarViewer,
 
-	init: function(pos_url, max_speed) {
-		this.max_speed = max_speed;
-		d3.json(pos_url, this.setup.bind(this));
-	},
+    init: function(pos_url, max_speed) {
+        this.max_speed = max_speed;
+        d3.json(pos_url, this.setup.bind(this));
+    },
 
-	setup: function(error, data) {
-			this.pos = data.details;
-			this.polars = data.polars;
-			this.time_slider = $('#time-slider');
-			this.setup_slider();
-			this.track_viewer.drawmap(this.pos, this.max_speed);
-			this.speed_viewer.drawplot(this.pos, this.max_speed);
-			this.polar_viewer.drawplot(this.pos, this.polars);
-			this.setup_trim_events();
-	},
+    setup: function(error, data) {
+        this.pos = data.details;
+        this.polars = data.polars;
+        this.time_slider = $('#time-slider');
+        this.setup_slider();
+        this.track_viewer.drawmap(this.pos, this.max_speed);
+        this.speed_viewer.drawplot(this.pos, this.max_speed);
+        this.polar_viewer.drawplot(this.pos, this.polars);
+        this.setup_trim_events();
+    },
 
-	setup_slider: function() {
-		var self = this;
-		this.time_slider.slider({
-			max: this.pos.length,
-			value: 0,
-			formatter: function(value) {
-				if (value < 0) {
-					return self.pos[0].time;
-				} else if (value >= self.pos.length) {
-					return self.pos[self.pos.length-1].time;
-				} else {
-					return self.pos[value].time;
-				}
-			}
-		});
+    setup_slider: function() {
+        var self = this;
 
-		this.time_slider.on('slide', function(slideEvt, data) {
-				var newdata = data | slideEvt.value;
-				TrackViewer.movemarker(newdata);
-				SpeedViewer.movemarker(newdata);
-				PolarViewer.movemarker(newdata);
-		});
-	},
+        this.time_slider.slider({
+            max: this.pos.length,
+            value: 0,
+            formatter: function(value) {
+                if (value < 0) {
+                    return self.pos[0].time;
+                } else if (value >= self.pos.length) {
+                    return self.pos[self.pos.length - 1].time;
+                }
+                return self.pos[value].time;
+            },
+        });
 
-	setup_trim_events: function() {
-		var self = this;
-		$(window).on('keydown', function(evnt) {
-			var new_val;
-			if ($.inArray(evnt.keyCode, [37, 39]) >= 0) {
-				if (evnt.keyCode == 37) { // Left arrow
-					new_val = self.time_slider.slider('getValue') - 1;
-				}
-				if (evnt.keyCode == 39) { // Right arrow
-					new_val = self.time_slider.slider('getValue') + 1;
-				}
-				self.time_slider
-					.slider('setValue', new_val)
-					.trigger('slide', [new_val]);
-			}
-		});
+        this.time_slider.on('slide', function movemarkers(slideEvt, data) {
+            var newdata = data | slideEvt.value;
 
-		$('#trim-start').on('click', function(evnt) {
-			// Save selected value to hidden input field
-			var new_val = self.time_slider.slider('getValue');
-			$('#input-trim-start').val(self.pos[new_val].time);
-		});
+            TrackViewer.movemarker(newdata);
+            SpeedViewer.movemarker(newdata);
+            PolarViewer.movemarker(newdata);
+        });
+    },
 
-		$('#trim-end').on('click', function(evnt) {
-			// Save selected value to hidden input field
-			var new_val = self.time_slider.slider('getValue');
-			$('#input-trim-end').val(self.pos[new_val].time);
-		});
-	},
+    setup_trim_events: function() {
+        var self = this;
 
-	toggle_polar: function() {
-		this.polar_viewer.toggle_mode();
-	},
+        $(window).on('keydown', function handle_trim_scrolling(evnt) {
+            var new_val;
+
+            if ($.inArray(evnt.keyCode, [37, 39]) >= 0) {
+                if (evnt.keyCode === 37) { // Left arrow
+                    new_val = self.time_slider.slider('getValue') - 1;
+                }
+                if (evnt.keyCode === 39) { // Right arrow
+                    new_val = self.time_slider.slider('getValue') + 1;
+                }
+                self.time_slider
+                    .slider('setValue', new_val)
+                    .trigger('slide', [new_val]);
+            }
+        });
+
+        $('#trim-start').on('click', function trim_start() {
+            // Save selected value to hidden input field
+            var new_val = self.time_slider.slider('getValue');
+
+            $('#input-trim-start').val(self.pos[new_val].time);
+        });
+
+        $('#trim-end').on('click', function trim_end() {
+            // Save selected value to hidden input field
+            var new_val = self.time_slider.slider('getValue');
+
+            $('#input-trim-end').val(self.pos[new_val].time);
+        });
+    },
+
+    toggle_polar: function() {
+        this.polar_viewer.toggle_mode();
+    },
 };
 
 module.exports = activity_viewer;
