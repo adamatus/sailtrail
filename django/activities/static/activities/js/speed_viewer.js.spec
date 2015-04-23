@@ -2,7 +2,7 @@
 
 var speed_viewer = require('./speed_viewer');
 
-describe('Speed viewer', function() {
+describe('speed_viewer', function() {
 
     var pos = [
             {'speed': 4.47084233261339, 'time': '20:25:51'},
@@ -23,23 +23,23 @@ describe('Speed viewer', function() {
         element.parentNode.removeChild(element);
     });
 
-    describe('drawplot', function() {
+    describe('draw_plot', function() {
         it('should respond', function() {
-            speed_viewer.should.respondTo('drawplot');
+            speed_viewer.should.respondTo('draw_plot');
         });
 
         it('should create an svg element', function() {
             var svg;
 
-            speed_viewer.drawplot(pos, null, units);
+            speed_viewer.draw_plot(pos, null, units);
             svg = document.getElementById('speed-plot-svg');
             should.exist(svg);
         });
     });
 
-    describe('movemarker', function() {
+    describe('move_marker', function() {
         beforeEach(function() {
-            speed_viewer.drawplot(pos, null, units);
+            speed_viewer.draw_plot(pos, null, units);
         });
 
         afterEach(function() {
@@ -49,17 +49,17 @@ describe('Speed viewer', function() {
         });
 
         it('should move marker with valid position', function() {
-            speed_viewer.movemarker(1);
+            speed_viewer.move_marker(1);
             speed_viewer.marker_pos.should.equal(1);
         });
 
         it('should move marker to start with less than 0 position', function() {
-            speed_viewer.movemarker(-10);
+            speed_viewer.move_marker(-10);
             speed_viewer.marker_pos.should.equal(0);
         });
 
         it('should move marker to end with greater than length position', function() {
-            speed_viewer.movemarker(10);
+            speed_viewer.move_marker(10);
             speed_viewer.marker_pos.should.equal(1);
         });
     });

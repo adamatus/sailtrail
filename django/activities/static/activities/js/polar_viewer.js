@@ -12,11 +12,19 @@ module.exports = {
     marker_pos: 0,
     mode: 'actual',
 
-    drawplot: function(pos, polars) {
+    /**
+     * Main function to initialize plot
+     *
+     * @param {Array.<Object>} spds Array of timepoints with speed info
+     * @param {Number} max_speed Precomputed max speed, used for axis max
+     * @param {Object} units Object holding the current unit details
+     */
+    draw_plot: function(pos, polars) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
             self = this,
+            maxes,
             len,
             mid,
             svg, gr, ga,
@@ -24,9 +32,9 @@ module.exports = {
             alignments = [],
             diffs, i, j;
 
-        this.maxes = polars.map(function get_max(d) { return d.max; });
+        maxes = polars.map(function get_max(d) { return d.max; });
 
-        this.max_r = d3.max(this.maxes);
+        this.max_r = d3.max(maxes);
         this.bearings = pos.map(function get_bearing(d) { return d.bearing; });
         this.speeds = pos.map(function get_speed(d) { return d.speed; });
 
@@ -137,13 +145,21 @@ module.exports = {
 
     },
 
-    movemarker: function(i) {
+    /**
+     * Move the polar marker to a new timepoint
+     *
+     * @param {Number} i The index in the polar array to move the marker to
+     */
+    move_marker: function(i) {
         this.marker_pos = (i < 0) ? 0 : (i >= this.speeds.length) ? this.speeds.length - 1 : i;
         this.marker
             .attr('x2', this.r(this.speeds[this.marker_pos]))
             .attr('transform', 'rotate(' + (-(this.bearings[this.marker_pos] + 90)) + ')');
     },
 
+    /**
+     * Toggle the orientation of the polar plot from actual direction to wind at top
+     */
     toggle_mode: function() {
         var data, i;
 

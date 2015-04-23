@@ -6,12 +6,17 @@ var L = require('leaflet'),
 module.exports = {
     latlng: [],
     map: null,
-    trackline: null,
     marker: null,
     marker_pos: 0,
     tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
-    drawmap: function(pos, max_speed) {
+    /**
+     * Main function to initialize leaflet map with track
+     *
+     * @param {Array.<Object>} pos Array of timepoints with position info
+     * @param {Number} max_speed Precomputed max speed, used for axis max
+     */
+    draw_map: function(pos, max_speed) {
         var i, len, color_scale, trkpnt;
 
         this.max_speed = max_speed;
@@ -61,7 +66,12 @@ module.exports = {
         this.map.fitBounds(this.latlng);
     },
 
-    movemarker: function(i) {
+    /**
+     * Move the position marker to a new physical position on the track
+     *
+     * @param {Number} i The index in the speed array to move the marker to
+     */
+    move_marker: function(i) {
         this.marker_pos = (i < 0) ? 0 : (i >= this.latlng.length) ? this.latlng.length - 1 : i;
         this.marker.setLatLng(this.latlng[this.marker_pos]);
     },

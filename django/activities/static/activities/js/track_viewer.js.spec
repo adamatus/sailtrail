@@ -15,32 +15,31 @@ describe('track_viewer', function() {
         element = document.createElement('div');
         element.id = 'map';
         document.body.appendChild(element);
+
+        // Don't download map tiles
+        track_viewer.tile_source = '';
     });
 
     afterEach(function() {
         element.parentNode.removeChild(element);
     });
 
-    describe('drawmap', function() {
+    describe('draw_map', function() {
 
         it('should respond', function() {
-            track_viewer.should.respondTo('drawmap');
+            track_viewer.should.respondTo('draw_map');
         });
 
         it('should populate latlng', function() {
-
             track_viewer.latlng.should.have.length(0);
-            track_viewer.tile_source = ''; // Don't download map tiles
-            track_viewer.drawmap(pos);
+            track_viewer.draw_map(pos);
             track_viewer.latlng.should.have.length(2);
-
         });
     });
 
-    describe('movemarker', function() {
+    describe('move_marker', function() {
         beforeEach(function() {
-            track_viewer.tile_source = ''; // Don't download map tiles
-            track_viewer.drawmap(pos);
+            track_viewer.draw_map(pos);
         });
 
         afterEach(function() {
@@ -53,17 +52,17 @@ describe('track_viewer', function() {
         });
 
         it('should move marker with valid position', function() {
-            track_viewer.movemarker(1);
+            track_viewer.move_marker(1);
             track_viewer.marker_pos.should.equal(1);
         });
 
         it('should move marker to start with less than 0 position', function() {
-            track_viewer.movemarker(-10);
+            track_viewer.move_marker(-10);
             track_viewer.marker_pos.should.equal(0);
         });
 
         it('should move marker to end with greater than length position', function() {
-            track_viewer.movemarker(10);
+            track_viewer.move_marker(10);
             track_viewer.marker_pos.should.equal(1);
         });
     });

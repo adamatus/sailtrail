@@ -1,9 +1,9 @@
 'use strict';
 
-var $ = require('jquery');
+var $ = require('jquery'),
+    d3 = require('d3');
 
 module.exports = {
-    d3: require('d3'),
     speeds: [],
     times: [],
     plot: undefined,
@@ -13,16 +13,26 @@ module.exports = {
     units: undefined,
     marker_pos: 0,
 
-    drawplot: function(spds, max_speed, units) {
+    /**
+     * Main function to initialize plot
+     *
+     * @param {Array.<Object>} spds Array of timepoints with speed info
+     * @param {Number} max_speed Precomputed max speed, used for axis max
+     * @param {Object} units Object holding the current unit details
+     */
+    draw_plot: function(spds, max_speed, units) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
-            mb = margins[0], ml = margins[1], mt = margins[2], mr = margins[3],
+            mb = margins[0],
+            ml = margins[1],
+            mt = margins[2],
+            mr = margins[3],
             w = width - (ml + mr),
             h = height - (mb + mt),
-            line = this.d3.svg.line(),
+            line = d3.svg.line(),
             // FIXME Not handling timezones currently...
-            time_format = this.d3.time.format('%Y-%m-%dT%X+0000'),
+            time_format = d3.time.format('%Y-%m-%dT%X+0000'),
             svg,
             xAxis,
             yAxis,
@@ -33,13 +43,13 @@ module.exports = {
         this.speeds = spds.map(function get_speed(d) { return d.speed; });
         this.times = spds.map(function get_parsed_time(d) { return time_format.parse(d.time); });
 
-        this.x = this.d3.time.scale().range([0, w])
+        this.x = d3.time.scale().range([0, w])
                      .domain([this.times[0], this.times[this.times.length - 1]]);
-        xAxis = this.d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
-        this.y = this.d3.scale.linear().range([h, 0]).domain([0, max_speed]);
-        yAxis = this.d3.svg.axis().scale(this.y).ticks(4).orient('left');
+        xAxis = d3.svg.axis().scale(this.x).ticks(6).orient('bottom');
+        this.y = d3.scale.linear().range([h, 0]).domain([0, max_speed]);
+        yAxis = d3.svg.axis().scale(this.y).ticks(4).orient('left');
 
-        svg = this.d3.select('#speed-plot')
+        svg = d3.select('#speed-plot')
                 .append('svg:svg')
             .attr('id', 'speed-plot-svg')
             .attr('width', width)
@@ -108,7 +118,12 @@ module.exports = {
             .style('stroke-width', 3);
     },
 
-    movemarker: function(i) {
+    /**
+     * Move the speed marker to a new timepoint
+     *
+     * @param {Number} i The index in the speed array to move the marker to
+     */
+    move_marker: function(i) {
         this.marker_pos = (i < 0) ? 0 : (i >= this.speeds.length) ? this.speeds.length - 1 : i;
         this.marker
             .attr('cx', this.x(this.times[this.marker_pos]))
