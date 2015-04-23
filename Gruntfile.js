@@ -1,146 +1,154 @@
+'use strict';
+
 module.exports = function(grunt) {
 
-	var jslist = ['django/activities/static/activities/js/*.js'],
-			jsbundlelist = ['django/activities/static/activities/js/*.bundle.js'],
-			sasslist = ['django/activities/static/activities/css/scss/*.scss'],
-			csslist = ['django/activities/static/activities/css/*.css'],
-			templatelist = ['django/activities/templates/**/*.html'];
+    var jsbundlelist = ['django/activities/static/activities/js/*.bundle.js'],
+        sasslist = ['django/activities/static/activities/css/scss/*.scss'],
+        csslist = ['django/activities/static/activities/css/*.css'],
+        templatelist = ['django/activities/templates/**/*.html'];
 
-  // Project configuration
-  grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
+    // Project configuration
+    grunt.initConfig({
+        pkg: grunt.file.readJSON('package.json'),
 
-		bump: {
-			options: {
-				files: ['package.json', 'bower.json'],
-				commit: true,
-				commitMessage: 'chore: Release v%VERSION%',
-				commitFiles: ['package.json', 'bower.json', 'CHANGELOG.md'],
-				createTag: true,
-				tagName: 'v%VERSION%',
-				tagMessage: 'Version %VERSION%',
-				push: true,
-				pushTo: '',
-				gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
-				globalReplace: false
-			}
-		},
+        bump: {
+            options: {
+                files: ['package.json', 'bower.json'],
+                commit: true,
+                commitMessage: 'chore: Release v%VERSION%',
+                commitFiles: ['package.json', 'bower.json', 'CHANGELOG.md'],
+                createTag: true,
+                tagName: 'v%VERSION%',
+                tagMessage: 'Version %VERSION%',
+                push: true,
+                pushTo: '',
+                gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+                globalReplace: false,
+            },
+        },
 
-		changelog: {
-			options: {
-			}
-		},
+        changelog: {
+            options: {
+            },
+        },
 
-		watch: {
-			sass: {
-				files: sasslist,
-				tasks: ['sass'],
-			},
-			livereload: {
-				options: { livereload: true },
-				files: csslist.concat(jsbundlelist, templatelist),
-			},
-		},
+        eslint: {
+            options: {
+                configFile: 'eslint.json',
+            },
+            target: ['django/**/*.js', 'django/**/*.spec', '!**/*.bundle.js'],
+        },
 
-		browserify: {
-			dev: {
-				files: {
-					"django/activities/static/activities/js/activity_viewer.bundle.js": "django/activities/static/activities/js/activity_viewer.js"
-				},
-				options: {
-					watch: true,
-					browserifyOptions: {
-						debug: true,
-					},
-				}
-			}
-		},
+        watch: {
+            sass: {
+                files: sasslist,
+                tasks: ['sass'],
+            },
+            livereload: {
+                options: { livereload: true },
+                files: csslist.concat(jsbundlelist, templatelist),
+            },
+        },
 
-		"django-manage": {
-			options: {
-				app: 'sailstats',
-				manage_path: './django/'
-			},
+        browserify: {
+            dev: {
+                files: {
+                    'django/activities/static/activities/activity_viewer.bundle.js': 'django/activities/static/activities/js/activity_viewer.js',
+                },
+                options: {
+                    watch: true,
+                    browserifyOptions: {
+                        debug: true,
+                    },
+                },
+            },
+        },
 
-			test: {
-				options: {
-					command: 'test',
-					args: [
-						'activities',
-						'sirf',
-						'tests'
-					]
-				}
-			},
+        'django-manage': {
+            options: {
+                app: 'sailstats',
+                manage_path: './django/',
+            },
 
-			unittest: {
-				options: {
-					command: 'test',
-					args: [
-						'activities',
-						'sirf'
-					]
-				}
-			},
+            test: {
+                options: {
+                    command: 'test',
+                    args: [
+                        'activities',
+                        'sirf',
+                        'tests',
+                    ],
+                },
+            },
 
-			functest: {
-				options: {
-					command: 'test',
-					args: [
-						'tests'
-					]
-				}
-			},
+            unittest: {
+                options: {
+                    command: 'test',
+                    args: [
+                        'activities',
+                        'sirf',
+                    ],
+                },
+            },
 
-			runserver: {
-				options: {
-					command: 'runlivereloadserver',
-				}
-			},
-		},
+            functest: {
+                options: {
+                    command: 'test',
+                    args: [
+                        'tests',
+                    ],
+                },
+            },
 
-		karma: {
-			options: {
-				configFile: 'karma.conf.js'
-			},
+            runserver: {
+                options: {
+                    command: 'runlivereloadserver',
+                },
+            },
+        },
 
-			jstest: {
-				singleRun: true,
-			},
+        karma: {
+            options: {
+                configFile: 'karma.conf.js',
+            },
 
-			"jstest-watch": {
-			},
-		},
+            jstest: {
+                singleRun: true,
+            },
 
-		sass: {
-			dev: {
-				files: {
-					"django/activities/static/activities/css/plots.css": "django/activities/static/activities/css/scss/plots.scss"
-				}
-			}
-		}
-  });
+            'jstest-watch': {
+            },
+        },
 
-  // Load plugins here
-  grunt.loadNpmTasks('grunt-browserify');
-  grunt.loadNpmTasks('grunt-bump');
-	grunt.loadNpmTasks('grunt-conventional-changelog');
-  grunt.loadNpmTasks('grunt-contrib-django');
-  grunt.loadNpmTasks('grunt-contrib-sass');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-karma');
+        sass: {
+            dev: {
+                files: {
+                    'django/activities/static/activities/css/plots.css': 'django/activities/static/activities/css/scss/plots.scss',
+                },
+            },
+        },
+    });
 
-  // Register tasks here
-  grunt.registerTask('default', []);
+    // Load plugins here
+    grunt.loadNpmTasks('grunt-browserify');
+    grunt.loadNpmTasks('grunt-bump');
+    grunt.loadNpmTasks('grunt-conventional-changelog');
+    grunt.loadNpmTasks('grunt-contrib-django');
+    grunt.loadNpmTasks('grunt-contrib-sass');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-eslint');
+    grunt.loadNpmTasks('grunt-karma');
 
-	grunt.registerTask('test', ['karma:jstest', 'django-manage:test']);
-	grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
-	grunt.registerTask('functest', ['django-manage:functest']);
-	grunt.registerTask('jstest', ['karma:jstest']);
-	grunt.registerTask('pytest', ['django-manage:unittest']);
+    // Register tasks here
+    grunt.registerTask('default', []);
 
-	grunt.registerTask('dev', ['browserify', 'watch']);
-	grunt.registerTask('jsdev', ['karma:jstest-watch']);
-	grunt.registerTask('runserver', ['django-manage:runserver']);
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'django-manage:test']);
+    grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
+    grunt.registerTask('functest', ['django-manage:functest']);
+    grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
+    grunt.registerTask('pytest', ['django-manage:unittest']);
 
+    grunt.registerTask('dev', ['browserify', 'watch']);
+    grunt.registerTask('jsdev', ['karma:jstest-watch']);
+    grunt.registerTask('runserver', ['django-manage:runserver']);
 };

@@ -49,12 +49,12 @@
 {% endblock %}
 
 {% block extra_bottom_js %}
-	{% js 'activities/js/activity_viewer.bundle.js' %}
+	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
 var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],
 		units = {{ units|safe }},
 		json_url = "{% url 'activity_json' activity.id %}";
 
-activity_viewer.init(json_url, max_speed);
+activity_viewer.init(json_url, max_speed, units);
 		</script>
 {% endblock %}
