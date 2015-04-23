@@ -10,6 +10,7 @@ module.exports = {
     marker: undefined,
     x: undefined,
     y: undefined,
+    units: undefined,
     marker_pos: 0,
 
     drawplot: function(spds, max_speed, units) {
@@ -26,6 +27,8 @@ module.exports = {
             xAxis,
             yAxis,
             self = this;
+
+        this.units = units;
 
         this.speeds = spds.map(function get_speed(d) { return d.speed; });
         this.times = spds.map(function get_parsed_time(d) { return time_format.parse(d.time); });

@@ -55,6 +55,6 @@ var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],
 		units = {{ units|safe }},
 		json_url = "{% url 'activity_json' activity.id %}";
 
-activity_viewer.init(json_url, max_speed);
+activity_viewer.init(json_url, max_speed, units);
 		</script>
 {% endblock %}

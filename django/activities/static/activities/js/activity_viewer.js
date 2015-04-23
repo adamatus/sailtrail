@@ -15,12 +15,14 @@ activity_viewer = {
     time_slider: undefined,
     pos: undefined,
     max_speed: undefined,
+    units: undefined,
     speed_viewer: SpeedViewer,
     track_viewer: TrackViewer,
     polar_viewer: PolarViewer,
 
-    init: function(pos_url, max_speed) {
+    init: function(pos_url, max_speed, units) {
         this.max_speed = max_speed;
+        this.units = units;
         d3.json(pos_url, this.setup.bind(this));
     },
 
@@ -30,7 +32,7 @@ activity_viewer = {
         this.time_slider = $('#time-slider');
         this.setup_slider();
         this.track_viewer.drawmap(this.pos, this.max_speed);
-        this.speed_viewer.drawplot(this.pos, this.max_speed);
+        this.speed_viewer.drawplot(this.pos, this.max_speed, this.units);
         this.polar_viewer.drawplot(this.pos, this.polars);
         this.setup_trim_events();
     },

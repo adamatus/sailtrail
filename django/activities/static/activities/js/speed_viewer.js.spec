@@ -8,10 +8,8 @@ describe('Speed viewer', function() {
             {'speed': 4.47084233261339, 'time': '20:25:51'},
             {'speed': 4.2570194384449245, 'time': '20:25:52'},
         ],
+        units = {'speed': 'knots', 'dist': 'nmi'},
         element;
-
-    // Stick units into global... BAD!
-    window.units = {'speed': 'knots', 'dist': 'nmi'};
 
     beforeEach(function() {
         // Create a #speed-plot div element so we can attach plot to it
@@ -33,7 +31,7 @@ describe('Speed viewer', function() {
         it('should create an svg element', function() {
             var svg;
 
-            speed_viewer.drawplot(pos);
+            speed_viewer.drawplot(pos, null, units);
             svg = document.getElementById('speed-plot-svg');
             should.exist(svg);
         });
@@ -41,7 +39,7 @@ describe('Speed viewer', function() {
 
     describe('movemarker', function() {
         beforeEach(function() {
-            speed_viewer.drawplot(pos);
+            speed_viewer.drawplot(pos, null, units);
         });
 
         afterEach(function() {
