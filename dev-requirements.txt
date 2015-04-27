@@ -1,6 +1,6 @@
 coverage==4.0a5
 django-livereload==1.2
-django-nose==1.3
+django-nose==1.4
 factory_boy==2.5.1
 flake8==2.4.0
 pinocchio==0.4.2
