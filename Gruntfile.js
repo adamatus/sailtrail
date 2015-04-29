@@ -127,6 +127,26 @@ module.exports = function(grunt) {
                 },
             },
         },
+
+        shell: {
+            options: {
+                execOptions: {
+                    cwd: 'django',
+                },
+            },
+            pytest: {
+                command: 'py.test -n 2 --color=yes --durations=5 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities sirf',
+            },
+            pyfunc: {
+                command: 'py.test --color=yes --durations=5 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
+            },
+            pywatch: {
+                command: 'py.test -f --lf --color=yes --durations=5 activities',
+            },
+            'pytest-verbose': {
+                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities sirf',
+            },
+        },
     });
 
     // Load plugins here
@@ -138,17 +158,19 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-shell');
 
     // Register tasks here
     grunt.registerTask('default', []);
 
-    grunt.registerTask('test', ['eslint', 'karma:jstest', 'django-manage:test']);
-    grunt.registerTask('unittest', ['karma:jstest', 'django-manage:unittest']);
-    grunt.registerTask('functest', ['django-manage:functest']);
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'shell:pytest', 'shell:pyfunc']);
+    grunt.registerTask('unittest', ['karma:jstest', 'shell:pytest']);
+    grunt.registerTask('functest', ['shell:pyfunc']);
     grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
-    grunt.registerTask('pytest', ['django-manage:unittest']);
+    grunt.registerTask('pytest', ['shell:pytest']);
 
     grunt.registerTask('dev', ['browserify', 'watch']);
     grunt.registerTask('jsdev', ['karma:jstest-watch']);
+    grunt.registerTask('pydev', ['shell:pywatch']);
     grunt.registerTask('runserver', ['django-manage:runserver']);
 };

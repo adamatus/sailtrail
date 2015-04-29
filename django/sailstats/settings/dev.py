@@ -20,7 +20,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS += (
     'livereload',
-#    'django_nose',
 )
 
 DATABASES = {

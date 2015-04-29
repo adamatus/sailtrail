@@ -2,3 +2,6 @@
 branch = True
 omit = 
 	*/migrations/*
+
+[html]
+directory = ../.cover/python/units
