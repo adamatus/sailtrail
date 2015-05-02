@@ -42,7 +42,7 @@
 		{% if owner %}
 		<ul>
 			{% for track in activity.track.all %}
-			<li><a href="tracks/{{ track.id}}/">{{ track.upfile }} {% if track.trimmed %}(trimmed){% endif %}</a></li>
+			<li><a href="tracks/{{ track.id}}/">{{ track.original_filename }} {% if track.trimmed %}(trimmed){% endif %}</a></li>
 			{% endfor %}
 		</ul>
 		{% endif %}
