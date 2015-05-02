@@ -54,7 +54,6 @@ class HomepageViewTest(TestCase):
     def test_home_page_shows_existing_activities(self):
         """[get] should show the existing activities"""
         response = self.client.get('/')
-        print(response.content)
         self.assertContains(response, 'First snowkite of the season')
         self.assertContains(response, 'Snowkite lesson:')
 
@@ -62,7 +61,7 @@ class HomepageViewTest(TestCase):
         """[get] should not show activities that are missing details"""
         with self.settings(MEDIA_ROOT=self.temp_dir):
             a = Activity.objects.create(user=UserFactory.create())
-            ActivityTrack.objects.create(
+            ActivityTrack.create_new(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
                 activity_id=a
             )
@@ -91,8 +90,8 @@ class FileuploadViewTest(TestCase):
 
             self.assertEqual(ActivityTrack.objects.count(), 1)
             new_activity = ActivityTrack.objects.first()
-            self.assertEqual(new_activity.upfile.url,
-                             'activities/test1.sbn')
+            self.assertEqual(new_activity.original_filename,
+                             'test1.sbn')
 
     # TODO This test is very slow as it's actually parsing
     # the uploaded SBN!

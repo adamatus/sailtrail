@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
 
 from sirf.stats import Stats
-from sirf import read_sbn
+from sirf import Parser
 
 import gpxpy
 
@@ -41,7 +41,7 @@ class Activity(models.Model):
         ordering = ['-datetime']
 
     def add_track(self, upfile):
-        ActivityTrack.objects.create(upfile=upfile, activity_id=self)
+        ActivityTrack.create_new(upfile, self)
 
     def get_trackpoints(self):
         out = []
@@ -52,65 +52,9 @@ class Activity(models.Model):
         return out
 
 
-def create_sbn_trackpoints(track):
-    d = read_sbn(track.upfile.path)
-    d = [x for x in d.pktq
-         if x is not None and x['fixtype'] != 'none']  # filter out Nones
-
-    insert = []
-    app = insert.append  # cache append method for speed.. maybe?
-    for tp in d:
-        app(ActivityTrackpoint(
-            lat=tp['latitude'],
-            lon=tp['longitude'],
-            sog=tp['sog'],
-            timepoint=dt.strptime('{} {}'.format(
-                tp['time'], tp['date']),
-                '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
-            track_id=track))
-    ActivityTrackpoint.objects.bulk_create(insert)
-
-
-def create_gpx_trackpoints(track):
-    with open(track.upfile.path, 'r') as gpx_file:
-        gpx = gpxpy.parse(gpx_file)
-
-    insert = []
-    app = insert.append  # cache append method for speed.. maybe?
-
-    prev_point = None
-    speed = 0
-
-    for gpstrack in gpx.tracks:
-        for segment in gpstrack.segments:
-            for point in segment.points:
-                if prev_point is not None:
-                    speed = point.speed_between(prev_point)
-                if speed is None:
-                    speed = 0
-                prev_point = point
-                app(ActivityTrackpoint(
-                    lat=point.latitude,
-                    lon=point.longitude,
-                    sog=speed,
-                    timepoint=point.time.replace(tzinfo=pytz.UTC),
-                    track_id=track))
-    ActivityTrackpoint.objects.bulk_create(insert)
-
-
-def create_trackpoints(track):
-    filetype = os.path.splitext(track.upfile.path)[1][1:].upper()
-
-    if filetype == 'SBN':
-        create_sbn_trackpoints(track)
-    elif filetype == 'GPX':
-        create_gpx_trackpoints(track)
-    else:
-        raise Exception('Unknown filetype')
-
-
 class ActivityTrack(models.Model):
-    upfile = models.FileField(upload_to='activities', null=False, blank=False)
+    original_filename = models.CharField(max_length=255, null=False,
+                                         blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
     trimmed = models.BooleanField(null=False, default=False)
@@ -120,25 +64,20 @@ class ActivityTrack(models.Model):
     class Meta:
         ordering = ['trim_start']
 
-    def save(self, *args, **kwargs):
-        super(ActivityTrack, self).save(*args, **kwargs)
+    def initialize_stats(self):
+        # Create stats model entry if necessary
+        try:
+            self.activity_id.stats.compute_stats()
+        except ObjectDoesNotExist:
+            ActivityStat.objects.create(activity_id=self.activity_id)
+        self.reset_trim()
 
-        if self.trackpoint.count() == 0:
-            create_trackpoints(self)
-
-            # Create stats model entry if necessary
-            try:
-                self.activity_id.stats.compute_stats()
-            except ObjectDoesNotExist:
-                ActivityStat.objects.create(activity_id=self.activity_id)
-            self.reset_trim()
-
-            if self.activity_id.datetime is None:
-                self.activity_id.datetime = self.trim_start
-                self.activity_id.save()
-            elif self.activity_id.datetime > self.trim_start:
-                self.activity_id.datetime = self.trim_start
-                self.activity_id.save()
+        if self.activity_id.datetime is None:
+            self.activity_id.datetime = self.trim_start
+            self.activity_id.save()
+        elif self.activity_id.datetime > self.trim_start:
+            self.activity_id.datetime = self.trim_start
+            self.activity_id.save()
 
     def trim(self, trim_start=-1, trim_end=-1):
         """Trim the activity to the given time interval"""
@@ -183,13 +122,71 @@ class ActivityTrack(models.Model):
             timepoint__range=(self.trim_start, self.trim_end)
         )
 
+    @staticmethod
+    def create_new(upfile, activity_id):
+        track = ActivityTrack.objects.create(activity_id=activity_id,
+                                             original_filename=upfile.name)
+        _create_trackpoints(track, upfile)
+        track.initialize_stats()
+        return track
 
-@receiver(post_delete, sender=ActivityTrack)
-def auto_delete_file_on_model_delete(sender, instance, **kwargs):
-    """Remove file when corresponding model object has been deleted"""
-    if instance.upfile:
-        if os.path.isfile(instance.upfile.path):
-            os.remove(instance.upfile.path)
+
+def _create_trackpoints(track, upfile):
+    filetype = os.path.splitext(upfile.name)[1][1:].upper()
+
+    if filetype == 'SBN':
+        _create_sbn_trackpoints(track, upfile)
+    elif filetype == 'GPX':
+        _create_gpx_trackpoints(track, upfile)
+    else:
+        raise Exception('Unknown filetype')
+
+
+def _create_sbn_trackpoints(track, upfile):
+    d = Parser()
+    d.process(upfile.read())
+    d = [x for x in d.pktq
+         if x is not None and x['fixtype'] != 'none']  # filter out Nones
+
+    insert = []
+    app = insert.append  # cache append method for speed.. maybe?
+    for tp in d:
+        app(ActivityTrackpoint(
+            lat=tp['latitude'],
+            lon=tp['longitude'],
+            sog=tp['sog'],
+            timepoint=dt.strptime('{} {}'.format(
+                tp['time'], tp['date']),
+                '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
+            track_id=track))
+    ActivityTrackpoint.objects.bulk_create(insert)
+
+
+def _create_gpx_trackpoints(track, upfile):
+    gpx = upfile.read().decode('utf-8')
+    gpx = gpxpy.parse(gpx)
+
+    insert = []
+    app = insert.append  # cache append method for speed.. maybe?
+
+    prev_point = None
+    speed = 0
+
+    for gpstrack in gpx.tracks:
+        for segment in gpstrack.segments:
+            for point in segment.points:
+                if prev_point is not None:
+                    speed = point.speed_between(prev_point)
+                if speed is None:
+                    speed = 0
+                prev_point = point
+                app(ActivityTrackpoint(
+                    lat=point.latitude,
+                    lon=point.longitude,
+                    sog=speed,
+                    timepoint=point.time.replace(tzinfo=pytz.UTC),
+                    track_id=track))
+    ActivityTrackpoint.objects.bulk_create(insert)
 
 
 class ActivityTrackpoint(models.Model):

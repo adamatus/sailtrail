@@ -12,12 +12,6 @@ User = get_user_model()
 from datetime import datetime
 
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__),
-                          'assets')
-with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
-    SBN_BIN = f.read()
-
-
 class UserFactory(factory.DjangoModelFactory):
 
     class Meta:
@@ -41,7 +35,7 @@ class ActivityTrackFactory(factory.DjangoModelFactory):
     class Meta:
         model = ActivityTrack
 
-    upfile = factory.django.FileField(filename='tiny.SBN', data=SBN_BIN)
+    original_filename = factory.Sequence(lambda n: 'testuser%s.sbn' % n)
     trimmed = False
     activity_id = factory.SubFactory(ActivityFactory)
 

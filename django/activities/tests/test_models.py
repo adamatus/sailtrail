@@ -7,6 +7,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # from unittest.mock import patch, Mock
+import unittest
+
+import pytest
 
 import shutil
 import tempfile
@@ -24,10 +27,13 @@ ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
 with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
+    SBN_FILE = SimpleUploadedFile('test1.sbn', SBN_BIN)
 with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
     GPX_BIN = f.read()
+    GPX_FILE = SimpleUploadedFile('tiny-run.gpx', GPX_BIN)
 
 
+@unittest.skip
 class ActivityModelTest(TestCase):
 
     def test_fields_exist_as_expected(self):
@@ -39,183 +45,97 @@ class ActivityModelTest(TestCase):
         self.assertIsNotNone(a.created)
 
 
-class ActivitytrackModelTest(TestCase):
+@pytest.fixture(scope="module")
+def sample_activity():
+    return
 
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.user = UserFactory.create()
-        self.activity = Activity.objects.create(user=self.user)
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
-
-    def test_upfile_field_creates_file(self):
-        """[save] should create a file on filesystem"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            activity = Activity.objects.create(user=self.user)
-            activity.add_track(test_file)
-
-            a = ActivityTrack.objects.create(upfile=test_file,
-                                             activity_id=self.activity)
-
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(self.temp_dir, a.upfile.url)
-                ))
-
-    def test_delete_removes_file(self):
-        """[delete] should remove file from filesystem"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            file_path = os.path.join(self.temp_dir, a.upfile.url)
-            self.assertTrue(os.path.exists(file_path))
-
-            a.delete()
-            self.assertFalse(os.path.exists(file_path))
-
-    def test_delete_removes_only_correct_file(self):
-        """[delete] should remove correct file (and only that file)"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file1 = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            test_file2 = SimpleUploadedFile('test2.sbn', SBN_BIN)
-            activity2 = Activity.objects.create(user=self.user)
-
-            ActivityTrack.objects.create(upfile=test_file1,
-                                         activity_id=self.activity)
-            ActivityTrack.objects.create(upfile=test_file2,
-                                         activity_id=activity2)
-            a = ActivityTrack.objects.all()[0]
-            b = ActivityTrack.objects.all()[1]
-
-            a.delete()
-            file_path = os.path.join(self.temp_dir, b.upfile.url)
-            self.assertTrue(os.path.exists(file_path))
+@pytest.mark.django_db
+class TestActivityTrackModel:
 
     def test_model_ordering_on_dates_with_most_last_first(self):
         """should order activites with most recent first"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
-            hours = [11, 10, 12]
-            test_files = []
-            for f, t in zip(files, hours):
-                test_files.append(SimpleUploadedFile(f, SBN_BIN))
-                a = ActivityTrack.objects.create(
-                    upfile=test_files[-1],
-                    activity_id=Activity.objects.create(user=self.user))
+        files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
+        hours = [11, 10, 12]
+        test_files = []
+        for f, t in zip(files, hours):
+            test_files.append(SimpleUploadedFile(f, SBN_BIN))
+            a = ActivityTrack.create_new(test_files[-1], ActivityFactory.create())
 
-                a.trim_start = datetime(2014, 10, 12, t, 20, 15,
-                                        tzinfo=timezone('UTC'))
-                a.save()
+            a.trim_start = datetime(2014, 10, 12, t, 20, 15,
+                                    tzinfo=timezone('UTC'))
+            a.save()
 
-            activities = ActivityTrack.objects.all()
-            self.assertIn('test3.sbn', activities[2].upfile.url)
-            self.assertIn('test1.sbn', activities[1].upfile.url)
-            self.assertIn('test2.sbn', activities[0].upfile.url)
+        activities = ActivityTrack.objects.all()
+        assert 'test3.sbn' == activities[2].original_filename
+        assert 'test1.sbn' == activities[1].original_filename
+        assert 'test2.sbn' == activities[0].original_filename
 
     def test_empty_trim_should_do_nothing(self):
         """[trim] should do nothing if no times are passed"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
-                                                   tzinfo=timezone('UTC')))
-            a.trim()
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
-                                                   tzinfo=timezone('UTC')))
+        activity = ActivityFactory.create()
+        a = ActivityTrack.create_new(activity_id=activity,
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 54,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 57,
+                                      tzinfo=timezone('UTC'))
+        a.trim()
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 54,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 57,
+                                      tzinfo=timezone('UTC'))
 
     def test_trim_with_only_start_should_trim_start(self):
         """[trim] should trim start with only trim_start"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            a.trim(trim_start="2014-07-15T22:37:55+0000")
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
-                                                   tzinfo=timezone('UTC')))
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        a.trim(trim_start="2014-07-15T22:37:55+0000")
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 55,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 57,
+                                      tzinfo=timezone('UTC'))
 
     def test_trim_with_only_end_should_trim_end(self):
         """[trim] should trim end with only trim_end"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            a.trim(trim_end="2014-07-15T22:37:56+0000")
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
-                                                   tzinfo=timezone('UTC')))
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        a.trim(trim_end="2014-07-15T22:37:56+0000")
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 54,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 56,
+                                      tzinfo=timezone('UTC'))
 
     def test_trim_with_both_should_trim_both(self):
         """[trim] should trim both with only trim_both"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            a.trim(trim_start="2014-07-15T22:37:55+0000",
-                   trim_end="2014-07-15T22:37:56+0000")
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
-                                                   tzinfo=timezone('UTC')))
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        a.trim(trim_start="2014-07-15T22:37:55+0000",
+               trim_end="2014-07-15T22:37:56+0000")
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 55,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 56,
+                                      tzinfo=timezone('UTC'))
 
     def test_trim_with_end_before_start_should_flip_and_trim(self):
         """[trim] should flip and trim with start after end"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            a.trim(trim_start="2014-07-15T22:37:56+0000",
-                   trim_end="2014-07-15T22:37:55+0000")
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 55,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 56,
-                                                   tzinfo=timezone('UTC')))
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        a.trim(trim_start="2014-07-15T22:37:56+0000",
+               trim_end="2014-07-15T22:37:55+0000")
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 55,
+                                                 tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 56,
+                                               tzinfo=timezone('UTC'))
 
     def test_trim_with_bad_input_should_gracefully_ignore(self):
         """[trim] should gracefully ignore bad input"""
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            ActivityTrack.objects.create(upfile=test_file,
-                                         activity_id=self.activity)
-            a = ActivityTrack.objects.first()
-            a.trim(trim_start='aa', trim_end='1995')
-            self.assertEquals(a.trim_start, datetime(2014, 7, 15, 22, 37, 54,
-                                                     tzinfo=timezone('UTC')))
-            self.assertEquals(a.trim_end, datetime(2014, 7, 15, 22, 37, 57,
-                                                   tzinfo=timezone('UTC')))
-
-
-class ActivitytrackpointModelTest(TestCase):
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        a.trim(trim_start='aa', trim_end='1995')
+        assert a.trim_start == datetime(2014, 7, 15, 22, 37, 54,
+                                        tzinfo=timezone('UTC'))
+        assert a.trim_end == datetime(2014, 7, 15, 22, 37, 57,
+                                      tzinfo=timezone('UTC'))
 
 
 class ActivitydetailsModelTest(TestCase):
@@ -264,14 +184,9 @@ class ActivitydetailsModelTest(TestCase):
 class ActivitystatModelTest(TestCase):
 
     def setUp(self):
-
-        # Ugliness to deal with upfile...
-        # https://github.com/rbarrois/factory_boy/issues/141
-        self.activity = ActivityFactory.create()
-        self.track = ActivityTrackFactory.build(
-            activity_id=self.activity)
-        self.track.save()
-        self.stat = ActivityStat.objects.first()
+        a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
+        self.stat = a.activity_id.stats
 
     def test_get_start_time_returns_time(self):
         """[start_time] should return correct time"""
@@ -302,6 +217,7 @@ class ActivitystatModelTest(TestCase):
         self.assertAlmostEqual(9.9789472033, self.stat.model_distance)
 
 
+@unittest.skip
 class IntegrationOfActivityModelsTest(TestCase):
 
     def setUp(self):
