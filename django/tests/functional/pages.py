@@ -18,7 +18,6 @@ class BasePage(object):
 
 
 class HomePage(BasePage):
-    """Class to hold homepage specific test helpers"""
 
     def go_to_homepage(self):
         self.browser.get(self.test.live_server_url)
