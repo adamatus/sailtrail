@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from activities.models import (Activity, ActivityTrack, ActivityDetail,
-                               ActivityTrackpoint)
+                               ActivityTrackpoint, _create_trackpoints)
 from .factories import UserFactory, ActivityFactory
 
 User = get_user_model()
@@ -115,6 +115,11 @@ class TestActivityTrackModel:
         assert activity_track.trim_end == datetime(2014, 7, 15, 22, 37, 57,
                                                    tzinfo=timezone('UTC'))
 
+    def test_create_trackpoints_will_call_sbn_helper(self):
+        bad_file = SimpleUploadedFile('tiny-run.tpx', GPX_BIN)
+        with pytest.raises(Exception):
+            _create_trackpoints(None, bad_file)
+
 
 @pytest.mark.django_db
 class TestActivityDetailsModel:
@@ -170,6 +175,8 @@ class TestActivityStatModel:
         assert stats.date == date(2014, 7, 15)
 
     def test_model_max_speed_is_populated_on_call_to_max_speed(self, stats):
+        stats.model_max_speed = None
+        stats.save()
         assert stats.max_speed == '6.65 knots'
         assert stats.model_max_speed == 3.42
 
@@ -177,10 +184,19 @@ class TestActivityStatModel:
         stats.model_max_speed = 10.5
         stats.save()
         assert stats.max_speed == '20.41 knots'
+        assert stats.model_max_speed == 10.5
 
     def test_model_distance_is_populated_on_call_to_distance(self, stats):
+        stats.model_distance = None
+        stats.save()
         assert stats.distance == '0.01 nmi'
         assert my_round(stats.model_distance) == 9.978
+
+    def test_model_distance_is_not_populated_if_already_filled(self, stats):
+        stats.model_distance = 10.5
+        stats.save()
+        assert stats.distance == '0.01 nmi'
+        assert stats.model_distance == 10.5
 
 
 @pytest.mark.django_db
