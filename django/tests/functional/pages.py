@@ -1,6 +1,8 @@
 import os
 import time
 
+from selenium.webdriver.support.ui import Select
+
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
 
 
@@ -15,6 +17,12 @@ class BasePage(object):
 
     def get_page_content(self):
         return self.browser.find_element_by_tag_name('body').text
+
+    def logout(self):
+        self.browser.find_element_by_link_text("Logout").click()
+
+    def login(self):
+        self.browser.find_element_by_link_text("Login").click()
 
 
 class HomePage(BasePage):
@@ -61,6 +69,16 @@ class RegistrationPage(BasePage):
         self.browser.find_element_by_id('register-btn').click()
 
 
+class LoginPage(BasePage):
+
+    def login(self, username, password):
+        field = self.browser.find_element_by_id('id_username')
+        field.send_keys(username)
+        field = self.browser.find_element_by_id('id_password')
+        field.send_keys(password)
+        self.browser.find_element_by_id('login-btn').click()
+
+
 class ActivityPage(BasePage):
 
     def click_edit(self):
@@ -69,11 +87,17 @@ class ActivityPage(BasePage):
     def click_delete(self):
         self.browser.find_element_by_id('activity_delete_button').click()
 
+    def click_add_track(self):
+        self.browser.find_element_by_id('upload-file-modal-btn').click()
+
     def click_confirm_delete(self):
         self.browser.find_element_by_link_text('Delete It').click()
 
     def click_cancel_delete(self):
         self.browser.find_element_by_id("activity_delete_cancel").click()
+
+    def go_to_track(self, name):
+        self.browser.find_element_by_link_text(name).click()
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal
@@ -82,6 +106,23 @@ class ActivityPage(BasePage):
             'delete_modal').is_displayed()
         time.sleep(.1)
         return is_visible
+
+    def add_track_modal_is_visible(self):
+        # Silly sleeps to deal with fade effect of modal
+        time.sleep(.1)
+        is_visible = self.browser.find_element_by_id(
+            'upload-modal').is_displayed()
+        time.sleep(.1)
+        return is_visible
+
+    def upload_track(self, filename):
+        if not self.add_track_modal_is_visible():
+            self.browser.find_element_by_id('upload-file-modal-btn').click()
+        upload_box = self.browser.find_element_by_id(
+            'id_upfile'
+        )
+        upload_box.send_keys(os.path.join(ASSET_PATH, filename))
+        self.browser.find_element_by_id('upload-file-btn').click()
 
 
 class ActivityDetailsPage(BasePage):
@@ -101,8 +142,42 @@ class ActivityDetailsPage(BasePage):
         self.enter_name(name)
         self.enter_description(desc)
 
+    def select_activity_type(self, category):
+        select = Select(self.browser.find_element_by_id('id_category'))
+        select.select_by_visible_text(category)
+
+    def enable_private(self):
+        checkbox = self.browser.find_element_by_id('id_private')
+        if not checkbox.is_selected():
+            checkbox.click()
+
+    def disable_private(self):
+        checkbox = self.browser.find_element_by_id('id_private')
+        if checkbox.is_selected():
+            checkbox.click()
+
     def click_ok(self):
         self.browser.find_element_by_id('save-details').click()
 
     def click_cancel(self):
         self.browser.find_element_by_link_text('Cancel').click()
+
+
+class ActivityTrackPage(BasePage):
+
+    def click_delete(self):
+        self.browser.find_element_by_id('activity_delete_button').click()
+
+    def click_cancel(self):
+        self.browser.find_element_by_id('activity_delete_cancel').click()
+
+    def click_delete_it(self):
+        self.browser.find_element_by_link_text('Delete It').click()
+
+    def delete_modal_is_visible(self):
+        # Silly sleeps to deal with fade effect of modal
+        time.sleep(.1)
+        is_visible = self.browser.find_element_by_id(
+            'delete_modal').is_displayed()
+        time.sleep(.1)
+        return is_visible
