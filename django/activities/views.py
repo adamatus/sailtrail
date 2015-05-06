@@ -1,23 +1,21 @@
+import json
+
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-
-User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
-
-from activities.models import Activity, ActivityTrack
-from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
-
-from sirf.stats import Stats
-
-import json
 import numpy as np
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
+from .models import Activity, ActivityTrack
+from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
+from sirf.stats import Stats
+
+User = get_user_model()
 
 
 def home_page(request, form=None):
@@ -263,7 +261,11 @@ def delete(request, activity_id):
 
 @login_required
 def delete_track(request, activity_id, track_id):
-    pass
+    track = ActivityTrack.objects.get(id=track_id)
+    if request.user != track.activity_id.user:
+        raise PermissionDenied
+    track.delete()
+    return redirect('view_activity', activity_id)
 
 
 @login_required

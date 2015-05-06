@@ -229,11 +229,11 @@ class ActivitiesTest(StaticLiveServerTestCase):
         track_page.click_delete()
         track_page.click_delete_it()
 
-        # # The visitor is taken back to the activity page, where
-        # # the track is no longer listed
-        # content = activity_page.get_page_content()
-        # self.assertIn("tiny-run.gpx", content)
-        # self.assertNotIn("tiny-run-2.gpx", content)
+        # The visitor is taken back to the activity page, where
+        # the track is no longer listed
+        content = activity_page.get_page_content()
+        self.assertIn("tiny-run-2.gpx", content)
+        self.assertNotIn("tiny-run.gpx", content)
 
     def test_activity_stats(self):
         homepage = HomePage(self)
