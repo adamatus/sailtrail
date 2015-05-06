@@ -17,7 +17,8 @@
 {% block main_section %}
 		<h1><a href="../..">{{ track.activity_id.details.name }}</a></h1>
 		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete</button>
-		{% include 'components/delete-modal.html' %}
+		{% url "delete_track" track.activity_id.id track.id as delete_url %}
+		{% include 'components/delete-modal.html' with action=delete_url %}
 		<div class="row">
 			<div class="col-md-6" style="padding-top: 1em;">
 				<div id="map"></div>
