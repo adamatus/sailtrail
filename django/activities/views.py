@@ -265,6 +265,9 @@ def delete_track(request, activity_id, track_id):
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.delete()
+    track.activity_id.stats.model_distance = None
+    track.activity_id.stats.model_max_speed = None
+    track.activity_id.stats.save()
     return redirect('view_activity', activity_id)
 
 

@@ -7,14 +7,14 @@
   xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
   xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
 <trk>
-  <name><![CDATA[Running 3/16/11 5:26 pm]]></name>
-  <time>2011-03-16T17:26:56Z</time>
+  <name><![CDATA[Running 3/16/11 5:30 pm]]></name>
+  <time>2011-03-16T17:30:27Z</time>
 <trkseg>
-<trkpt lat="43.078269029" lon="-89.384035754"><ele>276.5</ele><time>2011-03-16T17:26:56Z</time></trkpt>
-<trkpt lat="43.077622508" lon="-89.384089398"><ele>275.4</ele><time>2011-03-16T17:27:21Z</time></trkpt>
-<trkpt lat="43.076607653" lon="-89.382705378"><ele>274.1</ele><time>2011-03-16T17:28:19Z</time></trkpt>
-<trkpt lat="43.075447798" lon="-89.381096053"><ele>273.2</ele><time>2011-03-16T17:29:27Z</time></trkpt>
-<trkpt lat="43.074852188" lon="-89.380430865"><ele>272.3</ele><time>2011-03-16T17:29:57Z</time></trkpt>
+<trkpt lat="43.074852188" lon="-89.380430865"><ele>272.3</ele><time>2011-03-16T17:30:27Z</time></trkpt>
+<trkpt lat="43.075447798" lon="-89.381096053"><ele>273.2</ele><time>2011-03-16T17:30:57Z</time></trkpt>
+<trkpt lat="43.076607653" lon="-89.382705378"><ele>274.1</ele><time>2011-03-16T17:31:27Z</time></trkpt>
+<trkpt lat="43.077622508" lon="-89.384089398"><ele>275.4</ele><time>2011-03-16T17:31:57Z</time></trkpt>
+<trkpt lat="43.078269029" lon="-89.384035754"><ele>276.5</ele><time>2011-03-16T17:32:27Z</time></trkpt>
 </trkseg>
 </trk>
 </gpx>
