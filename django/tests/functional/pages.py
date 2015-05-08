@@ -2,6 +2,7 @@ import os
 import time
 
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
 
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
 
@@ -181,3 +182,17 @@ class ActivityTrackPage(BasePage):
             'delete_modal').is_displayed()
         time.sleep(.1)
         return is_visible
+
+    def press_right_arrow(self):
+        self.browser.find_element_by_tag_name('body').send_keys(
+            Keys.ARROW_RIGHT
+        )
+
+    def click_trim_start(self):
+        self.browser.find_element_by_id('trim-start').click()
+
+    def click_trim_end(self):
+        self.browser.find_element_by_id('trim-end').click()
+
+    def click_trim_activity(self):
+        self.browser.find_element_by_id('trim-activity').click()

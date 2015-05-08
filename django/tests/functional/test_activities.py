@@ -37,6 +37,12 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # They notice a file upload box and are prompted to upload a file
         homepage.upload_file('tiny.SBN')
 
+        # They are taken to the new details page, where they notice
+        # the date and time and duration of the session listed
+        self.assertIn('July 15, 2014', details_page.get_page_content())
+        self.assertIn('10:37 p.m.', details_page.get_page_content())
+        self.assertIn('0:00:03', details_page.get_page_content())
+
         # They are taken to the new activity page, where they are
         # prompted to enter details about the uploaded file
         name = 'First winter kite session!'
@@ -58,6 +64,14 @@ class ActivitiesTest(StaticLiveServerTestCase):
         homepage.go_to_activity(name)
         self.assertIn(name, activity_page.get_page_content())
         self.assertIn(desc, activity_page.get_page_content())
+
+        # They notice some details on the activity page
+        self.assertIn('July 15, 2014', activity_page.get_page_content())
+        self.assertIn('Sailing', activity_page.get_page_content())
+        self.assertIn('10:37 p.m.', activity_page.get_page_content())
+        self.assertIn('0.01 nmi', activity_page.get_page_content())
+        self.assertIn('6.65 knots', activity_page.get_page_content())
+        self.assertIn('0:00:03', activity_page.get_page_content())
 
         # They return to the homepage and click upload without
         # choosing a file!
@@ -174,6 +188,10 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertIn(name, content)
         self.assertIn(desc, content)
         self.assertIn("Windsurfing", content)
+        self.assertIn("March 16, 2011", content)
+        self.assertIn("0:03:01", content)
+        self.assertIn("0.27 nmi", content)
+        self.assertIn("5.60 knots", content)
         self.assertIn("This activity is currently private", content)
 
         # The visitor returns to the home page and sees their new
@@ -209,6 +227,9 @@ class ActivitiesTest(StaticLiveServerTestCase):
         content = activity_page.get_page_content()
         self.assertIn("tiny-run.gpx", content)
         self.assertIn("tiny-run-2.gpx", content)
+        self.assertIn("0:05:31", content)
+        self.assertIn("0.54 nmi", content)
+        self.assertIn("11.89 knots", content)
 
         # They click on the link to get to first track segment and
         # notice the trim activity section
@@ -234,32 +255,31 @@ class ActivitiesTest(StaticLiveServerTestCase):
         content = activity_page.get_page_content()
         self.assertIn("tiny-run-2.gpx", content)
         self.assertNotIn("tiny-run.gpx", content)
+        self.assertIn("0:02:00", content)
+        self.assertIn("0.27 nmi", content)
+        self.assertIn("11.89 knots", content)
 
-    def test_activity_stats(self):
-        homepage = HomePage(self)
-        registration = RegistrationPage(self)
-        details_page = ActivityDetailsPage(self)
-        activity_page = ActivityPage(self)
-
-        # Logged in visitor uploads file
-        homepage.go_to_homepage()
-        homepage.go_to_registration()
-        registration.register('testuser')
-        homepage.upload_file('tiny.SBN')
-
-        # They are taken to the new details page, where they notice
-        # the date and time and duration of the session listed
-        self.assertIn('July 15, 2014', details_page.get_page_content())
-        self.assertIn('10:37 p.m.', details_page.get_page_content())
-        self.assertIn('0:00:03', details_page.get_page_content())
-
-        # They enter some session details and click ok
-        name = 'First winter kite session!'
-        desc = 'The very first session of the year'
-        details_page.enter_details(name, desc)
+        # The visitor edits the activity again, decides to make it
+        # public (removing the private flag)
+        activity_page.click_edit()
+        details_page.disable_private()
         details_page.click_ok()
+        content = activity_page.get_page_content()
+        self.assertNotIn("Private", content)
 
-        # They notice the same details on the activity page
-        self.assertIn('July 15, 2014', activity_page.get_page_content())
-        self.assertIn('10:37 p.m.', activity_page.get_page_content())
-        self.assertIn('0:00:03', activity_page.get_page_content())
+        # They return to the individual track page, and decide to try
+        # trimming it
+        activity_page.go_to_track("tiny-run-2.gpx")
+        track_page.press_right_arrow()
+        track_page.click_trim_start()
+        track_page.press_right_arrow()
+        track_page.press_right_arrow()
+        track_page.click_trim_end()
+        track_page.click_trim_activity()
+
+        # The visitor is taken back to the activity page, where
+        # the track is now trimmed
+        content = activity_page.get_page_content()
+        self.assertIn("0:01:00", content)
+        self.assertIn("0.15 nmi", content)
+        self.assertIn("11.89 knots", content)
