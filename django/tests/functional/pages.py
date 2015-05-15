@@ -184,15 +184,19 @@ class ActivityTrackPage(BasePage):
         return is_visible
 
     def press_right_arrow(self):
+        time.sleep(.5)
         self.browser.find_element_by_tag_name('body').send_keys(
             Keys.ARROW_RIGHT
         )
 
     def click_trim_start(self):
+        time.sleep(.5)
         self.browser.find_element_by_id('trim-start').click()
 
     def click_trim_end(self):
+        time.sleep(.5)
         self.browser.find_element_by_id('trim-end').click()
 
     def click_trim_activity(self):
+        time.sleep(.5)
         self.browser.find_element_by_id('trim-activity').click()

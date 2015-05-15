@@ -281,5 +281,5 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # the track is now trimmed
         content = activity_page.get_page_content()
         self.assertIn("0:01:00", content)
-        self.assertIn("0.15 nmi", content)
+        self.assertIn("0.19 nmi", content)
         self.assertIn("11.89 knots", content)
