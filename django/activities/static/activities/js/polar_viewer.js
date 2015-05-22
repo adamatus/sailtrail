@@ -14,6 +14,7 @@ module.exports = {
     x: undefined,
     y: undefined,
     marker_pos: 0,
+    manual_offset: 0,
     mode: 'actual',
     pos: undefined,
 
@@ -163,6 +164,18 @@ module.exports = {
             .attr('class', 'polar wind')
             .attr('transform', 'rotate(' + self.bearing_to_css_rot(this.wind_offset) + ')');
 
+        $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
+            if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
+                if (evnt.keyCode === 38) { // Up arrow
+                    self.wind_offset++;
+                } else { // Down arrow
+                    self.wind_offset--;
+                }
+                evnt.preventDefault();
+                self.update_rotation();
+            }
+        });
+
     },
 
     /**
@@ -181,7 +194,7 @@ module.exports = {
      * Toggle the orientation of the polar plot from actual direction to wind at top
      */
     toggle_mode: function() {
-        var data, i, self=this;
+        var data, i;
 
         if (this.mode === 'actual') {
             // Switch label to relative to wind
@@ -193,15 +206,23 @@ module.exports = {
             d3.selectAll('.a.axis text')
                     .data(data)
                 .text(function(d) { return d + '°'; });
-            this.polar_g.transition().attr('transform', 'rotate(' + self.bearing_to_css_rot(90-this.wind_offset) + ')');
             this.mode = 'polar';
         } else {
             // Switch labels to cardinals
             d3.selectAll('.a.axis text')
                     .data(d3.range(0, 360, 30))
                 .text(function(d) { return d + '°'; });
-            this.polar_g.transition().attr('transform', 'rotate(0)');
             this.mode = 'actual';
+        }
+        this.update_rotation();
+    },
+
+    update_rotation: function() {
+        this.wind.attr('transform', 'rotate(' + this.bearing_to_css_rot(this.wind_offset) + ')');
+        if (this.mode === 'actual') {
+            this.polar_g.transition().attr('transform', 'rotate(0)');
+        } else {
+            this.polar_g.transition().attr('transform', 'rotate(' + this.bearing_to_css_rot(90 - this.wind_offset) + ')');
         }
     },
 };
