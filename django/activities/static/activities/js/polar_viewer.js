@@ -75,6 +75,7 @@ module.exports = {
             alignments.push(Math.abs(d3.sum(diffs)));
         }
         this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
+        $('#manual-wind-dir').val(this.wind_offset);
 
         // Create the scale for the radius of the polar plot,
         // setting it to be a little larger than the max speed
@@ -172,8 +173,14 @@ module.exports = {
                     self.wind_offset--;
                 }
                 evnt.preventDefault();
+                $('#manual-wind-dir').val(self.wind_offset);
                 self.update_rotation();
             }
+        });
+
+        $('#manual-wind-dir').on('keyup input', function() {
+            self.wind_offset = $('#manual-wind-dir').val();
+            self.update_rotation();
         });
 
     },
