@@ -80,14 +80,15 @@ class Stats(object):
     def bearing(self):
         """Calculate the instantaneous bearing at each trackpoint"""
 
-        lats = np.asarray([x['lat'] for x in self.trackpoints])
-        lons = np.asarray([x['lon'] for x in self.trackpoints])
+        lats = np.deg2rad(np.asarray([x['lat'] for x in self.trackpoints]))
+        lons = np.deg2rad(np.asarray([x['lon'] for x in self.trackpoints]))
 
         lat1 = lats[0:-1]
         lat2 = lats[1:]
-        dlon = lons[0:-1] - lons[1:]
+        dlon = lons[1:] - lons[0:-1]
 
         y = np.sin(dlon) * np.cos(lat2)
-        x = np.cos(lat1)*np.sin(lat2) - np.sin(lat1)*np.cos(lat2)*np.cos(dlon)
+        x = (np.cos(lat1) * np.sin(lat2)) - (np.sin(lat1) *
+                                             np.cos(lat2) * np.cos(dlon))
         brn = np.rad2deg(np.arctan2(y, x))
         return np.mod(brn+360, 360)

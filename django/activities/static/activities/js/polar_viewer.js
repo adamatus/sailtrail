@@ -3,6 +3,10 @@
 var $ = require('jquery'),
     d3 = require('d3');
 
+var deg2rad = function(bearing) {
+    return bearing * Math.PI / 180;
+};
+
 module.exports = {
     polars: undefined,
     plot: undefined,
@@ -11,6 +15,15 @@ module.exports = {
     y: undefined,
     marker_pos: 0,
     mode: 'actual',
+    pos: undefined,
+
+    bearing_to_css_rot: function(bearing) {
+        return bearing - 90;
+    },
+
+    bearing_to_d3_rot: function(bearing) {
+        return deg2rad(bearing);
+    },
 
     /**
      * Main function to initialize plot
@@ -32,6 +45,8 @@ module.exports = {
             alignments = [],
             diffs, i, j;
 
+        this.pos = pos;
+
         maxes = polars.map(function get_max(d) { return d.max; });
 
         this.max_r = d3.max(maxes);
@@ -45,6 +60,9 @@ module.exports = {
         mid = len / 2;
         temp_speeds = this.pol_speeds.slice();
 
+        // Attempt to guess where the breeze is coming from by finding the
+        // min around the polar plot.  This is very naive and will need
+        // improvement
         for (j = 0; j < len; j++) {
             if (j > 0) {
                 temp_speeds.push(temp_speeds.shift());
@@ -57,6 +75,8 @@ module.exports = {
         }
         this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
 
+        // Create the scale for the radius of the polar plot,
+        // setting it to be a little larger than the max speed
         this.r = d3.scale.linear()
             .domain([0, this.max_r * 1.2])
             .range([0, radius]);
@@ -64,12 +84,12 @@ module.exports = {
         this.mean_line = d3.svg.line.radial()
             .radius(function get_radial_mean(d) { return self.r(d.mean); })
             .interpolate('cardinal-closed')
-            .angle(function get_radial_bearing(d) { return Math.PI / 180 * (-d.bearing); });
+            .angle(function get_radial_bearing(d) { return self.bearing_to_d3_rot(d.bearing); });
 
         this.max_line = d3.svg.line.radial()
             .radius(function get_radial_max(d) { return self.r(d.max); })
             .interpolate('cardinal-closed')
-            .angle(function get_radial_bearing(d) { return Math.PI / 180 * (-d.bearing); });
+            .angle(function get_radial_bearing(d) { return self.bearing_to_d3_rot(d.bearing); });
 
         svg = d3.select('#polar-plot')
             .append('svg:svg')
@@ -102,7 +122,7 @@ module.exports = {
                 .selectAll('g')
                     .data(d3.range(0, 360, 30))
                 .enter().append('g')
-                    .attr('transform', function rotate(d) { return 'rotate(' + (d - 90) + ')'; });
+                    .attr('transform', function rotate(d) { return 'rotate(' + self.bearing_to_css_rot(d) + ')'; });
 
         ga.append('line')
             .attr('x2', radius);
@@ -135,13 +155,13 @@ module.exports = {
         this.marker = this.polar_g.append('svg:line')
             .attr('x2', this.r(this.speeds[this.marker_pos]))
             .attr('class', 'polar bearing')
-            .attr('transform', 'rotate(' + (-(this.bearings[this.marker_pos] + 90)) + ')');
+            .attr('transform', 'rotate(' + self.bearing_to_css_rot(this.bearings[this.marker_pos]) + ')');
 
         // The estimated wind direction
         this.wind = this.polar_g.append('svg:line')
             .attr('x2', this.r(d3.max(this.pol_speeds)))
             .attr('class', 'polar wind')
-            .attr('transform', 'rotate(' + (-this.wind_offset + 90) + ')');
+            .attr('transform', 'rotate(' + self.bearing_to_css_rot(this.wind_offset) + ')');
 
     },
 
@@ -154,14 +174,14 @@ module.exports = {
         this.marker_pos = (i < 0) ? 0 : (i >= this.speeds.length) ? this.speeds.length - 1 : i;
         this.marker
             .attr('x2', this.r(this.speeds[this.marker_pos]))
-            .attr('transform', 'rotate(' + (-(this.bearings[this.marker_pos] + 90)) + ')');
+            .attr('transform', 'rotate(' + this.bearing_to_css_rot(this.bearings[this.marker_pos]) + ')');
     },
 
     /**
      * Toggle the orientation of the polar plot from actual direction to wind at top
      */
     toggle_mode: function() {
-        var data, i;
+        var data, i, self=this;
 
         if (this.mode === 'actual') {
             // Switch label to relative to wind
@@ -173,7 +193,7 @@ module.exports = {
             d3.selectAll('.a.axis text')
                     .data(data)
                 .text(function(d) { return d + '°'; });
-            this.polar_g.transition().attr('transform', 'rotate(' + (+(this.wind_offset - 180)) + ')');
+            this.polar_g.transition().attr('transform', 'rotate(' + self.bearing_to_css_rot(90-this.wind_offset) + ')');
             this.mode = 'polar';
         } else {
             // Switch labels to cardinals
