@@ -1,3 +1,20 @@
+<a name"0.1.6"></a>
+### 0.1.6 (2015-05-21)
+
+
+#### Bug Fixes
+
+* Fix computation and display of polars ([3c8777a6](https://github.com/adamatus/sailstats/commit/3c8777a6))
+* **activities:**
+  * Re-compute stats after deleting track ([b6896291](https://github.com/adamatus/sailstats/commit/b6896291))
+  * Stop delete track from deleting whole activity ([bfe92ac1](https://github.com/adamatus/sailstats/commit/bfe92ac1))
+
+
+#### Features
+
+* **activities:** Allow manual adjustment of polar wind direction ([3a49a4b9](https://github.com/adamatus/sailstats/commit/3a49a4b9))
+
+
 <a name"0.1.5"></a>
 ### 0.1.5 (2015-04-15)
 
