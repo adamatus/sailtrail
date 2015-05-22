@@ -20,7 +20,7 @@ module.exports = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(spds, max_speed, units) {
+    draw_plot: function(spds, max_speed, units, time_slider) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
@@ -116,6 +116,15 @@ module.exports = {
             .style('fill', 'black')
             .style('stroke', 'black')
             .style('stroke-width', 3);
+
+        // Register with slider to update positional marker
+        if (time_slider) {
+            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
+                var newdata = data | slideEvnt.value;
+
+                self.move_marker(newdata);
+            });
+        }
     },
 
     /**

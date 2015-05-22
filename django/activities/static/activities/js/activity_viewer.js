@@ -41,9 +41,9 @@ activity_viewer = {
         this.pos = data.details;
         this.time_slider = $('#time-slider');
         this.setup_slider();
-        track_viewer.draw_map(this.pos, this.max_speed);
-        speed_viewer.draw_plot(this.pos, this.max_speed, this.units);
-        polar_viewer.draw_plot(this.pos, data.polars);
+        track_viewer.draw_map(this.pos, this.max_speed, this.time_slider);
+        speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
+        polar_viewer.draw_plot(this.pos, data.polars, this.time_slider);
         this.setup_trim_events();
     },
 
@@ -66,22 +66,6 @@ activity_viewer = {
             },
         });
 
-        // Add event handler to update marker positions on sliding
-        this.time_slider.on('slide', function movemarkers(slideEvt, data) {
-            var newdata = data | slideEvt.value;
-
-            track_viewer.move_marker(newdata);
-            speed_viewer.move_marker(newdata);
-            polar_viewer.move_marker(newdata);
-        });
-    },
-
-    /**
-     * Setup the event handlers for trimming the timeseries data
-     */
-    setup_trim_events: function() {
-        var self = this;
-
         $(window).on('keydown', function handle_trim_scrolling(evnt) {
             var new_val;
 
@@ -97,6 +81,13 @@ activity_viewer = {
                     .trigger('slide', [new_val]);
             }
         });
+    },
+
+    /**
+     * Setup the event handlers for trimming the timeseries data
+     */
+    setup_trim_events: function() {
+        var self = this;
 
         $('#trim-start').on('click', function trim_start() {
             var new_val = self.time_slider.slider('getValue');
