@@ -6,6 +6,7 @@
 {% block extra_styles %}
 {% css 'activities/css/plots.css' %}
 {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+{% css 'bootstrap-toggle/css/bootstrap-toggle.min.css' %}
 <style>
   .slider.slider-horizontal {
 		width: 100%;
@@ -50,6 +51,7 @@
 {% endblock %}
 
 {% block extra_bottom_js %}
+  {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
 	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
 var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],

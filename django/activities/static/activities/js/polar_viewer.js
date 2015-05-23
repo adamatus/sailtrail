@@ -15,7 +15,6 @@ module.exports = {
     y: undefined,
     marker_pos: 0,
     manual_offset: 0,
-    mode: 'actual',
     pos: undefined,
 
     bearing_to_css_rot: function(bearing) {
@@ -138,7 +137,7 @@ module.exports = {
 
         this.polar_g = this.plot.append('g')
             .on('click', function trigger_toggle() {
-                self.toggle_mode();
+                $('#polar-frame-of-ref').bootstrapToggle('toggle');
             });
 
         // The mean line
@@ -192,6 +191,10 @@ module.exports = {
             self.update_rotation();
         });
 
+        $('#polar-frame-of-ref').change(function() {
+            self.toggle_mode();
+        });
+
     },
 
     /**
@@ -210,9 +213,10 @@ module.exports = {
      * Toggle the orientation of the polar plot from actual direction to wind at top
      */
     toggle_mode: function() {
-        var data, i;
+        var toggle = $('#polar-frame-of-ref'),
+            data, i;
 
-        if (this.mode === 'actual') {
+        if (toggle.prop('checked')) {
             // Switch label to relative to wind
             data = d3.range(0, 181, 30);
 
@@ -222,20 +226,18 @@ module.exports = {
             d3.selectAll('.a.axis text')
                     .data(data)
                 .text(function(d) { return d + '°'; });
-            this.mode = 'polar';
         } else {
             // Switch labels to cardinals
             d3.selectAll('.a.axis text')
                     .data(d3.range(0, 360, 30))
                 .text(function(d) { return d + '°'; });
-            this.mode = 'actual';
         }
         this.update_rotation();
     },
 
     update_rotation: function() {
         this.wind.attr('transform', 'rotate(' + this.bearing_to_css_rot(this.wind_offset) + ')');
-        if (this.mode === 'actual') {
+        if (!$('#polar-frame-of-ref').prop('checked')) {
             this.polar_g.transition().attr('transform', 'rotate(0)');
         } else {
             this.polar_g.transition().attr('transform', 'rotate(' + this.bearing_to_css_rot(90 - this.wind_offset) + ')');
