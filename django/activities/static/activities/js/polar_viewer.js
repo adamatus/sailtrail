@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     d3 = require('d3');
 
 var deg2rad = function(bearing) {
@@ -32,7 +33,7 @@ module.exports = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(pos, polars, time_slider) {
+    draw_plot: function(pos, time_slider) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
@@ -40,12 +41,52 @@ module.exports = {
             maxes,
             len,
             mid,
+            polars = [],
             svg, gr, ga,
             temp_speeds,
             alignments = [],
+            window_size = 6, // Polar plot bin size
             diffs, i, j;
 
         this.pos = pos;
+
+        // Compute polars (inefficiently for now)
+
+        // Bin the individual trackpoints into bearing bins
+        this.groups = _.groupBy(pos, function bin_bearings(d) {
+            return (Math.round(d.bearing / window_size)
+                    * window_size + (window_size / 2)) % 360;
+        });
+
+        this.pol_speeds = [];
+        this.pol_bearings = d3.range(window_size / 2, 360, window_size);
+
+        // Compute summary stats for the bins
+        this.pol_bearings.forEach(function(d) {
+            var bearing = d.toString(),
+                group,
+                speeds,
+                mean;
+
+            if (self.groups[bearing] && self.groups[bearing].length) {
+                group = self.groups[bearing];
+                speeds = _.map(group, function(point) { return point.speed; });
+
+                mean = d3.mean(speeds);
+                self.pol_speeds.push(mean);
+                polars.push({
+                    bearing: d,
+                    max: d3.max(speeds),
+                    median: d3.median(speeds),
+                    mean: mean,
+                    measurements: group.length,
+                    points: _.map(group, function(point) { return _.pick(point, ['bearing', 'speed']); }),
+                });
+            } else {
+                self.pol_speeds.push(0);
+                polars.push({bearing: d, max: 0, median: 0, mean: 0, measurements: 0, points: []});
+            }
+        });
 
         maxes = polars.map(function get_max(d) { return d.max; });
 
@@ -53,16 +94,13 @@ module.exports = {
         this.bearings = pos.map(function get_bearing(d) { return d.bearing; });
         this.speeds = pos.map(function get_speed(d) { return d.speed; });
 
-        this.pol_speeds = polars.map(function get_mean(d) { return d.mean; });
-        this.pol_bearings = polars.map(function get_bearing(d) { return d.bearing; });
-
+        // Attempt to guess where the breeze is coming from by finding the
+        // min around the polar plot.  This is very naive and will need
+        // improvement
         len = this.pol_speeds.length;
         mid = len / 2;
         temp_speeds = this.pol_speeds.slice();
 
-        // Attempt to guess where the breeze is coming from by finding the
-        // min around the polar plot.  This is very naive and will need
-        // improvement
         for (j = 0; j < len; j++) {
             if (j > 0) {
                 temp_speeds.push(temp_speeds.shift());

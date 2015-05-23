@@ -145,14 +145,11 @@ def view(request, activity_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
-    pos = activity.get_trackpoints()
-
     return render(request,
                   'activity.html',
                   {'activity': activity,
                    'units': UNITS,
                    'form': form,
-                   'polars': return_polar(pos),
                    'owner': request.user == activity.user,
                    })
 
@@ -210,8 +207,6 @@ def return_json(pos):
     distances = np.append(distances, distances[-1])
     bearings = np.append(bearings, bearings[-1])
 
-    polars = return_polar(pos)
-
     for i, p in enumerate(pos):
         speed = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
         p['speed'] = round(speed, 2)
@@ -221,33 +216,9 @@ def return_json(pos):
         del p['timepoint']
         del p['sog']
 
-    out = dict(polars=polars, details=pos)
+    out = dict(details=pos)
 
     return HttpResponse(json.dumps(out), content_type="application/json")
-
-
-def return_polar(pos):
-
-    stats = Stats(pos)
-    speeds = np.asarray(
-        [(p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
-            for p in pos]
-    )
-    bearings = stats.bearing()
-    bins = []
-    bin_size = 5
-
-    for i in range(0, 360, bin_size):
-        speed_bin = speeds[(bearings >= i) & (bearings < (i+bin_size))]
-        if len(speed_bin) == 0:
-            speed_bin = [0]
-        bins.append({
-            'mean': round(np.mean(speed_bin).tolist(), 3),
-            'max': round(np.max(speed_bin).tolist(), 3),
-            'bearing': i+(bin_size/2)
-            })
-
-    return bins
 
 
 @login_required
