@@ -33,7 +33,7 @@ module.exports = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(pos, polars) {
+    draw_plot: function(pos, polars, time_slider) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
@@ -75,6 +75,7 @@ module.exports = {
             alignments.push(Math.abs(d3.sum(diffs)));
         }
         this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
+        $('#manual-wind-dir').val(this.wind_offset);
 
         // Create the scale for the radius of the polar plot,
         // setting it to be a little larger than the max speed
@@ -172,8 +173,23 @@ module.exports = {
                     self.wind_offset--;
                 }
                 evnt.preventDefault();
+                $('#manual-wind-dir').val(self.wind_offset);
                 self.update_rotation();
             }
+        });
+
+        // Register with slider to update positional marker
+        if (time_slider) {
+            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
+                var newdata = data | slideEvnt.value;
+
+                self.move_marker(newdata);
+            });
+        }
+
+        $('#manual-wind-dir').on('keyup input', function() {
+            self.wind_offset = $('#manual-wind-dir').val();
+            self.update_rotation();
         });
 
     },

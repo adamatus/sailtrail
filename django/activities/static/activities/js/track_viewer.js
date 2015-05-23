@@ -16,8 +16,9 @@ module.exports = {
      * @param {Array.<Object>} pos Array of timepoints with position info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      */
-    draw_map: function(pos, max_speed) {
-        var i, len, color_scale, trkpnt;
+    draw_map: function(pos, max_speed, time_slider) {
+        var i, len, color_scale, trkpnt,
+            self = this;
 
         this.max_speed = max_speed;
 
@@ -64,6 +65,15 @@ module.exports = {
         }).addTo(this.map);
 
         this.map.fitBounds(this.latlng);
+
+        // Register with slider to update positional marker
+        if (time_slider) {
+            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
+                var newdata = data | slideEvnt.value;
+
+                self.move_marker(newdata);
+            });
+        }
     },
 
     /**
