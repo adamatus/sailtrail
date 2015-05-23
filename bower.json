@@ -4,9 +4,9 @@
   "description": "a webapp for tracking windpowered activites",
   "homepage": "https://github.com/adamatus/sailstats",
   "repository": {
-		"type": "git",
-		"url": "https://github.com/adamatus/sailstats.git"
-	},
+    "type": "git",
+    "url": "https://github.com/adamatus/sailstats.git"
+  },
   "main": "index.html",
   "moduleType": [
     "node"
@@ -17,11 +17,11 @@
     "stats"
   ],
   "authors": [
-		{
-		  "name": "Adam Riggall",
-			"email": "adam@riggall.info",
-			"homepage": "http://adam/riggall.info"
-	  }
+    {
+      "name": "Adam Riggall",
+      "email": "adam@riggall.info",
+      "homepage": "http://adam/riggall.info"
+    }
   ],
   "license": "CC-BY-NC-SA-4.0",
   "private": true,
@@ -36,6 +36,7 @@
     "bootstrap": "3.3.4",
     "d3": "3.5.5",
     "leaflet": "0.7.3",
-    "seiyria-bootstrap-slider": "4.8.1"
+    "seiyria-bootstrap-slider": "4.8.1",
+    "bootstrap-toggle": "2.2.0"
   }
 }
