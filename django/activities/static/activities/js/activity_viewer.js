@@ -43,7 +43,7 @@ activity_viewer = {
         this.setup_slider();
         track_viewer.draw_map(this.pos, this.max_speed, this.time_slider);
         speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
-        polar_viewer.draw_plot(this.pos, data.polars, this.time_slider);
+        polar_viewer.draw_plot(this.pos, this.time_slider);
         this.setup_trim_events();
     },
 
