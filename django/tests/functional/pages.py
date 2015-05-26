@@ -43,6 +43,9 @@ class HomePage(BasePage):
         self.browser.find_element_by_id('upload-file-modal-btn').click()
         self.browser.find_element_by_id('upload-file-btn').click()
 
+    def cancel_upload(self):
+        self.browser.find_element_by_id('cancel-upload-btn').click()
+
     def go_to_activity(self, name):
         self.browser.find_element_by_link_text(name).click()
 

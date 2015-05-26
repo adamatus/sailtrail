@@ -79,8 +79,9 @@ class ActivitiesTest(StaticLiveServerTestCase):
         homepage.upload_without_file()
 
         # They get a helpful error message telling them this
-        # is not okay!
+        # is not okay! They decide to cancel
         self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED, homepage.get_alerts())
+        homepage.cancel_upload()
 
         # They return to their previously uploaded activity, notice
         # an 'edit' link, and click it
