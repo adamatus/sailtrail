@@ -12,10 +12,15 @@ import numpy as np
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
 from .models import Activity, ActivityTrack
-from .forms import UploadFileForm, ActivityDetailsForm, NewUserForm
+from .forms import (UploadFileForm, ActivityDetailsForm, NewUserForm,
+                    ERROR_NO_UPLOAD_FILE_SELECTED,
+                    ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
 
 User = get_user_model()
+
+errors = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
+              bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
 def home_page(request, form=None):
@@ -30,7 +35,8 @@ def home_page(request, form=None):
 
     return render(request, 'home.html',
                   {'activities': activities,
-                   'form': form
+                   'form': form,
+                   'val_errors': errors
                    })
 
 
@@ -45,7 +51,7 @@ def user_page(request, username, form=None):
     activities = Activity.objects.filter(user__username=username).filter(
         details__isnull=False)
 
-    # Filter out private activities is the user is not viewing themselves
+    # Filter out private activities if the user is not viewing themselves
     if request.user.username != username:
         activities = activities.filter(details__private=False)
 
@@ -145,11 +151,18 @@ def view(request, activity_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
+        # Manually remove upfile error that we get when creating
+        # the form with a pre-populated activity
+        form.errors.pop('upfile')
+
+    print(form.errors)
+
     return render(request,
                   'activity.html',
                   {'activity': activity,
                    'units': UNITS,
                    'form': form,
+                   'val_errors': errors,
                    'owner': request.user == activity.user,
                    })
 

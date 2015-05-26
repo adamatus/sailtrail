@@ -59,5 +59,7 @@ var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],
 		json_url = "{% url 'activity_json' activity.id %}";
 
 activity_viewer.init(json_url, max_speed, units);
-		</script>
+
+  </script>
+  {% include 'components/upload-validation.html' %}
 {% endblock %}

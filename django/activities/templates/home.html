@@ -20,9 +20,11 @@
 				</div>
 				<hr>
 				{% endfor %}
-				{% include 'components/form-errors.html' %}
 				{% url "upload" as upload_url %}
 				{% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
 				<button id="upload-file-modal-btn" class="btn btn-default" data-toggle="modal" data-target="#upload-modal">Upload New Activity</button>
 			</form>
+{% endblock %}
+{% block extra_bottom_js %}
+	{% include 'components/upload-validation.html' %}
 {% endblock %}
