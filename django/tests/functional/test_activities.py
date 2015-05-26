@@ -2,7 +2,8 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 
 from activities.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
-                              ERROR_ACTIVITY_NAME_MISSING)
+                              ERROR_ACTIVITY_NAME_MISSING,
+                              ERROR_UNSUPPORTED_FILE_TYPE)
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
                     RegistrationPage, LoginPage, ActivityTrackPage)
 
@@ -159,22 +160,19 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertTrue(homepage.is_current_url())
         self.assertTrue(homepage.activity_list_is_empty())
 
-        # They try the upload again (with the gpx file), but this time on the
-        # details screen they navigate back to the homepage!
-        homepage.upload_file('tiny-run.gpx')
-        homepage.go_to_homepage()
+        # They try the upload again (with a non-supported text-file)
+        # and see an error warning them not to do that, so they hit cancel
+        homepage.upload_file('bad.txt')
+        self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE, homepage.get_alerts())
+        homepage.cancel_upload()
 
-        # Again, they don't see the item in the list
+        # Again, they don't see anything in the activity list
         self.assertTrue(homepage.activity_list_is_empty())
 
         # Third times the charm, they successful upload a GPX file and
-        # fill in the revelant details
+        # fill in the revelant details, including the category. They notice
+        # the Private checkbox and check it
         homepage.upload_file('tiny-run.gpx')
-
-        # They are taken to the new activity page, where they are
-        # prompted to enter details about the uploaded file, including
-        # changing the category. They also notice the Private checkbox
-        # and check it.
         name = 'A short GPX-based activity'
         desc = 'Very short'
         details_page.enter_details(name, desc)
@@ -231,6 +229,20 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertIn("0:05:31", content)
         self.assertIn("0.54 nmi", content)
         self.assertIn("11.89 knots", content)
+
+        # They click "Add Track" again and try to upload
+        # without choosing a file, and are warned not to do that
+        activity_page.click_add_track()
+        activity_page.click_upload()
+        self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED,
+                      activity_page.get_alerts())
+        activity_page.cancel_upload()
+
+        # They next try to upload a non-supported text-file as a new track
+        # and see an error warning them not to do that, so they hit cancel
+        activity_page.upload_track('bad.txt')
+        self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE, activity_page.get_alerts())
+        activity_page.cancel_upload()
 
         # They click on the link to get to first track segment and
         # notice the trim activity section

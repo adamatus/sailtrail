@@ -25,26 +25,29 @@ class BasePage(object):
     def login(self):
         self.browser.find_element_by_link_text("Login").click()
 
-
-class HomePage(BasePage):
-
-    def go_to_homepage(self):
-        self.browser.get(self.test.live_server_url)
-
     def upload_file(self, filename):
         self.browser.find_element_by_id('upload-file-modal-btn').click()
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
         upload_box.send_keys(os.path.join(ASSET_PATH, filename))
-        self.browser.find_element_by_id('upload-file-btn').click()
+        self.click_upload()
 
     def upload_without_file(self):
         self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.click_upload()
+
+    def click_upload(self):
         self.browser.find_element_by_id('upload-file-btn').click()
 
     def cancel_upload(self):
         self.browser.find_element_by_id('cancel-upload-btn').click()
+
+
+class HomePage(BasePage):
+
+    def go_to_homepage(self):
+        self.browser.get(self.test.live_server_url)
 
     def go_to_activity(self, name):
         self.browser.find_element_by_link_text(name).click()

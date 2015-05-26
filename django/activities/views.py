@@ -145,6 +145,12 @@ def view(request, activity_id, form=None):
     if form is None:
         form = UploadFileForm({'activity': activity_id})
 
+        # Manually remove upfile error that we get when creating
+        # the form with a pre-populated activity
+        form.errors.pop('upfile')
+
+    print(form.errors)
+
     return render(request,
                   'activity.html',
                   {'activity': activity,
