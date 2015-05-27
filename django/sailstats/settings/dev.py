@@ -20,6 +20,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS += (
     'livereload',
+    'debug_toolbar',
 )
 
 DATABASES = {
