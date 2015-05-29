@@ -129,7 +129,7 @@ def details(request, activity_id):
         else:
             form = ActivityDetailsForm()
             cancel_link = reverse('delete_activity', args=[activity.id])
-            activity.stats.compute_stats()
+            activity.compute_stats()
 
     return render(request, 'activity_details.html', {'activity': activity,
                                                      'form': form,
@@ -249,9 +249,9 @@ def delete_track(request, activity_id, track_id):
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.delete()
-    track.activity_id.stats.model_distance = None
-    track.activity_id.stats.model_max_speed = None
-    track.activity_id.stats.save()
+    track.activity_id.model_distance = None
+    track.activity_id.model_max_speed = None
+    track.activity_id.save()
     return redirect('view_activity', activity_id)
 
 

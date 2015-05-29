@@ -24,6 +24,18 @@ with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
     GPX_FILE = SimpleUploadedFile('tiny-run.gpx', GPX_BIN)
 
 
+@pytest.fixture
+def stats():
+    a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+                                 upfile=SimpleUploadedFile("test1.SBN",
+                                                           SBN_BIN))
+    return a.activity_id
+
+
+def my_round(num, places=3):
+    return int(num*10**places)/10**places
+
+
 @pytest.mark.django_db
 class TestActivityModel:
 
@@ -32,6 +44,39 @@ class TestActivityModel:
         a.save()
         assert a.modified is not None
         assert a.created is not None
+
+    def test_start_time_returns_time(self, stats):
+        assert stats.start_time == time(22, 37, 54)
+
+    def test_end_time_returns_correct_time(self, stats):
+        assert stats.end_time == time(22, 37, 57)
+
+    def test_date_returns_date(self, stats):
+        assert stats.date == date(2014, 7, 15)
+
+    def test_model_max_speed_is_populated_on_call_to_max_speed(self, stats):
+        stats.model_max_speed = None
+        stats.save()
+        assert stats.max_speed == '6.65 knots'
+        assert stats.model_max_speed == 3.42
+
+    def test_model_max_speed_is_not_pupulated_if_already_filled(self, stats):
+        stats.model_max_speed = 10.5
+        stats.save()
+        assert stats.max_speed == '20.41 knots'
+        assert stats.model_max_speed == 10.5
+
+    def test_model_distance_is_populated_on_call_to_distance(self, stats):
+        stats.model_distance = None
+        stats.save()
+        assert stats.distance == '0.01 nmi'
+        assert my_round(stats.model_distance) == 9.978
+
+    def test_model_distance_is_not_populated_if_already_filled(self, stats):
+        stats.model_distance = 10.5
+        stats.save()
+        assert stats.distance == '0.01 nmi'
+        assert stats.model_distance == 10.5
 
 
 @pytest.fixture
@@ -148,55 +193,6 @@ class TestActivityDetailsModel:
             a = ActivityDetail.objects.create(
                 activity_id=ActivityFactory.create())
             a.full_clean()
-
-
-@pytest.fixture
-def stats():
-    a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
-                                 upfile=SimpleUploadedFile("test1.SBN",
-                                                           SBN_BIN))
-    return a.activity_id.stats
-
-
-def my_round(num, places=3):
-    return int(num*10**places)/10**places
-
-
-@pytest.mark.django_db
-class TestActivityStatModel:
-
-    def test_start_time_returns_time(self, stats):
-        assert stats.start_time == time(22, 37, 54)
-
-    def test_end_time_returns_correct_time(self, stats):
-        assert stats.end_time == time(22, 37, 57)
-
-    def test_date_returns_date(self, stats):
-        assert stats.date == date(2014, 7, 15)
-
-    def test_model_max_speed_is_populated_on_call_to_max_speed(self, stats):
-        stats.model_max_speed = None
-        stats.save()
-        assert stats.max_speed == '6.65 knots'
-        assert stats.model_max_speed == 3.42
-
-    def test_model_max_speed_is_not_pupulated_if_already_filled(self, stats):
-        stats.model_max_speed = 10.5
-        stats.save()
-        assert stats.max_speed == '20.41 knots'
-        assert stats.model_max_speed == 10.5
-
-    def test_model_distance_is_populated_on_call_to_distance(self, stats):
-        stats.model_distance = None
-        stats.save()
-        assert stats.distance == '0.01 nmi'
-        assert my_round(stats.model_distance) == 9.978
-
-    def test_model_distance_is_not_populated_if_already_filled(self, stats):
-        stats.model_distance = 10.5
-        stats.save()
-        assert stats.distance == '0.01 nmi'
-        assert stats.model_distance == 10.5
 
 
 @pytest.mark.django_db

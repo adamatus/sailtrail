@@ -1,10 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-from django.core.exceptions import ObjectDoesNotExist
-
 from sirf.stats import Stats
 from sirf import Parser
 
@@ -36,9 +32,58 @@ class Activity(models.Model):
     modified = models.DateTimeField(auto_now=True)
     datetime = models.DateTimeField(null=True)
     user = models.ForeignKey(User, related_name='activity', null=False)
+    model_distance = models.FloatField(null=True)  # m
+    model_max_speed = models.FloatField(null=True)  # m/s
 
     class Meta:
         ordering = ['-datetime']
+
+    @property
+    def end_time(self):
+        return self.track.last().trim_end.time()
+
+    @property
+    def start_time(self):
+        return self.track.first().trim_start.time()
+
+    @property
+    def date(self):
+        return self.track.first().trim_start.date()
+
+    @property
+    def duration(self):
+        return (self.track.last().trim_end -
+                self.track.first().trim_start)
+
+    @property
+    def max_speed(self):
+        if self.model_max_speed is None:
+            pos = self.get_trackpoints()
+            stats = Stats(pos)
+            self.model_max_speed = stats.max_speed.magnitude
+            self.save()
+
+        speed = (self.model_max_speed * units.m/units.s).to(UNITS['speed'])
+        return '{:~.2f}'.format(speed)
+
+    @property
+    def distance(self):
+        if self.model_distance is None:
+            pos = self.get_trackpoints()
+            stats = Stats(pos)
+            self.model_distance = stats.distance().magnitude
+            self.save()
+
+        dist = (self.model_distance * units.m).to(UNITS['dist'])
+        return '{:~.2f}'.format(dist)
+
+    def compute_stats(self):
+        pos = self.get_trackpoints()
+        stats = Stats(pos)
+        self.model_distance = stats.distance().magnitude
+        self.model_max_speed = stats.max_speed.magnitude
+
+        self.save()
 
     def add_track(self, upfile):
         ActivityTrack.create_new(upfile, self)
@@ -65,11 +110,6 @@ class ActivityTrack(models.Model):
         ordering = ['trim_start']
 
     def initialize_stats(self):
-        # Create stats model entry if necessary
-        try:
-            self.activity_id.stats.compute_stats()
-        except ObjectDoesNotExist:
-            ActivityStat.objects.create(activity_id=self.activity_id)
         self.reset_trim()
 
         if self.activity_id.datetime is None:
@@ -108,14 +148,14 @@ class ActivityTrack(models.Model):
         if do_save:
             self.trimmed = True
             self.save()
-            self.activity_id.stats.compute_stats()
+            self.activity_id.compute_stats()
 
     def reset_trim(self):
         self.trim_start = self.trackpoint.first().timepoint
         self.trim_end = self.trackpoint.last().timepoint
         self.trimmed = False
         self.save()
-        self.activity_id.stats.compute_stats()
+        self.activity_id.compute_stats()
 
     def get_trackpoints(self):
         return self.trackpoint.filter(
@@ -208,57 +248,3 @@ class ActivityDetail(models.Model):
                                 blank=False,
                                 choices=ACTIVITY_CHOICES,
                                 default=SAILING)
-
-
-class ActivityStat(models.Model):
-    activity_id = models.OneToOneField(Activity, related_name='stats',
-                                       blank=False, null=False)
-    model_distance = models.FloatField(null=True)  # m
-    model_max_speed = models.FloatField(null=True)  # m/s
-
-    @property
-    def end_time(self):
-        return self.activity_id.track.last().trim_end.time()
-
-    @property
-    def start_time(self):
-        return self.activity_id.track.first().trim_start.time()
-
-    @property
-    def date(self):
-        return self.activity_id.track.first().trim_start.date()
-
-    @property
-    def duration(self):
-        return (self.activity_id.track.last().trim_end -
-                self.activity_id.track.first().trim_start)
-
-    @property
-    def max_speed(self):
-        if self.model_max_speed is None:
-            pos = self.activity_id.get_trackpoints()
-            stats = Stats(pos)
-            self.model_max_speed = stats.max_speed.magnitude
-            self.save()
-
-        speed = (self.model_max_speed * units.m/units.s).to(UNITS['speed'])
-        return '{:~.2f}'.format(speed)
-
-    @property
-    def distance(self):
-        if self.model_distance is None:
-            pos = self.activity_id.get_trackpoints()
-            stats = Stats(pos)
-            self.model_distance = stats.distance().magnitude
-            self.save()
-
-        dist = (self.model_distance * units.m).to(UNITS['dist'])
-        return '{:~.2f}'.format(dist)
-
-    def compute_stats(self):
-        pos = self.activity_id.get_trackpoints()
-        stats = Stats(pos)
-        self.model_distance = stats.distance().magnitude
-        self.model_max_speed = stats.max_speed.magnitude
-
-        self.save()

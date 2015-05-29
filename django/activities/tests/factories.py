@@ -1,15 +1,15 @@
 import factory
 from factory.fuzzy import FuzzyFloat
-import os.path
 
 from math import floor
 
 from activities.models import (Activity, ActivityTrack, ActivityDetail,
-                               ActivityStat, ActivityTrackpoint)
+                               ActivityTrackpoint)
 from django.contrib.auth import get_user_model
-User = get_user_model()
 
 from datetime import datetime
+
+User = get_user_model()
 
 
 class UserFactory(factory.DjangoModelFactory):
@@ -28,6 +28,8 @@ class ActivityFactory(factory.DjangoModelFactory):
         model = Activity
 
     user = factory.SubFactory(UserFactory)
+    model_distance = None
+    model_max_speed = None
 
 
 class ActivityTrackFactory(factory.DjangoModelFactory):
@@ -49,16 +51,6 @@ class ActivityDetailFactory(factory.DjangoModelFactory):
     description = factory.Sequence(lambda n: 'Activity description %s' % n)
     activity_id = factory.SubFactory(ActivityFactory)
     category = 'SL'
-
-
-class ActivityStatFactory(factory.DjangoModelFactory):
-
-    class Meta:
-        model = ActivityStat
-
-    activity_id = factory.SubFactory(ActivityFactory)
-    model_distance = None
-    model_max_speed = None
 
 
 class ActivityTrackpointFactory(factory.DjangoModelFactory):

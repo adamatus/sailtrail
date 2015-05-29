@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from activities.models import (Activity, ActivityTrack,
-                               ActivityDetail, ActivityStat)
+                               ActivityDetail)
 from activities.forms import (UploadFileForm, ActivityDetailsForm,
                               ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING,
@@ -90,14 +90,6 @@ class TestFileUploadView(TestCase):
     def test_POST_without_file_displays_error(self):
         response = self.client.post(reverse('upload'))
         self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
-
-    def test_POST_computes_statistics_for_file(self):
-        test_file = SimpleUploadedFile('test-stats.sbn', SBN_BIN)
-
-        self.assertEquals(0, ActivityStat.objects.count())
-        self.client.post(reverse('upload'),
-                         data={'upfile': test_file})
-        self.assertEquals(1, ActivityStat.objects.count())
 
 
 class TestNewActivityDetailView(TestCase):

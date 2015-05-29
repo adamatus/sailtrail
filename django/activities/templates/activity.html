@@ -22,11 +22,11 @@
 		<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
 		{% endif %}
 		<p>{{ activity.details.get_category_display }}</p>
-		<p>Date: {{ activity.stats.date }}</p>
-		<p>Start Time: {{ activity.stats.start_time }}</p>
-		<p>Duration: {{ activity.stats.duration }}</p>
-		<p>Distance: {{ activity.stats.distance }}</p>
-		<p>Max speed: {{ activity.stats.max_speed }}</p>
+		<p>Date: {{ activity.date }}</p>
+		<p>Start Time: {{ activity.start_time }}</p>
+		<p>Duration: {{ activity.duration }}</p>
+		<p>Distance: {{ activity.distance }}</p>
+		<p>Max speed: {{ activity.max_speed }}</p>
 		{% if activity.details.private %}
 		<p><i>This activity is currently private</i></p>
 		{% endif %}
@@ -54,7 +54,7 @@
   {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
 	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
-var max_speed = +"{{ activity.stats.max_speed }}".split(' ')[0],
+var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
 		units = {{ units|safe }},
 		json_url = "{% url 'activity_json' activity.id %}";
 
