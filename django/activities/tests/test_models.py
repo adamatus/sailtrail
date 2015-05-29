@@ -5,10 +5,8 @@ import pytest
 from pytz import timezone
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 
-from activities.models import (Activity, ActivityTrack, ActivityDetail,
+from activities.models import (Activity, ActivityTrack,
                                ActivityTrackpoint, _create_trackpoints)
 from .factories import UserFactory, ActivityFactory
 
@@ -167,46 +165,7 @@ class TestActivityTrackModel:
 
 
 @pytest.mark.django_db
-class TestActivityDetailsModel:
-
-    def test_smoke_model_has_expected_fields(self):
-        name = 'Test name'
-        desc = 'Test description'
-
-        ActivityDetail.objects.create(
-            name=name,
-            description=desc,
-            activity_id=ActivityFactory.create())  # Should not raise
-
-    def test_cannot_associate_two_details_with_one_file(self):
-        a = ActivityFactory.create()
-        ActivityDetail.objects.create(name='Test', activity_id=a)
-        with pytest.raises(IntegrityError):
-            ActivityDetail.objects.create(name='Test2', activity_id=a)
-
-    def test_cannot_create_details_without_activity_ref(self):
-        with pytest.raises(IntegrityError):
-            ActivityDetail.objects.create(name='Test')
-
-    def test_cannot_create_details_without_name(self):
-        with pytest.raises(ValidationError):
-            a = ActivityDetail.objects.create(
-                activity_id=ActivityFactory.create())
-            a.full_clean()
-
-
-@pytest.mark.django_db
 class TestIntegrationOfActivityModels:
-
-    def test_deleting_activity_removes_activity_details(self):
-        activity = Activity.objects.create(user=UserFactory.create())
-        ActivityDetail.objects.create(
-            name='',
-            activity_id=activity)
-
-        assert 1 == len(ActivityDetail.objects.all())
-        activity.delete()
-        assert 0 == len(ActivityDetail.objects.all())
 
     def test_upload_sbn_creates_trackpoints(self):
         test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)

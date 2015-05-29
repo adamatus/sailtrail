@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import ActivityDetail
+from .models import Activity
 
 User = get_user_model()
 
@@ -22,8 +22,8 @@ class UploadFileForm(forms.Form):
 class ActivityDetailsForm(forms.models.ModelForm):
 
     class Meta:
-        model = ActivityDetail
-        fields = ('name', 'description', 'private', 'category', 'activity_id')
+        model = Activity
+        fields = ('name', 'description', 'private', 'category')
         widgets = {
             'name': forms.TextInput(attrs={
                 'placeholder': 'Enter activity name',

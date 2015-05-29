@@ -34,6 +34,13 @@ class Activity(models.Model):
     user = models.ForeignKey(User, related_name='activity', null=False)
     model_distance = models.FloatField(null=True)  # m
     model_max_speed = models.FloatField(null=True)  # m/s
+    name = models.CharField(max_length=255, null=True)
+    description = models.TextField(null=True, blank=True)
+    private = models.BooleanField(default=False)
+    category = models.CharField(max_length=2,
+                                blank=False,
+                                choices=ACTIVITY_CHOICES,
+                                default=SAILING)
 
     class Meta:
         ordering = ['-datetime']
@@ -235,16 +242,3 @@ class ActivityTrackpoint(models.Model):
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
     track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
-
-
-class ActivityDetail(models.Model):
-
-    name = models.CharField(max_length=255, null=False, blank=False)
-    description = models.TextField(null=True, blank=True)
-    activity_id = models.OneToOneField(Activity, related_name='details',
-                                       blank=False, null=False)
-    private = models.BooleanField(default=False)
-    category = models.CharField(max_length=2,
-                                blank=False,
-                                choices=ACTIVITY_CHOICES,
-                                default=SAILING)

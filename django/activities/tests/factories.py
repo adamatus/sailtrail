@@ -3,7 +3,7 @@ from factory.fuzzy import FuzzyFloat
 
 from math import floor
 
-from activities.models import (Activity, ActivityTrack, ActivityDetail,
+from activities.models import (Activity, ActivityTrack,
                                ActivityTrackpoint)
 from django.contrib.auth import get_user_model
 
@@ -30,6 +30,9 @@ class ActivityFactory(factory.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     model_distance = None
     model_max_speed = None
+    name = None
+    description = None
+    category = 'SL'
 
 
 class ActivityTrackFactory(factory.DjangoModelFactory):
@@ -40,17 +43,6 @@ class ActivityTrackFactory(factory.DjangoModelFactory):
     original_filename = factory.Sequence(lambda n: 'testuser%s.sbn' % n)
     trimmed = False
     activity_id = factory.SubFactory(ActivityFactory)
-
-
-class ActivityDetailFactory(factory.DjangoModelFactory):
-
-    class Meta:
-        model = ActivityDetail
-
-    name = factory.Sequence(lambda n: 'Activity name %s' % n)
-    description = factory.Sequence(lambda n: 'Activity description %s' % n)
-    activity_id = factory.SubFactory(ActivityFactory)
-    category = 'SL'
 
 
 class ActivityTrackpointFactory(factory.DjangoModelFactory):
@@ -65,3 +57,4 @@ class ActivityTrackpointFactory(factory.DjangoModelFactory):
     lat = FuzzyFloat(-180, 180)
     lon = FuzzyFloat(-180, 180)  # degrees
     sog = FuzzyFloat(0, 20)
+    track_id = factory.SubFactory(ActivityTrackFactory)

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load js %}
 
-{% block title_text %}{{ activity.details.name }}{% endblock %}
+{% block title_text %}{{ activity.name }}{% endblock %}
 
 {% block extra_styles %}
 {% css 'activities/css/plots.css' %}
@@ -16,18 +16,18 @@
 
 {% load static %}
 {% block main_section %}
-		<h1>{{ activity.details.name }}</h1>
-		<p>{{ activity.details.description }}</p>
+		<h1>{{ activity.name }}</h1>
+		<p>{{ activity.description }}</p>
 		{% if not owner %}
 		<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
 		{% endif %}
-		<p>{{ activity.details.get_category_display }}</p>
+		<p>{{ activity.get_category_display }}</p>
 		<p>Date: {{ activity.date }}</p>
 		<p>Start Time: {{ activity.start_time }}</p>
 		<p>Duration: {{ activity.duration }}</p>
 		<p>Distance: {{ activity.distance }}</p>
 		<p>Max speed: {{ activity.max_speed }}</p>
-		{% if activity.details.private %}
+		{% if activity.private %}
 		<p><i>This activity is currently private</i></p>
 		{% endif %}
 		{% if owner %}

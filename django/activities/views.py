@@ -27,11 +27,11 @@ def home_page(request, form=None):
     if form is None:
         form = UploadFileForm()
 
-    activities = Activity.objects.filter(details__isnull=False)
+    activities = Activity.objects.exclude(name__isnull=True)
 
     # Remove private activities for all but the current user
     activities = activities.exclude(
-        ~Q(user__username=request.user.username), details__private=True)
+        ~Q(user__username=request.user.username), private=True)
 
     return render(request, 'home.html',
                   {'activities': activities,
@@ -48,12 +48,11 @@ def user_page(request, username, form=None):
     if form is None:
         form = UploadFileForm()
 
-    activities = Activity.objects.filter(user__username=username).filter(
-        details__isnull=False)
+    activities = Activity.objects.filter(user__username=username)
 
     # Filter out private activities if the user is not viewing themselves
     if request.user.username != username:
-        activities = activities.filter(details__private=False)
+        activities = activities.filter(private=False)
 
     return render(request, 'user.html',
                   {'activities': activities,
@@ -116,18 +115,13 @@ def details(request, activity_id):
 
     if request.method == 'POST':
         request.POST['activity_id'] = activity_id
-        if hasattr(activity, 'details'):
-            form = ActivityDetailsForm(request.POST, instance=activity.details)
-        else:
-            form = ActivityDetailsForm(request.POST)
+        form = ActivityDetailsForm(request.POST, instance=activity)
         if form.is_valid():
             form.save()
             return redirect('view_activity', activity.id)
     else:
-        if hasattr(activity, 'details'):
-            form = ActivityDetailsForm(instance=activity.details)
-        else:
-            form = ActivityDetailsForm()
+        form = ActivityDetailsForm(instance=activity)
+        if activity.name == "":
             cancel_link = reverse('delete_activity', args=[activity.id])
             activity.compute_stats()
 
@@ -138,7 +132,7 @@ def details(request, activity_id):
 
 
 def verify_private_owner(activity, request):
-    if activity.details.private and request.user != activity.user:
+    if activity.private and request.user != activity.user:
         raise PermissionDenied
 
 
