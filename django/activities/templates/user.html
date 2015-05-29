@@ -3,7 +3,15 @@
 {% block title_text %}{{username}}'s activities{% endblock %}
 
 {% block main_section %}
+{% load unit_conversions %}
 			<h2>Activity List for {{username}}</h2>
+      <p>Total activities: {{ activities|length}}</p>
+        <table class='table table-striped'>
+          <tr><th>Category</th><th>Activities</th><th>Max Speed</th><th>Total Distance</th></tr>
+				{% for summary in summaries %}
+        <tr><td>{{summary.category|category}}</td><td>{{summary.count}}</td><td>{{summary.max_speed|speed}}</td><td>{{summary.total_dist|distance}}</td></tr>
+        {% endfor %}
+        </table>
 				<hr>
 				{% for activity in activities %}
 				<div class='activity'>

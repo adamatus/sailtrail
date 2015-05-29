@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Count, Max, Sum
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
@@ -54,9 +54,16 @@ def user_page(request, username, form=None):
     if request.user.username != username:
         activities = activities.filter(private=False)
 
+    # Summarize activities by category
+    summary = activities.values('category').annotate(
+        count=Count('category'),
+        max_speed=Max('model_max_speed'),
+        total_dist=Sum('model_distance')).order_by('-max_speed')
+
     return render(request, 'user.html',
                   {'activities': activities,
                    'username': username,
+                   'summaries': summary,
                    'form': form
                    })
 
