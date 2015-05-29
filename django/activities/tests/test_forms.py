@@ -2,7 +2,6 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from activities.forms import UploadFileForm, ActivityDetailsForm
-from activities.models import ActivityDetail
 from .factories import ActivityFactory
 
 
@@ -25,13 +24,13 @@ class TestActivityDetailsForm:
         form = ActivityDetailsForm()
         assert 'id_name' in form.as_p()
 
-    def test_from_save(self):
+    def test_form_save(self):
         a = ActivityFactory.create()
         form = ActivityDetailsForm({'name': 'Test',
                                     'description': '',
-                                    'category': 'IB',
-                                    'activity_id': a.id})
+                                    'category': 'IB'},
+                                   instance=a)
         form.is_valid()
         upactivity = form.save()
         assert upactivity is not None
-        assert upactivity == ActivityDetail.objects.first()
+        assert upactivity.name == 'Test'

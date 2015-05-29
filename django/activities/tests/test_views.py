@@ -6,13 +6,14 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from activities.models import (Activity, ActivityTrack,
-                               ActivityDetail, ActivityStat)
+from activities.models import Activity, ActivityTrack
+
 from activities.forms import (UploadFileForm, ActivityDetailsForm,
                               ERROR_NO_UPLOAD_FILE_SELECTED,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
-from .factories import UserFactory, ActivityFactory, ActivityDetailFactory
+from .factories import (UserFactory, ActivityFactory, ActivityTrackFactory,
+                        ActivityTrackpointFactory)
 
 User = get_user_model()
 
@@ -35,10 +36,16 @@ class TestHomepageView(TestCase):
                               UploadFileForm)
 
     def test_home_page_shows_existing_activities(self):
-        ActivityDetailFactory.create(
+        a = ActivityFactory.create(
             name="First snowkite of the season")
-        ActivityDetailFactory.create(
+        t = ActivityTrackFactory.create(activity_id=a)
+        ActivityTrackpointFactory.create(track_id=t)
+        t.initialize_stats()
+        a = ActivityFactory.create(
             name="Snowkite lesson:")
+        t = ActivityTrackFactory.create(activity_id=a)
+        ActivityTrackpointFactory.create(track_id=t)
+        t.initialize_stats()
 
         response = self.client.get('/')
         self.assertContains(response, 'First snowkite of the season')
@@ -91,21 +98,15 @@ class TestFileUploadView(TestCase):
         response = self.client.post(reverse('upload'))
         self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
 
-    def test_POST_computes_statistics_for_file(self):
-        test_file = SimpleUploadedFile('test-stats.sbn', SBN_BIN)
-
-        self.assertEquals(0, ActivityStat.objects.count())
-        self.client.post(reverse('upload'),
-                         data={'upfile': test_file})
-        self.assertEquals(1, ActivityStat.objects.count())
-
 
 class TestNewActivityDetailView(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
-        activity = ActivityFactory(user=user)
-        ActivityDetailFactory.create(activity_id=activity)
+        a = ActivityFactory(user=user)
+        t = ActivityTrackFactory.create(activity_id=a)
+        ActivityTrackpointFactory.create(track_id=t)
+        t.initialize_stats()
         self.client.login(username='test', password='password')
 
     def test_new_view_uses_activity_details_template(self):
@@ -133,7 +134,7 @@ class TestNewActivityDetailView(TestCase):
             data={'name': name,
                   'category': 'SK',
                   'description': desc})
-        new_details = ActivityDetail.objects.first()
+        new_details = Activity.objects.first()
         self.assertEqual(new_details.name, name)
 
     def test_POST_without_name_displays_error(self):
@@ -160,8 +161,10 @@ class TestActivityDetailView(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
-        activity = ActivityFactory(user=user)
-        ActivityDetailFactory.create(activity_id=activity)
+        a = ActivityFactory(user=user)
+        t = ActivityTrackFactory.create(activity_id=a)
+        ActivityTrackpointFactory.create(track_id=t)
+        t.initialize_stats()
         self.client.login(username='test', password='password')
 
     def test_detail_view_uses_activity_details_template(self):
@@ -174,7 +177,7 @@ class TestActivityDetailView(TestCase):
                               ActivityDetailsForm)
 
     def test_detail_view_shows_current_values(self):
-        details = Activity.objects.first().details
+        details = Activity.objects.first()
         response = self.client.get(reverse('details', args=[1]))
         self.assertContains(response, details.name)
         self.assertContains(response, details.description)
@@ -195,7 +198,7 @@ class TestActivityDetailView(TestCase):
             data={'name': name,
                   'category': 'SK',
                   'description': desc})
-        new_details = ActivityDetail.objects.first()
+        new_details = Activity.objects.first()
         self.assertEqual(new_details.name, name)
 
     def test_POST_without_name_displays_error(self):
@@ -211,9 +214,12 @@ class TestActivityDetailView(TestCase):
 class TestActivityView(TestCase):
 
     def setUp(self):
-        ActivityDetailFactory.create(
+        a = ActivityFactory.create(
             name="First snowkite of the season",
             description="Hooray ice!")
+        t = ActivityTrackFactory.create(activity_id=a)
+        ActivityTrackpointFactory.create(track_id=t)
+        t.initialize_stats()
 
     def test_uses_activity_template(self):
         response = self.client.get(reverse('view_activity', args=[1]))

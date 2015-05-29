@@ -5,10 +5,8 @@ import pytest
 from pytz import timezone
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 
-from activities.models import (Activity, ActivityTrack, ActivityDetail,
+from activities.models import (Activity, ActivityTrack,
                                ActivityTrackpoint, _create_trackpoints)
 from .factories import UserFactory, ActivityFactory
 
@@ -24,6 +22,18 @@ with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
     GPX_FILE = SimpleUploadedFile('tiny-run.gpx', GPX_BIN)
 
 
+@pytest.fixture
+def stats():
+    a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+                                 upfile=SimpleUploadedFile("test1.SBN",
+                                                           SBN_BIN))
+    return a.activity_id
+
+
+def my_round(num, places=3):
+    return int(num*10**places)/10**places
+
+
 @pytest.mark.django_db
 class TestActivityModel:
 
@@ -32,6 +42,39 @@ class TestActivityModel:
         a.save()
         assert a.modified is not None
         assert a.created is not None
+
+    def test_start_time_returns_time(self, stats):
+        assert stats.start_time == time(22, 37, 54)
+
+    def test_end_time_returns_correct_time(self, stats):
+        assert stats.end_time == time(22, 37, 57)
+
+    def test_date_returns_date(self, stats):
+        assert stats.date == date(2014, 7, 15)
+
+    def test_model_max_speed_is_populated_on_call_to_max_speed(self, stats):
+        stats.model_max_speed = None
+        stats.save()
+        assert stats.max_speed == '6.65 knots'
+        assert stats.model_max_speed == 3.42
+
+    def test_model_max_speed_is_not_pupulated_if_already_filled(self, stats):
+        stats.model_max_speed = 10.5
+        stats.save()
+        assert stats.max_speed == '20.41 knots'
+        assert stats.model_max_speed == 10.5
+
+    def test_model_distance_is_populated_on_call_to_distance(self, stats):
+        stats.model_distance = None
+        stats.save()
+        assert stats.distance == '0.01 nmi'
+        assert my_round(stats.model_distance) == 9.978
+
+    def test_model_distance_is_not_populated_if_already_filled(self, stats):
+        stats.model_distance = 10.5
+        stats.save()
+        assert stats.distance == '0.01 nmi'
+        assert stats.model_distance == 10.5
 
 
 @pytest.fixture
@@ -122,95 +165,7 @@ class TestActivityTrackModel:
 
 
 @pytest.mark.django_db
-class TestActivityDetailsModel:
-
-    def test_smoke_model_has_expected_fields(self):
-        name = 'Test name'
-        desc = 'Test description'
-
-        ActivityDetail.objects.create(
-            name=name,
-            description=desc,
-            activity_id=ActivityFactory.create())  # Should not raise
-
-    def test_cannot_associate_two_details_with_one_file(self):
-        a = ActivityFactory.create()
-        ActivityDetail.objects.create(name='Test', activity_id=a)
-        with pytest.raises(IntegrityError):
-            ActivityDetail.objects.create(name='Test2', activity_id=a)
-
-    def test_cannot_create_details_without_activity_ref(self):
-        with pytest.raises(IntegrityError):
-            ActivityDetail.objects.create(name='Test')
-
-    def test_cannot_create_details_without_name(self):
-        with pytest.raises(ValidationError):
-            a = ActivityDetail.objects.create(
-                activity_id=ActivityFactory.create())
-            a.full_clean()
-
-
-@pytest.fixture
-def stats():
-    a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
-                                 upfile=SimpleUploadedFile("test1.SBN",
-                                                           SBN_BIN))
-    return a.activity_id.stats
-
-
-def my_round(num, places=3):
-    return int(num*10**places)/10**places
-
-
-@pytest.mark.django_db
-class TestActivityStatModel:
-
-    def test_start_time_returns_time(self, stats):
-        assert stats.start_time == time(22, 37, 54)
-
-    def test_end_time_returns_correct_time(self, stats):
-        assert stats.end_time == time(22, 37, 57)
-
-    def test_date_returns_date(self, stats):
-        assert stats.date == date(2014, 7, 15)
-
-    def test_model_max_speed_is_populated_on_call_to_max_speed(self, stats):
-        stats.model_max_speed = None
-        stats.save()
-        assert stats.max_speed == '6.65 knots'
-        assert stats.model_max_speed == 3.42
-
-    def test_model_max_speed_is_not_pupulated_if_already_filled(self, stats):
-        stats.model_max_speed = 10.5
-        stats.save()
-        assert stats.max_speed == '20.41 knots'
-        assert stats.model_max_speed == 10.5
-
-    def test_model_distance_is_populated_on_call_to_distance(self, stats):
-        stats.model_distance = None
-        stats.save()
-        assert stats.distance == '0.01 nmi'
-        assert my_round(stats.model_distance) == 9.978
-
-    def test_model_distance_is_not_populated_if_already_filled(self, stats):
-        stats.model_distance = 10.5
-        stats.save()
-        assert stats.distance == '0.01 nmi'
-        assert stats.model_distance == 10.5
-
-
-@pytest.mark.django_db
 class TestIntegrationOfActivityModels:
-
-    def test_deleting_activity_removes_activity_details(self):
-        activity = Activity.objects.create(user=UserFactory.create())
-        ActivityDetail.objects.create(
-            name='',
-            activity_id=activity)
-
-        assert 1 == len(ActivityDetail.objects.all())
-        activity.delete()
-        assert 0 == len(ActivityDetail.objects.all())
 
     def test_upload_sbn_creates_trackpoints(self):
         test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)

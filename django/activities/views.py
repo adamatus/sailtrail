@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Count, Max, Sum
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
@@ -27,11 +27,11 @@ def home_page(request, form=None):
     if form is None:
         form = UploadFileForm()
 
-    activities = Activity.objects.filter(details__isnull=False)
+    activities = Activity.objects.exclude(name__isnull=True)
 
     # Remove private activities for all but the current user
     activities = activities.exclude(
-        ~Q(user__username=request.user.username), details__private=True)
+        ~Q(user__username=request.user.username), private=True)
 
     return render(request, 'home.html',
                   {'activities': activities,
@@ -48,16 +48,22 @@ def user_page(request, username, form=None):
     if form is None:
         form = UploadFileForm()
 
-    activities = Activity.objects.filter(user__username=username).filter(
-        details__isnull=False)
+    activities = Activity.objects.filter(user__username=username)
 
     # Filter out private activities if the user is not viewing themselves
     if request.user.username != username:
-        activities = activities.filter(details__private=False)
+        activities = activities.filter(private=False)
+
+    # Summarize activities by category
+    summary = activities.values('category').annotate(
+        count=Count('category'),
+        max_speed=Max('model_max_speed'),
+        total_dist=Sum('model_distance')).order_by('-max_speed')
 
     return render(request, 'user.html',
                   {'activities': activities,
                    'username': username,
+                   'summaries': summary,
                    'form': form
                    })
 
@@ -116,20 +122,19 @@ def details(request, activity_id):
 
     if request.method == 'POST':
         request.POST['activity_id'] = activity_id
-        if hasattr(activity, 'details'):
-            form = ActivityDetailsForm(request.POST, instance=activity.details)
-        else:
-            form = ActivityDetailsForm(request.POST)
+        form = ActivityDetailsForm(request.POST, instance=activity)
         if form.is_valid():
             form.save()
             return redirect('view_activity', activity.id)
-    else:
-        if hasattr(activity, 'details'):
-            form = ActivityDetailsForm(instance=activity.details)
         else:
-            form = ActivityDetailsForm()
+            if activity.name is None:
+                cancel_link = reverse('delete_activity', args=[activity.id])
+
+    else:
+        form = ActivityDetailsForm(instance=activity)
+        if activity.name is None:
             cancel_link = reverse('delete_activity', args=[activity.id])
-            activity.stats.compute_stats()
+            activity.compute_stats()
 
     return render(request, 'activity_details.html', {'activity': activity,
                                                      'form': form,
@@ -138,7 +143,7 @@ def details(request, activity_id):
 
 
 def verify_private_owner(activity, request):
-    if activity.details.private and request.user != activity.user:
+    if activity.private and request.user != activity.user:
         raise PermissionDenied
 
 
@@ -249,9 +254,9 @@ def delete_track(request, activity_id, track_id):
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.delete()
-    track.activity_id.stats.model_distance = None
-    track.activity_id.stats.model_max_speed = None
-    track.activity_id.stats.save()
+    track.activity_id.model_distance = None
+    track.activity_id.model_max_speed = None
+    track.activity_id.save()
     return redirect('view_activity', activity_id)
 
 

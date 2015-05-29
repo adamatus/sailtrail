@@ -9,13 +9,13 @@
 				<hr>
 				{% for activity in activities %}
 				<div class='activity'>
-					<h3><a href="/activities/{{ activity.id }}/">{{ activity.details.name }}</a></h3>
-					<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a> {% if activity.details.private %}<i>Private</i>{% endif %}</p>
+					<h3><a href="/activities/{{ activity.id }}/">{{ activity.name }}</a></h3>
+					<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a> {% if activity.private %}<i>Private</i>{% endif %}</p>
 					<ul class="list-inline">
-						<li class="activity-date">{{ activity.stats.date }}</li>
-						<li class="activity-time">{{ activity.stats.start_time }}</li>
-						<li class="activity-max-speed">{{ activity.stats.max_speed }}</li>
-						<li class="activity-category">{{ activity.details.get_category_display }}</li>
+						<li class="activity-date">{{ activity.date }}</li>
+						<li class="activity-time">{{ activity.start_time }}</li>
+						<li class="activity-max-speed">{{ activity.max_speed }}</li>
+						<li class="activity-category">{{ activity.get_category_display }}</li>
 					</ul>
 				</div>
 				<hr>
