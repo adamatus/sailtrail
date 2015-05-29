@@ -119,9 +119,13 @@ def details(request, activity_id):
         if form.is_valid():
             form.save()
             return redirect('view_activity', activity.id)
+        else:
+            if activity.name is None:
+                cancel_link = reverse('delete_activity', args=[activity.id])
+
     else:
         form = ActivityDetailsForm(instance=activity)
-        if activity.name == "":
+        if activity.name is None:
             cancel_link = reverse('delete_activity', args=[activity.id])
             activity.compute_stats()
 
