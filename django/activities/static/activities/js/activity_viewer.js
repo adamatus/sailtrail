@@ -16,6 +16,10 @@ activity_viewer = {
     pos: undefined,
     max_speed: undefined,
     units: undefined,
+    do_track: true,
+    do_speed: true,
+    do_polars: true,
+    do_slider: true,
 
     /**
      * Initialize all the parts of an activity page asynchronously
@@ -24,9 +28,16 @@ activity_viewer = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    init: function(pos_url, max_speed, units) {
+    init: function(pos_url, max_speed, units, config) {
         this.max_speed = max_speed;
         this.units = units;
+        if (config) {
+            this.do_track = config.do_track || true;
+            this.do_speed = config.do_speed || true;
+            this.do_polars = config.do_polars || true;
+            this.do_slider = config.do_slider || true;
+        }
+
         d3.json(pos_url, this.setup.bind(this));
     },
 
@@ -39,12 +50,21 @@ activity_viewer = {
      */
     setup: function(error, data) {
         this.pos = data.details;
-        this.time_slider = $('#time-slider');
-        this.setup_slider();
-        track_viewer.draw_map(this.pos, this.max_speed, this.time_slider);
-        speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
-        polar_viewer.draw_plot(this.pos, this.time_slider);
-        this.setup_trim_events();
+
+        if (this.do_slider) {
+            this.time_slider = $('#time-slider');
+            this.setup_slider();
+            this.setup_trim_events();
+        }
+        if (this.do_track) {
+            track_viewer.draw_map(this.pos, this.max_speed, this.time_slider);
+        }
+        if (this.do_speed) {
+            speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
+        }
+        if (this.do_polars) {
+            polar_viewer.draw_plot(this.pos, this.time_slider);
+        }
     },
 
     /**
