@@ -150,6 +150,7 @@ def details(request, activity_id):
             activity.compute_stats()
 
     return render(request, 'activity_details.html', {'activity': activity,
+                                                     'units': UNITS,
                                                      'form': form,
                                                      'cancel_link':
                                                      cancel_link})
