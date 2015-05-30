@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied
 import numpy as np
 
 from activities import UNITS, units, DATETIME_FORMAT_STR
-from .models import Activity, ActivityTrack
+from .models import Activity, ActivityTrack, ACTIVITY_CHOICES
 from .forms import (UploadFileForm, ActivityDetailsForm, NewUserForm,
                     ERROR_NO_UPLOAD_FILE_SELECTED,
                     ERROR_UNSUPPORTED_FILE_TYPE)
@@ -33,9 +33,22 @@ def home_page(request, form=None):
     activities = activities.exclude(
         ~Q(user__username=request.user.username), private=True)
 
+    leader_list = Activity.objects.values(
+        'user__username', 'category').annotate(
+            max_speed=Max('model_max_speed')).order_by('-max_speed')
+    print(leader_list)
+
+    leaders = []
+
+    for key, category in ACTIVITY_CHOICES:
+        values = [x for x in leader_list if x['category'] == key]
+        if len(values) > 0:
+            leaders.append({'category': category, 'leaders': values})
+
     return render(request, 'home.html',
                   {'activities': activities,
                    'form': form,
+                   'leaders': leaders,
                    'val_errors': errors
                    })
 
