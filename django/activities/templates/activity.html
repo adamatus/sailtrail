@@ -16,6 +16,7 @@
 
 {% load static %}
 {% block main_section %}
+{% load unit_conversions %}
 		<h1>{{ activity.name }}</h1>
 		<p>{{ activity.description }}</p>
 		{% if not owner %}
@@ -25,8 +26,8 @@
 		<p>Date: {{ activity.date }}</p>
 		<p>Start Time: {{ activity.start_time }}</p>
 		<p>Duration: {{ activity.duration }}</p>
-		<p>Distance: {{ activity.distance }}</p>
-		<p>Max speed: {{ activity.max_speed }}</p>
+		<p>Distance: {{ activity.model_distance|distance }}</p>
+		<p>Max speed: {{ activity.model_max_speed|speed }}</p>
 		{% if activity.private %}
 		<p><i>This activity is currently private</i></p>
 		{% endif %}

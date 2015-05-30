@@ -15,7 +15,7 @@
 					<ul class="list-inline">
 						<li class="activity-date">{{ activity.date }}</li>
 						<li class="activity-time">{{ activity.start_time }}</li>
-						<li class="activity-max-speed">{{ activity.max_speed }}</li>
+						<li class="activity-max-speed">{{ activity.model_max_speed|speed }}</li>
 						<li class="activity-category">{{ activity.get_category_display }}</li>
 					</ul>
 				</div>
