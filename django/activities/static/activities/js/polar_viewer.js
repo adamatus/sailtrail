@@ -41,6 +41,8 @@ module.exports = {
             maxes,
             len,
             mid,
+            r_scale_step,
+            r_end,
             polars = [],
             svg, gr, ga,
             temp_speeds,
@@ -155,11 +157,21 @@ module.exports = {
                 .style('text-anchor', 'middle')
                 .text(function get_r_text(d) { return d; });
 
+        self.dir_map = {};
+        self.dir_map['0'] = 'N';
+        self.dir_map['45'] = 'NE';
+        self.dir_map['90'] = 'E';
+        self.dir_map['135'] = 'SE';
+        self.dir_map['180'] = 'S';
+        self.dir_map['225'] = 'SW';
+        self.dir_map['270'] = 'W';
+        self.dir_map['315'] = 'NW';
+
         // Angle axis
         ga = this.plot.append('g')
                 .attr('class', 'a axis')
                 .selectAll('g')
-                    .data(d3.range(0, 360, 30))
+                    .data(d3.range(0, 360, 45))
                 .enter().append('g')
                     .attr('transform', function rotate(d) { return 'rotate(' + self.bearing_to_css_rot(d) + ')'; });
 
@@ -171,7 +183,7 @@ module.exports = {
                 .attr('dy', '.35em')
                 .style('text-anchor', function get_text_anchor(d) { return d > 180 ? 'end' : null; })
                 .attr('transform', function get_text_transform(d) { return d > 180 ? 'rotate(180 ' + (radius + 6) + ',0)' : null; })
-                .text(function get_x_text(d) { return d + '°'; });
+                .text(function get_x_text(d) { return self.dir_map[d.toString()]; });
 
         this.polar_g = this.plot.append('g')
             .on('click', function trigger_toggle() {
@@ -197,10 +209,28 @@ module.exports = {
             .attr('transform', 'rotate(' + self.bearing_to_css_rot(this.bearings[this.marker_pos]) + ')');
 
         // The estimated wind direction
-        this.wind = this.polar_g.append('svg:line')
-            .attr('x2', this.r(d3.max(this.pol_speeds)))
+        this.wind = this.polar_g.append('svg:g')
             .attr('class', 'polar wind')
             .attr('transform', 'rotate(' + self.bearing_to_css_rot(this.wind_offset) + ')');
+
+        r_scale_step = this.r.ticks(5).slice(this.r.ticks(5).length - 2);
+        r_scale_step = r_scale_step[1] - r_scale_step[0];
+
+        r_end = this.r.ticks(5).slice(this.r.ticks(5).length - 1)[0];
+
+        this.wind.append('svg:line')
+            .attr('x1', this.r(r_end + (3 * r_scale_step / 4)))
+            .attr('x2', this.r(r_end - (3 * r_scale_step / 4)));
+
+        this.wind.append('svg:line')
+            .attr('y1', this.r(d3.max(this.pol_speeds) * 0.1))
+            .attr('x1', this.r(r_end - (r_scale_step / 2)))
+            .attr('x2', this.r(r_end - (3 * r_scale_step / 4)));
+
+        this.wind.append('svg:line')
+            .attr('y1', this.r(d3.max(this.pol_speeds) * -0.1))
+            .attr('x1', this.r(r_end - (r_scale_step / 2)))
+            .attr('x2', this.r(r_end - (3 * r_scale_step / 4)));
 
         $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
             if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
@@ -252,13 +282,14 @@ module.exports = {
      */
     toggle_mode: function() {
         var toggle = $('#polar-frame-of-ref'),
+            self = this,
             data, i;
 
         if (toggle.prop('checked')) {
             // Switch label to relative to wind
-            data = d3.range(0, 181, 30);
+            data = d3.range(0, 181, 45);
 
-            for (i = 5; i; i--) {
+            for (i = 3; i; i--) {
                 data.push(data[i]);
             }
             d3.selectAll('.a.axis text')
@@ -267,8 +298,8 @@ module.exports = {
         } else {
             // Switch labels to cardinals
             d3.selectAll('.a.axis text')
-                    .data(d3.range(0, 360, 30))
-                .text(function(d) { return d + '°'; });
+                    .data(d3.range(0, 360, 45))
+                .text(function get_x_text(d) { return self.dir_map[d.toString()]; });
         }
         this.update_rotation();
     },
