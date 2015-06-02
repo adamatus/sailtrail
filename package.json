@@ -1,5 +1,5 @@
 {
-  "name": "sailstats",
+  "name": "sailtrail",
   "description": "A webapp for tracking windpowered activities",
   "version": "0.1.6",
   "keywords": [
@@ -7,7 +7,7 @@
     "sailings",
     "stats"
   ],
-  "homepage": "https://github.com/adamatus/sailstats",
+  "homepage": "https://github.com/adamatus/sailtrail",
   "author": {
     "name": "Adam Riggall",
     "email": "adam@riggall.info",
@@ -15,10 +15,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/adamatus/sailstats.git"
+    "url": "http://github.com/adamatus/sailtrail.git"
   },
   "bugs": {
-    "url": "https://github.com/adamatus/sailstats/issues",
+    "url": "https://github.com/adamatus/sailtrail/issues",
     "email": "adam@riggall.info"
   },
   "private": true,
@@ -51,7 +51,7 @@
     "grunt-karma": "0.10.1",
     "grunt-shell": "1.1.2",
     "istanbul": "0.3.13",
-    "jquery": "^2.1.4",
+    "jquery": "2.1.4",
     "karma": "0.12.31",
     "karma-browserify": "4.1.2",
     "karma-chai-sinon": "0.1.4",
@@ -68,7 +68,7 @@
     "sinon-chai": "2.7.0"
   },
   "dependencies": {
-    "cookies-js": "^1.2.1",
+    "cookies-js": "1.2.1",
     "lodash": "3.9.1"
   }
 }

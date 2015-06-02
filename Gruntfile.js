@@ -66,7 +66,7 @@ module.exports = function(grunt) {
 
         'django-manage': {
             options: {
-                app: 'sailstats',
+                app: 'sailtrail',
                 manage_path: './django/',
             },
 

@@ -1,5 +1,5 @@
 """
-Django settings for sailstats project.
+Django settings for sailtrail project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -26,8 +26,8 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = [
-    '.sailstats.com',
-    '.sailstats.com.'
+    '.sailtrail.net',
+    '.sailtrail.net.'
 ]
 
 # Application definition
@@ -56,9 +56,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'sailstats.urls'
+ROOT_URLCONF = 'sailtrail.urls'
 
-WSGI_APPLICATION = 'sailstats.wsgi.application'
+WSGI_APPLICATION = 'sailtrail.wsgi.application'
 
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
