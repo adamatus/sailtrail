@@ -1,11 +1,11 @@
 {
-  "name": "sailstats",
+  "name": "sailtrail",
   "version": "0.1.6",
   "description": "a webapp for tracking windpowered activites",
-  "homepage": "https://github.com/adamatus/sailstats",
+  "homepage": "https://github.com/adamatus/sailtrail",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adamatus/sailstats.git"
+    "url": "https://github.com/adamatus/sailtrail.git"
   },
   "main": "index.html",
   "moduleType": [
@@ -20,7 +20,7 @@
     {
       "name": "Adam Riggall",
       "email": "adam@riggall.info",
-      "homepage": "http://adam/riggall.info"
+      "homepage": "http://adam.riggall.info"
     }
   ],
   "license": "CC-BY-NC-SA-4.0",

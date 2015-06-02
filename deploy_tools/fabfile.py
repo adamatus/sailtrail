@@ -2,7 +2,7 @@ from fabric.contrib.files import append, comment, exists, sed
 from fabric.api import env, local, run
 import random
 
-REPO_URL = 'git@github.com:adamatus/sailstats.git'
+REPO_URL = 'git@github.com:adamatus/sailtrail.git'
 
 
 def deploy():
@@ -42,7 +42,7 @@ def _get_latest_source(source_folder):
 
 
 def _update_settings(source_folder, site_name):
-    settings_path = source_folder + '/django/sailstats/settings/'
+    settings_path = source_folder + '/django/sailtrail/settings/'
     secret_key_file = settings_path + 'secret_key.py'
     if not exists(secret_key_file):
         chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'

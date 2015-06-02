@@ -25,9 +25,9 @@ class ActivitiesTest(StaticLiveServerTestCase):
         login_page = LoginPage(self)
         track_page = ActivityTrackPage(self)
 
-        # Visitor comes to homepage and notices title is SailStats
+        # Visitor comes to homepage and notices title is SailTrail
         homepage.go_to_homepage()
-        self.assertIn('SailStats', self.browser.title)
+        self.assertIn('SailTrail', self.browser.title)
 
         # The notice the register link and click it, fill in their info,
         # submit, and are taken back to the homepage
