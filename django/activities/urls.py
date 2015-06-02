@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from activities import views
 
@@ -6,7 +6,8 @@ urlpatterns = [
     url(r'^$', views.activity_list, name='activity_list'),
     url(r'^upload$', views.upload, name='upload'),
 
-    url(r'(\d+)/tracks/(\d+)/delete$', views.delete_track, name='delete_track'),
+    url(r'(\d+)/tracks/(\d+)/delete$', views.delete_track,
+        name='delete_track'),
     url(r'(\d+)/tracks/(\d+)/trim$', views.trim, name='trim_track'),
     url(r'(\d+)/tracks/(\d+)/untrim$', views.untrim, name='untrim_track'),
     url(r'(\d+)/tracks/(\d+)/$', views.view_track, name="view_track"),
@@ -19,5 +20,7 @@ urlpatterns = [
     url(r'(\d+)/details/$', views.details, name='details'),
     url(r'(\d+)/delete$', views.delete, name='delete_activity'),
     url(r'(\d+)/json$', views.activity_json, name='activity_json'),
+    url(r'(\d+)/wind_direction$', views.wind_direction,
+        name='activity_wind_direction'),
     url(r'(\d+)/$', views.view, name='view_activity'),
 ]

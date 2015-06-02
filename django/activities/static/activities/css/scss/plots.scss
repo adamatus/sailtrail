@@ -28,11 +28,6 @@
   }
 }
 
-.r.axis :last-of-type circle {
-  stroke: #333;
-  stroke-dasharray: none;
-}
-
 .polar {
   stroke: red;
   stroke-width: 1.5px;
@@ -53,6 +48,7 @@
 
   &.wind {
     stroke: blue;
-	}
+    stroke-width: 2px;
+  }
 }
 

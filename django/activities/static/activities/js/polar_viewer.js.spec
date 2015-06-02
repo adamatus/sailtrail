@@ -76,13 +76,13 @@ describe('polar_viewer', function() {
         it('should toggle the plot to boat-centered frame of reference', function() {
             $('#polar-frame-of-ref').prop('checked', true);
             polar_viewer.toggle_mode();
-            $('#polar-plot-svg text').text().should.equal('510150°30°60°90°120°150°180°150°120°90°60°30°');
+            $('#polar-plot-svg text').text().should.equal('510150°45°90°135°180°135°90°45°');
         });
 
         it('should toggle the plot to world-centered frame of reference', function() {
             $('#polar-frame-of-ref').prop('checked', false);
             polar_viewer.toggle_mode();
-            $('#polar-plot-svg text').text().should.equal('510150°30°60°90°120°150°180°210°240°270°300°330°');
+            $('#polar-plot-svg text').text().should.equal('51015NNEESESSWWNW');
         });
     });
 });

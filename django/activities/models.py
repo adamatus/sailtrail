@@ -37,6 +37,7 @@ class Activity(models.Model):
     name = models.CharField(max_length=255, null=True)
     description = models.TextField(null=True, blank=True)
     private = models.BooleanField(default=False)
+    wind_direction = models.FloatField(null=True)
     category = models.CharField(max_length=2,
                                 blank=False,
                                 choices=ACTIVITY_CHOICES,
