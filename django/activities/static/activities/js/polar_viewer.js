@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    cookies = require('cookies-js'),
     d3 = require('d3');
 
 var deg2rad = function(bearing) {
@@ -281,41 +282,15 @@ module.exports = {
     // with the db...
     update_wind_dir_in_db: function() {
         var self = this,
+            csrftoken = cookies.get('csrftoken');
 
-            // using jQuery
-            getCookie = function(name) {
-                var cookieValue = null,
-                    cookies,
-                    cookie,
-                    i;
-
-                if (document.cookie && document.cookie !== '') {
-                    cookies = document.cookie.split(';');
-
-                    for (i = 0; i < cookies.length; i++) {
-                        cookie = $.trim(cookies[i]);
-                        // Does this cookie string begin with the name we want?
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
+        clearTimeout(this.wait_to_post);
+        self.wait_to_post = setTimeout(
+            function() {
+                $.post(window.location.href + 'wind_direction', { csrfmiddlewaretoken: csrftoken, wind_direction: self.wind_offset});
             },
-            csrftoken = getCookie('csrftoken');
-
-        try {
-            clearTimeout(this.wait_to_post);
-            self.wait_to_post = setTimeout(
-                function() {
-                    $.post(window.location.href + 'wind_direction', { csrfmiddlewaretoken: csrftoken, wind_direction: self.wind_offset});
-                },
-                500
-            );
-        } catch (e) {
-            console.log(e);
-        }
+            500
+        );
     },
 
     /**

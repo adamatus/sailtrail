@@ -68,6 +68,7 @@
     "sinon-chai": "2.7.0"
   },
   "dependencies": {
+    "cookies-js": "^1.2.1",
     "lodash": "3.9.1"
   }
 }
