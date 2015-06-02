@@ -56,10 +56,11 @@
 	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
 var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+    wind_direction = "{{ activity.wind_direction }}" == "None" ? null : +"{{activity.wind_direction}}",
 		units = {{ units|safe }},
 		json_url = "{% url 'activity_json' activity.id %}";
 
-activity_viewer.init(json_url, max_speed, units);
+activity_viewer.init(json_url, max_speed, wind_direction, units);
 
   </script>
   {% include 'components/upload-validation.html' %}

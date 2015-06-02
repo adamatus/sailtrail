@@ -28,9 +28,10 @@ activity_viewer = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    init: function(pos_url, max_speed, units, config) {
+    init: function(pos_url, max_speed, wind_direction, units, config) {
         this.max_speed = max_speed;
         this.units = units;
+        this.wind_direction = wind_direction;
         if (config) {
             this.do_track = config.do_track || true;
             this.do_speed = config.do_speed || true;
@@ -63,7 +64,7 @@ activity_viewer = {
             speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
         }
         if (this.do_polars) {
-            polar_viewer.draw_plot(this.pos, this.time_slider);
+            polar_viewer.draw_plot(this.pos, this.wind_direction, this.time_slider);
         }
     },
 

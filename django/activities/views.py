@@ -124,6 +124,24 @@ def upload_track(request, activity_id):
 
 
 @login_required
+def wind_direction(request, activity_id):
+
+    activity = Activity.objects.get(id=activity_id)
+
+    # Check to see if current user owns this activity, if not 403
+    if request.user != activity.user:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        activity.wind_direction = request.POST['wind_direction']
+        activity.save()
+
+    return HttpResponse(
+        json.dumps(dict(wind_direction=activity.wind_direction)),
+        content_type="application/json")
+
+
+@login_required
 def details(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
 

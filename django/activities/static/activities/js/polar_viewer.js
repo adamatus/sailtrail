@@ -33,7 +33,7 @@ module.exports = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(pos, time_slider) {
+    draw_plot: function(pos, wind_direction, time_slider) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
@@ -96,25 +96,30 @@ module.exports = {
         this.bearings = pos.map(function get_bearing(d) { return d.bearing; });
         this.speeds = pos.map(function get_speed(d) { return d.speed; });
 
-        // Attempt to guess where the breeze is coming from by finding the
-        // min around the polar plot.  This is very naive and will need
-        // improvement
-        len = this.pol_speeds.length;
-        mid = len / 2;
-        temp_speeds = this.pol_speeds.slice();
+        if (!wind_direction) {
+            // Attempt to guess where the breeze is coming from by finding the
+            // min around the polar plot.  This is very naive and will need
+            // improvement
+            len = this.pol_speeds.length;
+            mid = len / 2;
+            temp_speeds = this.pol_speeds.slice();
 
-        for (j = 0; j < len; j++) {
-            if (j > 0) {
-                temp_speeds.push(temp_speeds.shift());
+            for (j = 0; j < len; j++) {
+                if (j > 0) {
+                    temp_speeds.push(temp_speeds.shift());
+                }
+                diffs = [];
+                for (i = 0; i < mid; i++) {
+                    diffs.push(temp_speeds[i] - temp_speeds[len - i - 1]);
+                }
+                alignments.push(Math.abs(d3.sum(diffs)));
             }
-            diffs = [];
-            for (i = 0; i < mid; i++) {
-                diffs.push(temp_speeds[i] - temp_speeds[len - i - 1]);
-            }
-            alignments.push(Math.abs(d3.sum(diffs)));
+            this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
+            $('#manual-wind-dir').val(this.wind_offset);
+        } else {
+            this.wind_offset = wind_direction;
+            $('#manual-wind-dir').val(this.wind_offset);
         }
-        this.wind_offset = this.pol_bearings[alignments.indexOf(d3.min(alignments))];
-        $('#manual-wind-dir').val(this.wind_offset);
 
         // Create the scale for the radius of the polar plot,
         // setting it to be a little larger than the max speed
@@ -235,12 +240,13 @@ module.exports = {
         $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
             if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
                 if (evnt.keyCode === 38) { // Up arrow
-                    self.wind_offset++;
+                    self.wind_offset = (self.wind_offset + 361) % 360;
                 } else { // Down arrow
-                    self.wind_offset--;
+                    self.wind_offset = (self.wind_offset + 359) % 360;
                 }
                 evnt.preventDefault();
                 $('#manual-wind-dir').val(self.wind_offset);
+                self.update_wind_dir_in_db();
                 self.update_rotation();
             }
         });
@@ -254,8 +260,10 @@ module.exports = {
             });
         }
 
-        $('#manual-wind-dir').on('keyup input', function() {
-            self.wind_offset = $('#manual-wind-dir').val();
+        $('#manual-wind-dir').on('change', function() {
+            self.wind_offset = $('#manual-wind-dir').val() % 360;
+            $('#manual-wind-dir').val(self.wind_offset);
+            self.update_wind_dir_in_db();
             self.update_rotation();
         });
 
@@ -263,6 +271,47 @@ module.exports = {
             self.toggle_mode();
         });
 
+    },
+
+    // This needs to quickly be replaced by a data-binding
+    // with the db...
+    update_wind_dir_in_db: function() {
+        var self = this,
+
+            // using jQuery
+            getCookie = function(name) {
+                var cookieValue = null,
+                    cookies,
+                    cookie,
+                    i;
+
+                if (document.cookie && document.cookie !== '') {
+                    cookies = document.cookie.split(';');
+
+                    for (i = 0; i < cookies.length; i++) {
+                        cookie = $.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            },
+            csrftoken = getCookie('csrftoken');
+
+        try {
+            clearTimeout(this.wait_to_post);
+            self.wait_to_post = setTimeout(
+                function() {
+                    $.post(window.location.href + 'wind_direction', { csrfmiddlewaretoken: csrftoken, wind_direction: self.wind_offset});
+                },
+                500
+            );
+        } catch (e) {
+            console.log(e);
+        }
     },
 
     /**
