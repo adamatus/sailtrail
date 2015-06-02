@@ -237,19 +237,23 @@ module.exports = {
             .attr('x1', this.r(r_end - (r_scale_step / 2)))
             .attr('x2', this.r(r_end - (3 * r_scale_step / 4)));
 
-        $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
-            if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
-                if (evnt.keyCode === 38) { // Up arrow
-                    self.wind_offset = (self.wind_offset + 361) % 360;
-                } else { // Down arrow
-                    self.wind_offset = (self.wind_offset + 359) % 360;
+        // Only add the event listeners if the input is not disabled
+        // (e.g., the owner is viewing the activity}
+        if (!$('#manual-wind-dir').prop('disabled')) {
+            $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
+                if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
+                    if (evnt.keyCode === 38) { // Up arrow
+                        self.wind_offset = (self.wind_offset + 361) % 360;
+                    } else { // Down arrow
+                        self.wind_offset = (self.wind_offset + 359) % 360;
+                    }
+                    evnt.preventDefault();
+                    $('#manual-wind-dir').val(self.wind_offset);
+                    self.update_wind_dir_in_db();
+                    self.update_rotation();
                 }
-                evnt.preventDefault();
-                $('#manual-wind-dir').val(self.wind_offset);
-                self.update_wind_dir_in_db();
-                self.update_rotation();
-            }
-        });
+            });
+        }
 
         // Register with slider to update positional marker
         if (time_slider) {
