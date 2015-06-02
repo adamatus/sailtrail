@@ -73,13 +73,13 @@ module.exports = {
             if (self.groups[bearing] && self.groups[bearing].length) {
                 group = self.groups[bearing];
                 speeds = _.map(group, function(point) { return point.speed; });
-
-                mean = d3.mean(speeds);
+                speeds = _.filter(speeds, function(point) { return point > 0.5; });
+                mean = d3.mean(speeds) || 0;
                 self.pol_speeds.push(mean);
                 polars.push({
                     bearing: d,
-                    max: d3.max(speeds),
-                    median: d3.median(speeds),
+                    max: d3.max(speeds) || 0,
+                    median: d3.median(speeds) || 0,
                     mean: mean,
                     measurements: group.length,
                     points: _.map(group, function(point) { return _.pick(point, ['bearing', 'speed']); }),
