@@ -4,6 +4,7 @@ from activities import views
 
 urlpatterns = [
     url(r'^$', views.activity_list, name='activity_list'),
+    url(r'^leaderboards$', views.leaderboards, name='leaderboards'),
     url(r'^upload$', views.upload, name='upload'),
 
     url(r'(\d+)/tracks/(\d+)/delete$', views.delete_track,

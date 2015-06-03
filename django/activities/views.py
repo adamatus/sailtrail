@@ -23,6 +23,21 @@ errors = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
+def get_leaders():
+    leader_list = Activity.objects.values(
+        'user__username', 'category').annotate(
+            max_speed=Max('model_max_speed')).order_by('-max_speed')
+
+    leaders = []
+
+    for key, category in ACTIVITY_CHOICES:
+        values = [x for x in leader_list if x['category'] == key]
+        if len(values) > 0:
+            leaders.append({'category': category, 'leaders': values})
+
+    return leaders
+
+
 def home_page(request, form=None):
     if form is None:
         form = UploadFileForm()
@@ -33,24 +48,16 @@ def home_page(request, form=None):
     activities = activities.exclude(
         ~Q(user__username=request.user.username), private=True)
 
-    leader_list = Activity.objects.values(
-        'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
-    print(leader_list)
-
-    leaders = []
-
-    for key, category in ACTIVITY_CHOICES:
-        values = [x for x in leader_list if x['category'] == key]
-        if len(values) > 0:
-            leaders.append({'category': category, 'leaders': values})
-
     return render(request, 'home.html',
                   {'activities': activities,
                    'form': form,
-                   'leaders': leaders,
+                   'leaders': get_leaders(),
                    'val_errors': errors
                    })
+
+
+def leaderboards(request):
+    return render(request, 'leaderboards.html', {'leaders': get_leaders()})
 
 
 def activity_list(request, form=None):
@@ -191,8 +198,6 @@ def view(request, activity_id, form=None):
         # Manually remove upfile error that we get when creating
         # the form with a pre-populated activity
         form.errors.pop('upfile')
-
-    print(form.errors)
 
     return render(request,
                   'activity.html',
