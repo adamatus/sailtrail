@@ -123,7 +123,7 @@ module.exports = function(grunt) {
         sass: {
             dev: {
                 files: {
-                    'django/activities/static/activities/css/plots.css': 'django/activities/static/activities/css/scss/plots.scss',
+                    'django/activities/static/activities/css/plots.css': sasslist,
                 },
             },
         },

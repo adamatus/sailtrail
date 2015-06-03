@@ -1,0 +1,44 @@
+body {
+    font-family: 'News Cycle', sans-serif;
+}
+
+a {
+    color: #045a8d;
+    &:hover {
+        color: #2b8cbe;
+        text-decoration: none;
+    }
+}
+
+.navbar-inverse {
+    background-color: #045a8d;
+    border-color: #74a9cf;
+
+    .navbar-brand,
+    .navbar-nav > li > a {
+        color: white;
+        &:hover {
+            color: #2b8cbe;
+        }
+    }
+
+    .navbar-nav > .open > a {
+        background-color: #74a9cf;
+        &:focus {
+            background-color: #74a9cf;
+        }
+    }
+
+    .navbar-toggle {
+        border-color: white;
+
+        &:focus,
+        &:hover {
+            background-color: #74a9cf;
+        }
+    }
+
+    .navbar-collapse {
+        border-color: white;
+    }
+}
