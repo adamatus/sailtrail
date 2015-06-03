@@ -15,9 +15,6 @@ urlpatterns = [
     url(r'(\d+)/tracks/(\d+)/json$', views.track_json, name="track_json"),
     url(r'(\d+)/tracks/upload$', views.upload_track, name='upload_track'),
 
-    url(r'^users/$', views.user_list, name='user_list'),
-    url(r'^users/(?P<username>\w+)/$', views.user_page, name='user'),
-
     url(r'(\d+)/details/$', views.details, name='details'),
     url(r'(\d+)/delete$', views.delete, name='delete_activity'),
     url(r'(\d+)/json$', views.activity_json, name='activity_json'),
