@@ -1,5 +1,6 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
+from django.views.generic.base import TemplateView
 
 from activities import views as activity_views
 from django.contrib.auth import views as auth_views
@@ -8,6 +9,9 @@ urlpatterns = [
     url(r'^$', activity_views.home_page, name='home'),
     url(r'^activities/', include('activities.urls')),
     url('^register/$', activity_views.register, name='register'),
+    url(r'^about', TemplateView.as_view(
+        template_name='about.html'),
+        name='about'),
 
     url(r'^login/$',
         auth_views.login,
