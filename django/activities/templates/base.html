@@ -17,6 +17,7 @@
 
 	  <div class="container">
 			{% block main_section %}{% endblock %}
+      {% include 'components/footer.html' %}
     </div>
     {% url "upload" as upload_url %}
     {% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
