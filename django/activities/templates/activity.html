@@ -4,7 +4,6 @@
 {% block title_text %}{{ activity.name }}{% endblock %}
 
 {% block extra_styles %}
-{% css 'activities/css/plots.css' %}
 {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
 {% css 'bootstrap-toggle/css/bootstrap-toggle.min.css' %}
 <style>
@@ -18,16 +17,20 @@
 {% block main_section %}
 {% load unit_conversions %}
 		<h1>{{ activity.name }}</h1>
-		<p>{{ activity.description }}</p>
-		{% if not owner %}
-		<p>Sailed by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a></p>
-		{% endif %}
-		<p>{{ activity.get_category_display }}</p>
-		<p>Date: {{ activity.date }}</p>
-		<p>Start Time: {{ activity.start_time }}</p>
-		<p>Duration: {{ activity.duration }}</p>
-		<p>Distance: {{ activity.model_distance|distance }}</p>
-		<p>Max speed: {{ activity.model_max_speed|speed }}</p>
+    <p>{{ activity.get_category_display }} by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a> at {{ activity.start_time }} on {{ activity.date }}</p>
+    <div class="row">
+    <div class="col-md-4">
+    <table class="table table-condensed">
+      <thead>
+        <tr class="small"><th>Duration</th><th>Distance</th><th>Max Speed</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>{{ activity.duration }}</td><td>{{ activity.model_distance|distance }}</td><td>{{ activity.model_max_speed|speed }}</td></tr>
+      </tbody>
+    </table>
+    </div>
+    </div>
+    {% if activity.description %}<p>{{ activity.description }}</p>{% endif %}
 		{% if activity.private %}
 		<p><i>This activity is currently private</i></p>
 		{% endif %}
@@ -43,6 +46,7 @@
 		{% include 'components/track-map-and-plot.html' %}
 
 		{% if owner %}
+    <h4>Activity Track Segments</h3>
 		<ul>
 			{% for track in activity.track.all %}
 			<li><a href="tracks/{{ track.id}}/">{{ track.original_filename }} {% if track.trimmed %}(trimmed){% endif %}</a></li>

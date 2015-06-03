@@ -7,9 +7,11 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=News+Cycle' rel='stylesheet' type='text/css'>
 		
 		{% css 'bootstrap/dist/css/bootstrap.min.css' %}
 		{% css 'leaflet/dist/leaflet.css' %}
+    {% css 'activities/css/plots.css' %}
 		{% block extra_styles %}{% endblock %}
 	</head>
 	<body>
@@ -17,11 +19,15 @@
 
 	  <div class="container">
 			{% block main_section %}{% endblock %}
+      {% include 'components/footer.html' %}
     </div>
+    {% url "upload" as upload_url %}
+    {% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
 		<script>L_PREFER_CANVAS = true;</script>
 		{% js 'jquery/dist/jquery.min.js' %}
 		{% js 'bootstrap/dist/js/bootstrap.min.js' %}
 		<script src="//localhost:35729/livereload.js"></script>
+    {% include 'components/upload-validation.html' %}
 		{% block extra_bottom_js %}{% endblock %}
 	</body>
 </html>
