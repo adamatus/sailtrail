@@ -20,11 +20,10 @@
 		{% include 'components/delete-modal.html' with target="track" action=delete_url %}
 		<div class="row">
 			<div class="col-md-6" style="padding-top: 1em;">
-				<div id="map"></div>
-				<input id="time-slider" data-slider-id="time-slider-Slider" type="text">
+        {% include 'components/track-plot.html' %}
 			</div>
 			<div class="col-md-6" style="padding-top: 1em;">
-				<div id="speed-plot"></div>
+      {% include 'components/speed-plot.html' %}
 				{% if trimmed %}
 				<a href="{% url 'untrim_track' activity.id track.id %}" class="btn btn-default">Untrim</a>
 				{% else %}
@@ -47,9 +46,10 @@
 	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
 var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+    wind_direction = "{{ activity.wind_direction }}" == "None" ? null : +"{{activity.wind_direction}}",
 		units = {{ units|safe }},
-		json_url = "{% url 'activity_json' activity.id %}";
+		json_url = "{% url 'track_json' activity.id track.id %}";
 
-activity_viewer.init(json_url, max_speed, units);
+activity_viewer.init(json_url, max_speed, wind_direction, units);
 		</script>
 {% endblock %}
