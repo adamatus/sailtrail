@@ -16,7 +16,6 @@ class UploadFileForm(forms.Form):
         widget=forms.FileInput,
         label='Activity file',
         error_messages={'required': ERROR_NO_UPLOAD_FILE_SELECTED})
-    activity = forms.CharField(widget=forms.HiddenInput, required=False)
 
 
 class ActivityDetailsForm(forms.models.ModelForm):

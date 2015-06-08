@@ -125,7 +125,7 @@ def upload_track(request, activity_id):
             activity.add_track(request.FILES['upfile'])
             return redirect('view_activity', activity.id)
     else:
-        form = UploadFileForm({'activity': activity_id})
+        form = UploadFileForm()
 
     return view(request, activity_id, form=form)
 
@@ -193,11 +193,7 @@ def view(request, activity_id, form=None):
     verify_private_owner(activity, request)
 
     if form is None:
-        form = UploadFileForm({'activity': activity_id})
-
-        # Manually remove upfile error that we get when creating
-        # the form with a pre-populated activity
-        form.errors.pop('upfile')
+        form = UploadFileForm()
 
     return render(request,
                   'activity.html',
@@ -227,7 +223,7 @@ def view_track(request, activity_id, track_id, form=None):
     verify_private_owner(track.activity_id, request)
 
     if form is None:
-        form = UploadFileForm({'activity': activity_id})
+        form = UploadFileForm()
 
     return render(request,
                   'track.html',
@@ -235,6 +231,7 @@ def view_track(request, activity_id, track_id, form=None):
                    'activity': track.activity_id,
                    'units': UNITS,
                    'trimmed': track.trimmed,
+                   'val_errors': errors,
                    'form': form,
                    })
 
@@ -293,7 +290,7 @@ def delete_track(request, activity_id, track_id):
     track.delete()
     track.activity_id.model_distance = None
     track.activity_id.model_max_speed = None
-    track.activity_id.save()
+    track.activity_id.compute_stats()
     return redirect('view_activity', activity_id)
 
 
