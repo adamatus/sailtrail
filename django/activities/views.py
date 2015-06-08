@@ -293,7 +293,7 @@ def delete_track(request, activity_id, track_id):
     track.delete()
     track.activity_id.model_distance = None
     track.activity_id.model_max_speed = None
-    track.activity_id.save()
+    track.activity_id.compute_stats()
     return redirect('view_activity', activity_id)
 
 
