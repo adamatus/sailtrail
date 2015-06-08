@@ -22,7 +22,7 @@
       {% include 'components/footer.html' %}
     </div>
     {% url "upload" as upload_url %}
-    {% include 'components/upload-modal.html' with header="Upload new activity" action=upload_url %}
+    {% include 'components/upload-modal.html' with modal_id="upload-modal" header="Upload new activity" action=upload_url %}
 		<script>L_PREFER_CANVAS = true;</script>
 		{% js 'jquery/dist/jquery.min.js' %}
 		{% js 'bootstrap/dist/js/bootstrap.min.js' %}
