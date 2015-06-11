@@ -168,7 +168,7 @@ class ActivityTrack(models.Model):
     def get_trackpoints(self):
         return self.trackpoint.filter(
             timepoint__range=(self.trim_start, self.trim_end)
-        )
+        ).order_by('timepoint')
 
     @staticmethod
     def create_new(upfile, activity_id):
