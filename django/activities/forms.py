@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from multiupload.fields import MultiFileField
+
 from .models import Activity
 
 User = get_user_model()
@@ -12,10 +14,13 @@ ERROR_UNSUPPORTED_FILE_TYPE = 'Only GPX and SBN files are currently supported.'
 
 
 class UploadFileForm(forms.Form):
-    upfile = forms.FileField(
-        widget=forms.FileInput,
+    upfile = MultiFileField(
+        min_num=1,
+        max_num=24,
+        max_file_size=1014*1024*24,
         label='Activity file',
-        error_messages={'required': ERROR_NO_UPLOAD_FILE_SELECTED})
+        error_messages={'required': ERROR_NO_UPLOAD_FILE_SELECTED}
+    )
 
 
 class ActivityDetailsForm(forms.models.ModelForm):

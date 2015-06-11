@@ -102,7 +102,8 @@ def upload(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             activity = Activity.objects.create(user=request.user)
-            activity.add_track(request.FILES['upfile'])
+            for each in form.cleaned_data['upfile']:
+                activity.add_track(each)
             return redirect('details', activity.id)
     else:
         form = UploadFileForm()
@@ -122,7 +123,8 @@ def upload_track(request, activity_id):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            activity.add_track(request.FILES['upfile'])
+            for each in form.cleaned_data['upfile']:
+                activity.add_track(each)
             return redirect('view_activity', activity.id)
     else:
         form = UploadFileForm()
