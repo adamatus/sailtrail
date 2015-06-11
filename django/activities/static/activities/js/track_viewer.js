@@ -8,7 +8,22 @@ module.exports = {
     map: null,
     marker: null,
     marker_pos: 0,
-    tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+    // tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+    // attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+    // subdomains: 'abc',
+
+    // tile_source: 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
+    // attribution: ['Map tiles by <a href="http://stamen.com/">Stamen Design</a>, ',
+    //               'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+    //               'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ',
+    //               'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+    //               ].join(''),
+    // subdomains: 'abc',
+
+    // tile_source: 'http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg',
+    tile_source: 'http://otile{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg',
+    attribution: 'Tiles by <a href="http://www.mapquest.com/">MapQuest</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+    subdomains: '1234',
 
     /**
      * Main function to initialize leaflet map with track
@@ -32,7 +47,8 @@ module.exports = {
 
         this.map = L.map('map', {scrollWheelZoom: false});
         L.tileLayer(this.tile_source, {
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+            attribution: this.attribution,
+            subdomains: this.subdomains,
             maxZoom: 18,
         }).addTo(this.map);
 
