@@ -1,3 +1,4 @@
+{% if user.is_authenticated %}
 <script>
   // Client-side validation of upload form
   $('#upload-file-btn').on('click', function(evnt) {
@@ -29,3 +30,4 @@
       $('#upload-modal').modal('show');
   {% endif %}
 </script>
+{% endif %}
