@@ -4,10 +4,12 @@ var track_viewer = require('./track_viewer');
 
 describe('track_viewer', function() {
 
-    var pos = [
-            {lat: 45, lon: -90},
-            {lat: 46, lon: -91},
-        ],
+    var pos = {
+            lat: [45, 46],
+            lon: [-90, -91],
+            time: ['2013-02-05T20:01:13+0000', '2013-02-05T20:01:14+0000'],
+            speed: [10, 11],
+        },
         element;
 
     beforeEach(function() {

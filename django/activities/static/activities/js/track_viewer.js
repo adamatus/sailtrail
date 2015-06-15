@@ -28,20 +28,20 @@ module.exports = {
     /**
      * Main function to initialize leaflet map with track
      *
-     * @param {Array.<Object>} pos Array of timepoints with position info
+     * @param {Object} data Arrays of track info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      */
-    draw_map: function(pos, max_speed, time_slider) {
+    draw_map: function(data, max_speed, time_slider) {
         var i, len, color_scale, trkpnt,
             self = this;
 
         this.max_speed = max_speed;
 
         this.latlng = [];
-        for (i = 0; i < pos.length; i++) {
-            trkpnt = new L.latLng(pos[i].lat, pos[i].lon);
+        for (i = 0; i < data.lat.length; i++) {
+            trkpnt = new L.latLng(data.lat[i], data.lon[i]);
 
-            trkpnt.speed = pos[i].speed;
+            trkpnt.speed = data.speed[i];
             this.latlng.push(trkpnt);
         }
 
@@ -84,8 +84,8 @@ module.exports = {
 
         // Register with slider to update positional marker
         if (time_slider) {
-            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
-                var newdata = data | slideEvnt.value;
+            time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
+                var newdata = d | slideEvnt.value;
 
                 self.move_marker(newdata);
             });

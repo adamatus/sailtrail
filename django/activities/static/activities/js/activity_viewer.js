@@ -13,7 +13,7 @@ require('seiyria-bootstrap-slider');
 
 activity_viewer = {
     time_slider: undefined,
-    pos: undefined,
+    data: undefined,
     max_speed: undefined,
     units: undefined,
     do_track: true,
@@ -50,7 +50,7 @@ activity_viewer = {
      * @param {Object} data The data response from the async server fetch
      */
     setup: function(error, data) {
-        this.pos = data.details;
+        this.data = data;
 
         if (this.do_slider) {
             this.time_slider = $('#time-slider');
@@ -58,13 +58,13 @@ activity_viewer = {
             this.setup_trim_events();
         }
         if (this.do_track) {
-            track_viewer.draw_map(this.pos, this.max_speed, this.time_slider);
+            track_viewer.draw_map(this.data, this.max_speed, this.time_slider);
         }
         if (this.do_speed) {
-            speed_viewer.draw_plot(this.pos, this.max_speed, this.units, this.time_slider);
+            speed_viewer.draw_plot(this.data, this.max_speed, this.units, this.time_slider);
         }
         if (this.do_polars) {
-            polar_viewer.draw_plot(this.pos, this.wind_direction, this.time_slider);
+            polar_viewer.draw_plot(this.data, this.wind_direction, this.time_slider);
         }
     },
 
@@ -75,15 +75,15 @@ activity_viewer = {
         var self = this;
 
         this.time_slider.slider({
-            max: this.pos.length,
+            max: this.data.time.length,
             value: 0,
             formatter: function(value) {
                 if (value < 0) {
-                    return self.pos[0].time;
-                } else if (value >= self.pos.length) {
-                    return self.pos[self.pos.length - 1].time;
+                    return self.data.time[0];
+                } else if (value >= self.data.time.length) {
+                    return self.data.time[self.data.time.length - 1];
                 }
-                return self.pos[value].time;
+                return self.data.time[value];
             },
         });
 
@@ -114,14 +114,14 @@ activity_viewer = {
             var new_val = self.time_slider.slider('getValue');
 
             // Save selected value to hidden input field
-            $('#input-trim-start').val(self.pos[new_val].time);
+            $('#input-trim-start').val(self.data.time[new_val]);
         });
 
         $('#trim-end').on('click', function trim_end() {
             var new_val = self.time_slider.slider('getValue');
 
             // Save selected value to hidden input field
-            $('#input-trim-end').val(self.pos[new_val].time);
+            $('#input-trim-end').val(self.data.time[new_val]);
         });
     },
 };

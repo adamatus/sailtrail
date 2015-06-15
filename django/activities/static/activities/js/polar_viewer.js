@@ -30,11 +30,11 @@ module.exports = {
     /**
      * Main function to initialize plot
      *
-     * @param {Array.<Object>} spds Array of timepoints with speed info
+     * @param {Object} data Arrays of track info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(pos, wind_direction, time_slider) {
+    draw_plot: function(data, wind_direction, time_slider) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
@@ -45,15 +45,21 @@ module.exports = {
             r_scale_step,
             r_end,
             polars = [],
+            pos = [],
             svg, gr, ga,
             temp_speeds,
             alignments = [],
             window_size = 6, // Polar plot bin size
             diffs, i, j;
 
-        this.pos = pos;
+        this.data = data;
 
         // Compute polars (inefficiently for now)
+
+        // Reshape data into old, array of objects format for now
+        _.forEach(data.bearing, function(time, k) {
+            pos.push({speed: data.speed[k], bearing: data.bearing[k]});
+        });
 
         // Bin the individual trackpoints into bearing bins
         this.groups = _.groupBy(pos, function bin_bearings(d) {
@@ -94,8 +100,8 @@ module.exports = {
         maxes = polars.map(function get_max(d) { return d.max; });
 
         this.max_r = d3.max(maxes);
-        this.bearings = pos.map(function get_bearing(d) { return d.bearing; });
-        this.speeds = pos.map(function get_speed(d) { return d.speed; });
+        this.bearings = data.bearing;
+        this.speeds = data.speed;
 
         if (!wind_direction) {
             // Attempt to guess where the breeze is coming from by finding the
@@ -258,8 +264,8 @@ module.exports = {
 
         // Register with slider to update positional marker
         if (time_slider) {
-            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
-                var newdata = data | slideEvnt.value;
+            time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
+                var newdata = d | slideEvnt.value;
 
                 self.move_marker(newdata);
             });
