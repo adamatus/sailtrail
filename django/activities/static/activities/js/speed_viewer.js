@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     d3 = require('d3');
 
 module.exports = {
@@ -16,11 +17,11 @@ module.exports = {
     /**
      * Main function to initialize plot
      *
-     * @param {Array.<Object>} spds Array of timepoints with speed info
+     * @param {Object} data Object containing arrays with time and speed info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
      */
-    draw_plot: function(spds, max_speed, units, time_slider) {
+    draw_plot: function(data, max_speed, units, time_slider) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
@@ -40,8 +41,8 @@ module.exports = {
 
         this.units = units;
 
-        this.speeds = spds.map(function get_speed(d) { return d.speed; });
-        this.times = spds.map(function get_parsed_time(d) { return time_format.parse(d.time); });
+        this.speeds = data.speed;
+        this.times = data.time.map(function get_parsed_time(d) { return time_format.parse(d); });
 
         this.x = d3.time.scale().range([0, w])
                      .domain([this.times[0], this.times[this.times.length - 1]]);
@@ -80,8 +81,8 @@ module.exports = {
             .attr('transform', 'translate(-32,' + (h / 2) + ') rotate(-90)')
             .text('Speed (' + units.speed + ')');
 
-        line.x(function get_x_time(d) { return self.x(time_format.parse(d.time)); })
-            .y(function get_y_speed(d) { return self.y(d.speed); });
+        line.x(function get_x_time(d) { return self.x(d[0]); })
+            .y(function get_y_speed(d) { return self.y(d[1]); });
 
         this.plot.append('linearGradient')
             .attr('id', 'speed-gradient')
@@ -104,7 +105,7 @@ module.exports = {
                     .attr('stop-color', function get_color(d) { return d.color; });
 
         this.plot.append('svg:path')
-            .attr('d', line(spds))
+            .attr('d', line(_.zip(this.times, this.speeds)))
             .style('stroke', 'url(#speed-gradient)')
             .style('fill', 'none')
             .style('stroke-width', 2);
@@ -119,8 +120,8 @@ module.exports = {
 
         // Register with slider to update positional marker
         if (time_slider) {
-            time_slider.on('slide', function movepolarmaker(slideEvnt, data) {
-                var newdata = data | slideEvnt.value;
+            time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
+                var newdata = d | slideEvnt.value;
 
                 self.move_marker(newdata);
             });

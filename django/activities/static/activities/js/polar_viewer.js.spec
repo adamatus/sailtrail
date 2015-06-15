@@ -6,12 +6,10 @@ var polar_viewer = require('./polar_viewer');
 
 describe('polar_viewer', function() {
 
-    var pos = [
-            {lat: 45, lon: -90, bearing: 1, speed: 10},
-            {lat: 45, lon: -90, bearing: 5, speed: 12},
-            {lat: 46, lon: -91, bearing: 8, speed: 12},
-            {lat: 46, lon: -91, bearing: 10, speed: 14},
-        ];
+    var pos = {
+            speed: [10, 12, 12, 14],
+            bearing: [1, 5, 8, 10],
+    };
 
     beforeEach(function() {
         $('body').append('<div id="polar-plot"></div>');

@@ -258,19 +258,22 @@ def return_json(pos):
     bearings = stats.bearing()
 
     # hack to get same size arrays (just repeat final element)
-    distances = np.append(distances, distances[-1])
-    bearings = np.append(bearings, bearings[-1])
+    distances = np.round(np.append(distances, distances[-1]), 3)
+    bearings = np.round(np.append(bearings, bearings[-1]))
+    speed = []
+    time = []
+    lat = []
+    lon = []
 
-    for i, p in enumerate(pos):
-        speed = (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude
-        p['speed'] = round(speed, 2)
-        p['time'] = p['timepoint'].strftime(DATETIME_FORMAT_STR)
-        p['dist'] = round(distances[i], 3)
-        p['bearing'] = round(bearings[i], 2)
-        del p['timepoint']
-        del p['sog']
+    for p in pos:
+        lat.append(p['lat'])
+        lon.append(p['lon'])
+        speed.append(round(
+            (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude, 2))
+        time.append(p['timepoint'].strftime(DATETIME_FORMAT_STR))
 
-    out = dict(details=pos)
+    out = dict(bearing=bearings.tolist(), time=time,
+               speed=speed, lat=lat, lon=lon)
 
     return HttpResponse(json.dumps(out), content_type="application/json")
 

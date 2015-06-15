@@ -235,7 +235,7 @@ class TestActivityView(TestCase):
 
     def test_html_includes_max_speed(self):
         response = self.client.get(reverse('view_activity', args=[1]))
-        self.assertContains(response, 'Max speed')
+        self.assertContains(response, 'Max Speed')
         self.assertContains(response, 'knots')
 
 
