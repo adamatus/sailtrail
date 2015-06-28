@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'djangojs',
     'activities',
     'djangobower',
+    'ganalytics',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -115,3 +116,5 @@ LOGGING = {
         },
     },
 }
+
+GANALYTICS_TRACKING_CODE = 'UA-64530274-1'
