@@ -1,3 +1,34 @@
+<a name"0.1.7"></a>
+### 0.1.7 (2015-11-24)
+
+
+#### Bug Fixes
+
+* Fix mapquest SSL tile source ([0ea62619](https://github.com/adamatus/sailtrail/commit/0ea62619))
+* Fix handling of outside http/https refs ([ac2c96f1](https://github.com/adamatus/sailtrail/commit/ac2c96f1))
+* Fix migrations to make postgres happy ([0914fccd](https://github.com/adamatus/sailtrail/commit/0914fccd))
+* **activities:**
+  * Fix migrations to make Postgres happy ([2a194fbc](https://github.com/adamatus/sailtrail/commit/2a194fbc))
+  * Fix ordering of trackpoints ([ac871aa5](https://github.com/adamatus/sailtrail/commit/ac871aa5))
+  * Fix login error/upload validation confusion ([7284dfa3](https://github.com/adamatus/sailtrail/commit/7284dfa3))
+  * Fix upload & delete modal behavior/validation ([5d89f040](https://github.com/adamatus/sailtrail/commit/5d89f040))
+
+
+#### Features
+
+* Add google-analytics tracking ([67c03ec9](https://github.com/adamatus/sailtrail/commit/67c03ec9))
+* **activities:**
+  * Support upload of multiple files in one upload ([46239774](https://github.com/adamatus/sailtrail/commit/46239774))
+  * Add details to individual track pages ([fad19e1a](https://github.com/adamatus/sailtrail/commit/fad19e1a))
+  * Improve UX/UI + styling ([52319240](https://github.com/adamatus/sailtrail/commit/52319240))
+  * Save user-updated wind direction, improve polars ([6f3f82a7](https://github.com/adamatus/sailtrail/commit/6f3f82a7))
+  * Show activity map on details/upload page ([28d24970](https://github.com/adamatus/sailtrail/commit/28d24970))
+  * Homepage max speed leaderboard ([4238f31a](https://github.com/adamatus/sailtrail/commit/4238f31a))
+  * Add summary of activities on User page ([609b2079](https://github.com/adamatus/sailtrail/commit/609b2079))
+  * Add client-side upload validation ([45b8069e](https://github.com/adamatus/sailtrail/commit/45b8069e))
+  * Add UX for interacting with polar plots ([23a32fe7](https://github.com/adamatus/sailtrail/commit/23a32fe7))
+
+
 <a name"0.1.6"></a>
 ### 0.1.6 (2015-05-21)
 
