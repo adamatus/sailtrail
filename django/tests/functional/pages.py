@@ -26,7 +26,8 @@ class BasePage(object):
         self.browser.find_element_by_link_text("Login").click()
 
     def upload_file(self, filename):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
@@ -34,7 +35,8 @@ class BasePage(object):
         self.click_upload()
 
     def upload_without_file(self):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         self.click_upload()
 
     def click_upload(self):
