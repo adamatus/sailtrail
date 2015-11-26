@@ -190,7 +190,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertIn("March 16, 2011", content)
         self.assertIn("0:03:01", content)
         self.assertIn("0.27 nmi", content)
-        self.assertIn("5.60 knots", content)
+        self.assertIn("5.6 knots", content)
         self.assertIn("This activity is currently private", content)
 
         # The visitor returns to the home page and sees their new

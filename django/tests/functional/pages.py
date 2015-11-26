@@ -20,13 +20,15 @@ class BasePage(object):
         return self.browser.find_element_by_tag_name('body').text
 
     def logout(self):
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
         self.browser.find_element_by_link_text("Logout").click()
 
     def login(self):
         self.browser.find_element_by_link_text("Login").click()
 
     def upload_file(self, filename):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
@@ -34,7 +36,8 @@ class BasePage(object):
         self.click_upload()
 
     def upload_without_file(self):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         self.click_upload()
 
     def click_upload(self):
@@ -118,7 +121,7 @@ class ActivityPage(BasePage):
         # Silly sleeps to deal with fade effect of modal
         time.sleep(.1)
         is_visible = self.browser.find_element_by_id(
-            'upload-modal').is_displayed()
+            'upload-track-modal').is_displayed()
         time.sleep(.1)
         return is_visible
 
