@@ -1,4 +1,4 @@
-Django==1.8.0
+Django==1.8.7
 django-bower==5.0.3
 django-ganalytics==0.4
 django-multiupload==0.3
