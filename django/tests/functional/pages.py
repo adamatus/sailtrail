@@ -20,6 +20,7 @@ class BasePage(object):
         return self.browser.find_element_by_tag_name('body').text
 
     def logout(self):
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
         self.browser.find_element_by_link_text("Logout").click()
 
     def login(self):
@@ -120,7 +121,7 @@ class ActivityPage(BasePage):
         # Silly sleeps to deal with fade effect of modal
         time.sleep(.1)
         is_visible = self.browser.find_element_by_id(
-            'upload-modal').is_displayed()
+            'upload-track-modal').is_displayed()
         time.sleep(.1)
         return is_visible
 
