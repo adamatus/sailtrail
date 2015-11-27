@@ -33,10 +33,10 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "3.3.4",
-    "d3": "3.5.5",
-    "leaflet": "0.7.3",
-    "seiyria-bootstrap-slider": "4.8.1",
-    "bootstrap-toggle": "2.2.0"
+    "bootstrap": "3.3.6",
+    "d3": "3.5.9",
+    "leaflet": "0.7.7",
+    "seiyria-bootstrap-slider": "5.2.6",
+    "bootstrap-toggle": "2.2.1"
   }
 }

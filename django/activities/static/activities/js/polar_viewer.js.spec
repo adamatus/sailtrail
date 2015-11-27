@@ -7,8 +7,8 @@ var polar_viewer = require('./polar_viewer');
 describe('polar_viewer', function() {
 
     var pos = {
-            speed: [10, 12, 12, 14],
-            bearing: [1, 5, 8, 10],
+        speed: [10, 12, 12, 14],
+        bearing: [1, 5, 8, 10],
     };
 
     beforeEach(function() {
