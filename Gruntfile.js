@@ -46,6 +46,29 @@ module.exports = function(grunt) {
             ],
         },
 
+        pylint: {
+            options: {
+                externalPylint: true,
+                force: true, // Don't fail (until everything is fixed)
+            },
+
+            activities: {
+                src: 'django/activities',
+                ignore: 'migrations',
+            },
+
+            sirf: {
+                src: 'django/sirf',
+            },
+
+            tests: {
+                src: 'django/tests',
+                options: {
+                    disable: 'missing-docstring',
+                },
+            },
+        },
+
         watch: {
             sass: {
                 files: sasslist,
@@ -166,6 +189,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-flake8');
+    grunt.loadNpmTasks('grunt-pylint');
     grunt.loadNpmTasks('grunt-shell');
 
     // Register tasks here
