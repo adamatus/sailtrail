@@ -39,6 +39,13 @@ module.exports = function(grunt) {
             target: ['django/**/*.js', 'django/**/*.spec', '!**/*.bundle.js'],
         },
 
+        flake8: {
+            src: [
+                'django/**/*.py',
+                '!**/migrations/*.py',
+            ],
+        },
+
         watch: {
             sass: {
                 files: sasslist,
@@ -158,6 +165,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-flake8');
     grunt.loadNpmTasks('grunt-shell');
 
     // Register tasks here

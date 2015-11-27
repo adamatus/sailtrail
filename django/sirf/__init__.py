@@ -1,6 +1,6 @@
 # Based on Python SiRF parser by Daniel O'Connor (See license below)
 # (http://www.dons.net.au/~darius/hgwebdir.cgi/sirf)
-# 
+#
 # Changes made:
 #  - Updated for Python3
 #  - Stripped out all code for reading/writing to active device
@@ -246,70 +246,70 @@ class Parser(object):
             out['alt_msl'] = float(alt_msl) / 1e2
 
             # Speed over ground ("m/s")
-            out['sog'] = float(sog) / 1e2  
-            
+            out['sog'] = float(sog) / 1e2
+
             # Course over ground ("degrees clockwise from true north")
-            out['cog'] = float(cog) / 1e2  
+            out['cog'] = float(cog) / 1e2
 
             # Climb rate ("m/s")
-            out['climbrate'] = float(climbrate) / 1e2  
+            out['climbrate'] = float(climbrate) / 1e2
 
             # Heading rate ("deg/s")
-            out['headrate'] = float(headrate) / 1e2  
+            out['headrate'] = float(headrate) / 1e2
 
             # Estimated horizonal position error (meters)
-            out['estHPE'] = float(estHPE) / 1e2  
+            out['estHPE'] = float(estHPE) / 1e2
 
             # Estimated vertical position error (meters)
-            out['estVPE'] = float(estVPE) / 1e2  
+            out['estVPE'] = float(estVPE) / 1e2
 
             # Estimated time error (seconds)
-            out['estTE'] = float(estTE) / 1e2  
+            out['estTE'] = float(estTE) / 1e2
 
             # Estimated horizontal velocity error (m/s)
-            out['estHVE'] = float(estHVE) / 1e2  
+            out['estHVE'] = float(estHVE) / 1e2
 
             # Clock bias ("m")
-            out['clockbias'] = float(clockbias) / 1e2 
+            out['clockbias'] = float(clockbias) / 1e2
 
             # Clock bias error ("meters")
-            out['CBerr'] = float(CBerr) / 1e2 
+            out['CBerr'] = float(CBerr) / 1e2
 
             # Clock drift ("m/s")
-            out['clockdrift'] = float(clockdrift) / 1e2 
+            out['clockdrift'] = float(clockdrift) / 1e2
 
             # Clock drift error ("m/s")
-            out['CDerr'] = float(CDerr) / 1e2 
+            out['CDerr'] = float(CDerr) / 1e2
 
             # Distance travelled since reset (meters)
-            out['distance'] = distance 
+            out['distance'] = distance
 
             # Distance Error (meters)
-            out['distanceErr'] = distanceErr 
+            out['distanceErr'] = distanceErr
 
             # Heading error (degrees)
-            out['headErr'] = float(headErr) / 1e2 
+            out['headErr'] = float(headErr) / 1e2
 
             # Number of sats
-            out['numsvs'] = numsvs 
+            out['numsvs'] = numsvs
 
             # Horizontal dilution of precision (.2 resolution)
-            out['hdop'] = float(hdop) / 5 
+            out['hdop'] = float(hdop) / 5
 
             # Fix type
             out['fixtype'] = fixtype[navtype & 0x7]
-            
+
             # Bitmap of sats used in solution Bit 0 = Sat 1, etc.
-            out['satlst'] = satlst 
+            out['satlst'] = satlst
 
             # Map datum to which lat, long, alt apply: 21 = WGS-84
-            out['datum'] = datum 
+            out['datum'] = datum
 
             # Magnetic variation [NOT IMPLEMENTED]
-            out['magvar'] = magvar 
+            out['magvar'] = magvar
 
             out['date'] = '{:02}/{:02}/{:02}'.format(year, month, day)
-            out['time'] = '{:02}:{:02}:{:02}'.format(hour, 
+            out['time'] = '{:02}:{:02}:{:02}'.format(hour,
                                                      minute, int(second/1e3))
 
             return out
@@ -318,17 +318,17 @@ class Parser(object):
             fmt = '>BBBBBHHIB'
             datastr = ''.join(list(map(chr, data[1:struct.calcsize(fmt) + 1])))
 
-            (hour, minute, second, day, month, year, 
+            (hour, minute, second, day, month, year,
              offsetint, offsetfrac, status
              ) = struct.unpack(fmt, bytes(datastr, 'Latin-1'))
 
             offset = offsetint + float(offsetfrac) / 1e9
-            print(("PPS : %04d/%02d/%02d %02d:%02d:%02d, " + 
-                   "Offset : %.9f, Status : 0x%02x") % 
+            print(("PPS : %04d/%02d/%02d %02d:%02d:%02d, " +
+                   "Offset : %.9f, Status : 0x%02x") %
                   (year, month, day, hour, minute, second, offset, status))
 
         elif data[0] == 0xa6:
-            print("Message rate : MID 0x%02x, rate 0x%02x" % 
+            print("Message rate : MID 0x%02x, rate 0x%02x" %
                   (data[2], data[3]))
 
 
@@ -338,4 +338,3 @@ def read_sbn(filename):
     p = Parser()
     p.process(sbn)
     return p
-
