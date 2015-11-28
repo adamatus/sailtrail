@@ -9,7 +9,7 @@ from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
 
 
 class ActivitiesTest(StaticLiveServerTestCase):
-    fixtures = ['one-user-no-data.json']
+    fixtures = ['two-users-no-data.json']
 
     def setUp(self):
         self.browser = webdriver.Chrome()
@@ -30,6 +30,83 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # Visitor comes to homepage and notices title is SailTrail
         self.home_page.go_to_homepage()
         self.assertIn('SailTrail', self.browser.title)
+
+    def test_registration(self):
+        # Visitor comes to homepage
+        self.home_page.go_to_homepage()
+
+        # The notice the register link and click it, then try to immediatly
+        # click register
+        self.home_page.go_to_registration()
+        self.registration_page.click_register()
+
+        # They are warned that fields cannot be empty
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(8, len(alerts))  # FIXME This should be 4
+        self.assertIn('This field is required.', alerts[0].text)
+
+        # They enter just a username, and are still warned
+        self.registration_page.enter_username('testuser')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(6, len(alerts))  # FIXME This should be 3
+        self.assertIn('This field is required.', alerts[0].text)
+
+        # They enter a username and valid email, and are still warned
+        self.registration_page.enter_username('testuser')
+        self.registration_page.enter_email('testuser@example.com')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(4, len(alerts))  # FIXME This should be 2
+        self.assertIn('This field is required.', alerts[0].text)
+
+        # They enter a username, valid email, and first password, and
+        # are still warned
+        self.registration_page.enter_username('testuser')
+        self.registration_page.enter_email('testuser@example.com')
+        self.registration_page.enter_password1('password')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertIn('This field is required.', alerts[0].text)
+
+        # They enter a username, valid email, and two passwords
+        # that don't match, and are warned
+        self.registration_page.enter_username('testuser')
+        self.registration_page.enter_email('testuser@example.com')
+        self.registration_page.enter_password1('password')
+        self.registration_page.enter_password2('other')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertIn("The two password fields didn't match.", alerts[0].text)
+
+        # They enter a username, invalid email, and matching passwords
+        # and are warned about the email address
+        self.registration_page.enter_username('testuser')
+        self.registration_page.enter_email('testuser')
+        self.registration_page.enter_password('password')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertIn("Enter a valid email address.", alerts[0].text)
+
+        # They enter an existing username, valid email, and matching passwords
+        # and are warned about the email address
+        self.registration_page.enter_username('registered')
+        self.registration_page.enter_email('testuser@example.com')
+        self.registration_page.enter_password('password')
+        self.registration_page.click_register()
+        alerts = self.registration_page.get_all_alerts()
+        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertIn("A user with that username already exists.",
+                      alerts[0].text)
+
+        # Finally, the fill in good info, submit, and
+        # are taken back to the homepage
+        self.home_page.go_to_registration()
+        self.registration_page.register('testuser')
+        self.assertTrue(self.home_page.is_current_url())
 
     def test_visit_homepage_register_and_upload_first_activity(self):
         # Visitor comes to homepage
@@ -144,7 +221,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
         # They get a helpful error message telling them this
         # is not okay! They decide to cancel
-        self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED, self.home_page.get_alerts())
+        self.assertIn(ERROR_NO_UPLOAD_FILE_SELECTED,
+                      self.home_page.get_alerts())
         self.home_page.cancel_upload()
 
         # They upload another file (choosing a GPX file this time),
@@ -392,7 +470,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # They next try to upload a non-supported text-file as a new track
         # and see an error warning them not to do that, so they hit cancel
         self.activity_page.upload_track('bad.txt')
-        self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE, self.activity_page.get_alerts())
+        self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE,
+                      self.activity_page.get_alerts())
         self.activity_page.cancel_upload()
 
         # They click on the link to get to first track segment and

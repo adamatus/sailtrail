@@ -38,6 +38,9 @@ class BasePage(object):
     def get_alerts(self):
         return self.browser.find_element_by_css_selector('.alert-danger').text
 
+    def get_all_alerts(self):
+        return self.browser.find_elements_by_css_selector('.alert-danger')
+
     def is_alert_free(self):
         try:
             self.browser.find_element_by_css_selector('.alert-danger')
@@ -68,6 +71,11 @@ class BasePage(object):
                 return True
 
         wait_for(link_has_gone_stale)
+
+    def enter_text_in_field_by_id(self, text, id):
+        field = self.browser.find_element_by_id(id)
+        field.clear()
+        field.send_keys(text)
 
     def logout(self):
         self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
@@ -120,15 +128,30 @@ class HomePage(BasePage):
 class RegistrationPage(BasePage):
 
     def register(self, username):
-        field = self.browser.find_element_by_id('id_username')
-        field.send_keys(username)
-        field = self.browser.find_element_by_id('id_email')
-        field.send_keys('test@example.com')
-        field = self.browser.find_element_by_id('id_password1')
-        field.send_keys('password')
-        field = self.browser.find_element_by_id('id_password2')
-        field.send_keys('password')
-        self.browser.find_element_by_id('register-btn').click()
+        self.enter_username(username)
+        self.enter_email('test@example.com')
+        self.enter_password('password')
+        self.click_register()
+
+    def enter_username(self, username):
+        self.enter_text_in_field_by_id(username, 'id_username')
+
+    def enter_email(self, email):
+        self.enter_text_in_field_by_id(email, 'id_email')
+
+    def enter_password(self, password):
+        self.enter_password1(password)
+        self.enter_password2(password)
+
+    def enter_password1(self, password):
+        self.enter_text_in_field_by_id(password, 'id_password1')
+
+    def enter_password2(self, password):
+        self.enter_text_in_field_by_id(password, 'id_password2')
+
+    def click_register(self):
+        register_button = self.browser.find_element_by_id('register-btn')
+        self.click_through_to_new_page(register_button)
 
 
 class LoginPage(BasePage):
@@ -257,7 +280,7 @@ class ActivityTrackPage(BasePage):
         )
 
     def click_trim_start(self):
-        time.sleep(.1)
+        time.sleep(.5)
         self.browser.find_element_by_id('trim-start').click()
 
     def click_trim_end(self):

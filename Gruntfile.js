@@ -177,7 +177,7 @@ module.exports = function(grunt) {
                 command: 'py.test -f --lf --color=yes tests',
             },
             pyfunctest: {
-                command: 'py.test --color=yes --durations=5 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
             },
             pydev: {
                 command: 'py.test -f --lf --color=yes activities',
@@ -210,7 +210,7 @@ module.exports = function(grunt) {
     grunt.registerTask('funcdev', ['shell:pyfuncdev']);
 
     // Full code analysis tasks
-    grunt.registerTask('test', ['eslint', 'karma:jstest', 'flake8', 'pylint', 'shell:pytest', 'shell:pyfunc']);
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'flake8', 'pylint', 'shell:pytest', 'shell:pyfunctest']);
     grunt.registerTask('unittest', ['karma:jstest', 'shell:pytest']);
     grunt.registerTask('functest', ['shell:pyfunctest']);
     grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
