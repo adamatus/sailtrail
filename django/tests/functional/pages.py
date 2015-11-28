@@ -72,8 +72,8 @@ class BasePage(object):
 
         wait_for(link_has_gone_stale)
 
-    def enter_text_in_field_by_id(self, text, id):
-        field = self.browser.find_element_by_id(id)
+    def enter_text_in_field_by_id(self, text, element_id):
+        field = self.browser.find_element_by_id(element_id)
         field.clear()
         field.send_keys(text)
 
@@ -218,8 +218,8 @@ class ActivityPage(BasePage):
 
 class ActivityDetailsPage(BasePage):
 
-    def enter_text(self, id, text):
-        field = self.browser.find_element_by_id(id)
+    def enter_text(self, element_id, text):
+        field = self.browser.find_element_by_id(element_id)
         field.clear()
         field.send_keys(text)
 

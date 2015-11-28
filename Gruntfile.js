@@ -55,7 +55,9 @@ module.exports = function(grunt) {
 
             activities: {
                 src: 'django/activities',
-                ignore: 'migrations',
+                options: {
+                    ignore: ['migrations', 'tests'],
+                },
             },
 
             sirf: {

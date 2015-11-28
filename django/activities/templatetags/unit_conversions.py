@@ -1,5 +1,5 @@
 from django import template
-from activities import UNITS, units
+from activities import UNIT_SETTING, UNITS
 from activities.models import ACTIVITY_CHOICES
 
 register = template.Library()
@@ -10,8 +10,8 @@ def distance(value):
     if value is None:
         return "error"
     return "{} {}".format(
-        round((value * units.m).to(UNITS['dist']).magnitude, 2),
-        UNITS['dist'])
+        round((value * UNITS.m).to(UNIT_SETTING['dist']).magnitude, 2),
+        UNIT_SETTING['dist'])
 
 
 def speed(value):
@@ -19,8 +19,9 @@ def speed(value):
     if value is None:
         return "error"
     return "{} {}".format(
-        round((value * units.m/units.s).to(UNITS['speed']).magnitude, 2),
-        UNITS['speed'])
+        round((value * UNITS.m / UNITS.s).to(UNIT_SETTING['speed']).magnitude,
+              2),
+        UNIT_SETTING['speed'])
 
 
 def category(value):
