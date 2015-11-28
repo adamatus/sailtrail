@@ -346,11 +346,12 @@ def activity_json(request, activity_id):
     return return_json(pos)
 
 
-def view_track(request, track_id, form=None):
+def view_track(request, activity_id, track_id, form=None):
     """Track view handler
 
     Parameters
     ----------
+    activity_id
     request
     track_id
     form
@@ -358,6 +359,7 @@ def view_track(request, track_id, form=None):
     Returns
     -------
     """
+    del activity_id  # delete activity_id as it is not attached to track
 
     track = ActivityTrack.objects.get(id=track_id)
 
@@ -377,7 +379,7 @@ def view_track(request, track_id, form=None):
                    'form': form})
 
 
-def track_json(request, track_id):
+def track_json(request, activity_id, track_id):
     """Track data API endpoint handler
 
     Parameters
@@ -389,6 +391,7 @@ def track_json(request, track_id):
     -------
 
     """
+    del activity_id  # delete activity_id as it is not attached to track
 
     track = ActivityTrack.objects.get(id=track_id)
 

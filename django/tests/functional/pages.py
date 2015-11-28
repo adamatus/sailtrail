@@ -267,14 +267,14 @@ class ActivityTrackPage(BasePage):
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal
-        time.sleep(.1)
+        time.sleep(.5)
         is_visible = self.browser.find_element_by_id(
             'delete_modal').is_displayed()
-        time.sleep(.1)
+        time.sleep(.5)
         return is_visible
 
     def press_right_arrow(self):
-        time.sleep(.1)
+        time.sleep(.5)
         self.browser.find_element_by_tag_name('body').send_keys(
             Keys.ARROW_RIGHT
         )
@@ -284,11 +284,11 @@ class ActivityTrackPage(BasePage):
         self.browser.find_element_by_id('trim-start').click()
 
     def click_trim_end(self):
-        time.sleep(.1)
+        time.sleep(.5)
         self.browser.find_element_by_id('trim-end').click()
 
     def click_trim_activity(self):
-        time.sleep(.1)
+        time.sleep(.5)
         trim_button = self.browser.find_element_by_id('trim-activity')
         self.click_through_to_new_page(trim_button)
 
