@@ -9,7 +9,7 @@ from sirf.stats import Stats
 
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'test_assets')
+                         'assets')
 TEST_FILE = os.path.join(ASSET_DIR, 'test-small.sbn')
 
 # Read in the points for the testfile

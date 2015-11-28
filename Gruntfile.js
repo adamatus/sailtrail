@@ -50,6 +50,7 @@ module.exports = function(grunt) {
             options: {
                 externalPylint: true,
                 force: true, // Don't fail (until everything is fixed)
+                rcfile: 'pylintrc',
             },
 
             activities: {
@@ -59,6 +60,9 @@ module.exports = function(grunt) {
 
             sirf: {
                 src: 'django/sirf',
+                options: {
+                    ignore: ['tests'],
+                },
             },
 
             tests: {
