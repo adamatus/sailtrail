@@ -43,22 +43,18 @@ class Parser(object):
     """SiRF parser for processing binary SiRF format"""
 
     def __init__(self):
+
+        keys = ['fr', 'ck', 'rx']
+        self.counts = dict(zip(keys, [0, 0, 0]))
+
         self.buffer = []
         self.state = 'init1'
-
-        self.rxcksum = None
-        self.cksummsb = None
-        self.sizemsb = None
-        self.dataleft = None
-
-        self.fr_err = 0  # Framing error
-        self.ck_err = 0  # Checksum error
-        self.rx_cnt = 0  # Packet count
+        self.dataleft = 0
 
         self.pktq = []
 
     def __str__(self):
-        return "Parsed SBN Data [{} Packets]".format(self.rx_cnt)
+        return "Parsed SBN Data [{} Packets]".format(self.counts['rx'])
 
     def processstr(self, data):
         """Process a string of data
@@ -87,130 +83,175 @@ class Parser(object):
         int
             The number of packets processed
         """
-        pktcount = 0
         for data_frame in data:
-            # print "Looking at 0x%02x, state = %s" % (data_frame, self.state)
-
-            if self.state == 'init1':
-                self.buffer = []
-                if data_frame != 0xa0:
-                    print("Start1 framing error, " +
-                          "got 0x%02x, expected 0xa0" % data_frame)
-                    self.fr_err += 1
-                    continue
-
-                self.state = 'init2'
-
-            elif self.state == 'init2':
-                if data_frame != 0xa2:
-                    print("Start2 framing error, " +
-                          "got 0x%02x, expected 0xa2" % data_frame)
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                self.state = 'sizemsb'
-
-            elif self.state == 'sizemsb':
-                # print "Size1 - 0x%02x" % (data_frame)
-                if data_frame > 0x7f:
-                    print("size msb too high (0x%02x)" % data_frame)
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                self.sizemsb = data_frame
-                self.state = 'sizelsb'
-
-            elif self.state == 'sizelsb':
-                # print "Size2 - 0x%02x" % (data_frame)
-                self.dataleft = self.sizemsb << 8 | data_frame
-
-                if self.dataleft < 1:
-                    print("size is too small (0x%04x)" % self.dataleft)
-                    self.state = 'init1'
-                    continue
-
-                if self.dataleft > 1024:
-                    print("size too large (0x%04x)" % self.dataleft)
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                # print "Pkt size - 0x%04x" % (self.dataleft)
-                self.state = 'data'
-
-            elif self.state == 'data':
-                self.buffer.append(data_frame)
-                self.dataleft -= 1
-
-                if self.dataleft == 0:
-                    self.state = 'cksum1'
-
-            elif self.state == 'cksum1':
-                self.cksummsb = data_frame
-                self.state = 'cksum2'
-
-            elif self.state == 'cksum2':
-                self.rxcksum = self.cksummsb << 8 | data_frame
-                self.state = 'end1'
-
-            elif self.state == 'end1':
-                if data_frame != 0xb0:
-                    print("End1 framing error, got 0x%02x, expected 0xb0" %
-                          data_frame)
-                    self.state = 'init1'
-                    self.fr_err += 1
-                    continue
-
-                self.state = 'end2'
-
-            elif self.state == 'end2':
-                if data_frame != 0xb3:
-                    print("End2 framing error, got 0x%02x, expected 0xb3" %
-                          data_frame)
-                    self.fr_err += 1
-                else:
-                    pktsum = reduce(lambda x, y: x + y, self.buffer) & 0x7fff
-                    if pktsum != self.rxcksum:
-                        print("Checksum error: got 0x%04x, expected 0x%04x" %
-                              (self.rxcksum, pktsum))
-                        print("buffer is %s" % (str(self.buffer)))
-                        self.state = 'init1'
-                        self.ck_err += 1
-                    else:
-                        packet = self._decode_packet_in_buffer()
-                        self.pktq.append(packet)
-                        pktcount += 1
-                        self.rx_cnt += 1
-
+            try:
+                if self.state == 'init1':
+                    self.process_init1_frame(data_frame)
+                elif self.state == 'init2':
+                    self.process_init2_frame(data_frame)
+                elif self.state == 'sizemsb':
+                    sizemsb = self.process_size_msb(data_frame)
+                elif self.state == 'sizelsb':
+                    self.process_size_lsb(data_frame, sizemsb)
+                elif self.state == 'data':
+                    self.process_data(data_frame)
+                elif self.state == 'cksum1':
+                    cksummsb = self.process_checksum1(data_frame)
+                elif self.state == 'cksum2':
+                    rxcksum = self.process_checksum2(data_frame, cksummsb)
+                elif self.state == 'end1':
+                    self.process_end1(data_frame)
+                elif self.state == 'end2':
+                    self.process_end2(data_frame, rxcksum)
+            except ChecksumErrorException:
+                self.counts['ck'] += 1
+                self.state = 'init1'
+            except FrameErrorException:
+                self.counts['fr'] += 1
                 self.state = 'init1'
 
+        return self.counts['rx']
+
+    def process_init1_frame(self, data_frame):
+        """Process the init1 frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        self.buffer = []
+        if data_frame == 0xa0:
+            self.state = 'init2'
+        else:
+            raise FrameErrorException('init1', 0xa0, data_frame)
+
+    def process_init2_frame(self, data_frame):
+        """Process the init2 frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame == 0xa2:
+            self.state = 'sizemsb'
+        else:
+            raise FrameErrorException('init2', 0xa2, data_frame)
+
+    def process_size_msb(self, data_frame):
+        """Process the most significant byte of the size frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame <= 0x7f:
+            self.state = 'sizelsb'
+            return data_frame
+        else:
+            raise FrameErrorException('sizemsb', None, data_frame)
+
+    def process_size_lsb(self, data_frame, sizemsb):
+        """Process the least significant byte of the size frame
+
+        Parameters
+        ----------
+        sizemsb : int
+        data_frame : int
+        """
+        dataleft = sizemsb << 8 | data_frame
+        if 1 < dataleft <= 1024:
+            self.state = 'data'
+            self.dataleft = dataleft
+        else:
+            raise FrameErrorException('sizelsb', None, dataleft)
+
+    def process_data(self, data_frame):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        self.buffer.append(data_frame)
+        self.dataleft -= 1
+        if self.dataleft == 0:
+            self.state = 'cksum1'
+
+    def process_checksum1(self, data_frame):
+        """Process most significant bit of checksum frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        cksummsb = data_frame
+        self.state = 'cksum2'
+        return cksummsb
+
+    def process_checksum2(self, data_frame, checksum_msb):
+        """Process least significant bit of checksum frame
+
+        Parameters
+        ----------
+        data_frame : int
+        checksum_msb : int
+        """
+        rxcksum = checksum_msb << 8 | data_frame
+        self.state = 'end1'
+        return rxcksum
+
+    def process_end1(self, data_frame):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame == 0xb0:
+            self.state = 'end2'
+        else:
+            raise FrameErrorException('end1', 0xb0, data_frame)
+
+    def process_end2(self, data_frame, rxcksum):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        rxcksum : int
+        """
+        if data_frame == 0xb3:
+            pktsum = reduce(lambda x, y: x + y, self.buffer) & 0x7fff
+            self.state = 'init1'
+            if pktsum == rxcksum:
+                packet = self._decode_packets_in_buffer(self.buffer)
+                self.pktq.append(packet)
+                self.counts['rx'] += 1
             else:
-                print("Invalid state %s! Resetting" % self.state)
-                self.state = 'init1'
+                raise ChecksumErrorException('end2', pktsum, rxcksum)
+        else:
+            raise FrameErrorException('end2', 0xb3, data_frame)
 
-        return pktcount
+    def _decode_packets_in_buffer(self, data):
+        """Decode packets in the buffer"""
 
-    def _decode_packet_in_buffer(self):
-        """Decode a packet in the buffer"""
+        header = data[0]
 
-        data = self.buffer
-        if data[0] == 0x02:
+        if header == 0x02:
             self._decode_0x02_packet(data)
-        elif data[0] == 0x06:
+        elif header == 0x06:
             self._decode_0x06_packet(data)
-        elif data[0] == 0x0a:
+        elif header == 0x0a:
             self._decode_0x0a_packet(data)
-        elif data[0] == 0x0b:
+        elif header == 0x0b:
             self._decode_0x0b_packet(data)
-        elif data[0] == 0x0c:
+        elif header == 0x0c:
             self._decode_0x0c_packet(data)
-        elif data[0] == 0x29:
+        elif header == 0x29:
             return self._decode_0x29_packet(data)
-        elif data[0] == 0x34:
+        elif header == 0x34:
             self._decode_0x34_packet(data)
-        elif data[0] == 0xa6:
+        elif header == 0xa6:
             self._decode_0xa6_packet(data)
         else:
             print("Unknown packet type: {}".format(data[0]))
@@ -247,7 +288,7 @@ class Parser(object):
             7: "DR"
         }
         fmt = '>HHHIHBBBBHIiiiiBHHHHHIIIHIIIIIHHBBB'
-        datastr = ''.join([chr(x) for x in data[1:struct.calcsize(fmt)+1]])
+        datastr = ''.join([chr(x) for x in data[1:struct.calcsize(fmt) + 1]])
         keys = ['navval', 'navtype', 'ewn', 'tow', 'year', 'month', 'day',
                 'hour', 'minute', 'second', 'satlst', 'latitude', 'longitude',
                 'alt_elip', 'alt_msl', 'datum', 'sog', 'cog', 'magvar',
@@ -394,3 +435,17 @@ def read_sbn(filename):
     parser = Parser()
     parser.process(sbn)
     return parser
+
+
+class FrameErrorException(Exception):
+    """Frame error"""
+    def __init__(self, cur_state, expected, actual):
+        super(FrameErrorException, self).__init__()
+        self.cur_state = cur_state
+        self.expected = expected
+        self.actual = actual
+
+
+class ChecksumErrorException(FrameErrorException):
+    """Data checksum error"""
+    pass
