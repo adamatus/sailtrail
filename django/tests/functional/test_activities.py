@@ -42,14 +42,14 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
         # They are warned that fields cannot be empty
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(8, len(alerts))  # FIXME This should be 4
+        self.assertEqual(4, len(alerts))
         self.assertIn('This field is required.', alerts[0].text)
 
         # They enter just a username, and are still warned
         self.registration_page.enter_username('testuser')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(6, len(alerts))  # FIXME This should be 3
+        self.assertEqual(3, len(alerts))
         self.assertIn('This field is required.', alerts[0].text)
 
         # They enter a username and valid email, and are still warned
@@ -57,7 +57,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.enter_email('testuser@example.com')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(4, len(alerts))  # FIXME This should be 2
+        self.assertEqual(2, len(alerts))
         self.assertIn('This field is required.', alerts[0].text)
 
         # They enter a username, valid email, and first password, and
@@ -67,7 +67,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.enter_password1('password')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertEqual(1, len(alerts))
         self.assertIn('This field is required.', alerts[0].text)
 
         # They enter a username, valid email, and two passwords
@@ -78,7 +78,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.enter_password2('other')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertEqual(1, len(alerts))
         self.assertIn("The two password fields didn't match.", alerts[0].text)
 
         # They enter a username, invalid email, and matching passwords
@@ -88,7 +88,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.enter_password('password')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertEqual(1, len(alerts))
         self.assertIn("Enter a valid email address.", alerts[0].text)
 
         # They enter an existing username, valid email, and matching passwords
@@ -98,7 +98,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.enter_password('password')
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
-        self.assertEqual(2, len(alerts))  # FIXME This should be 1
+        self.assertEqual(1, len(alerts))
         self.assertIn("A user with that username already exists.",
                       alerts[0].text)
 

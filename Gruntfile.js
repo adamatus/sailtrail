@@ -49,7 +49,6 @@ module.exports = function(grunt) {
         pylint: {
             options: {
                 externalPylint: true,
-                force: true, // Don't fail (until everything is fixed)
                 rcfile: 'pylintrc',
             },
 
