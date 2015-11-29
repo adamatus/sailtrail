@@ -69,6 +69,7 @@ module.exports = function(grunt) {
             tests: {
                 src: 'django/tests',
                 options: {
+                    force: true,
                     disable: 'missing-docstring',
                 },
             },

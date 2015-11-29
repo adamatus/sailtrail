@@ -1,4 +1,6 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.core import mail
+
 from selenium import webdriver
 
 from activities.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
@@ -79,7 +81,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
         self.assertEqual(1, len(alerts))
-        self.assertIn("The two password fields didn't match.", alerts[0].text)
+        self.assertIn("You must type the same password each time.",
+                      alerts[0].text)
 
         # They enter a username, invalid email, and matching passwords
         # and are warned about the email address
@@ -99,13 +102,41 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
         self.assertEqual(1, len(alerts))
-        self.assertIn("A user with that username already exists.",
+        self.assertIn("This username is already taken. Please choose another.",
                       alerts[0].text)
 
         # Finally, the fill in good info, submit, and
-        # are taken back to the homepage
+        # are taken to a page telling them that they need to confirm their
+        # email address.
         self.home_page.go_to_registration()
         self.registration_page.register('testuser')
+
+        # They see a message about how they will be recieving an email
+        self.assertIn('Verify Your E-mail Address',
+                      self.home_page.get_page_content())
+
+        # Internally, an email is sent, with registration confirmation details
+        self.assertEqual(1, len(mail.outbox))
+        message = mail.outbox[0]
+        self.assertEqual('signup@sailtrail.net', message.from_email)
+        self.assertIn('Please Confirm Your E-mail Address', message.subject)
+
+        for line in message.body.split('\n'):
+            if 'localhost' in line:
+                url = line.split(' ')[-1][8:]
+
+        # The user follows the link in the email, and is asked
+        # to confirm that they entered this info
+        self.browser.get(url)
+        self.assertIn('Confirm E-mail Address',
+                      self.home_page.get_page_content())
+
+        # They click confirm and are taken to the login page
+        submit_btn = self.browser.find_element_by_id('submit-btn')
+        self.home_page.click_through_to_new_page(submit_btn)
+
+        # They login and are taken home
+        self.login_page.login_as_user('testuser', 'password')
         self.assertTrue(self.home_page.is_current_url())
 
     def test_new_user_flow(self):
@@ -116,6 +147,16 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # submit, and are taken back to the homepage
         self.home_page.go_to_registration()
         self.registration_page.register('testuser')
+
+        message = mail.outbox[0]
+        for line in message.body.split('\n'):
+            if 'localhost' in line:
+                url = line.split(' ')[-1][8:]
+        self.browser.get(url)
+        submit_btn = self.browser.find_element_by_id('submit-btn')
+        self.home_page.click_through_to_new_page(submit_btn)
+        self.login_page.login_as_user('testuser', 'password')
+
         self.assertTrue(self.home_page.is_current_url())
 
         # They notice a file upload box and are prompted to upload a file
@@ -174,8 +215,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
 
         # They enter a bad username and password and are warned
         self.login_page.login_as_user('testuser', 'password')
-        self.assertIn('Please enter a correct username and password',
-                      self.login_page.get_alerts())
+        self.assertIn('The login and/or password you specified are ' +
+                      'not correct', self.login_page.get_alerts())
 
         # They enter a good, existing username and are taken back to the
         # homepage where they can see they are logged in

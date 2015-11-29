@@ -81,6 +81,8 @@ class BasePage(object):
         self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
         logout_button = self.browser.find_element_by_link_text("Logout")
         self.click_through_to_new_page(logout_button)
+        logout_button = self.browser.find_element_by_id("logout-btn")
+        self.click_through_to_new_page(logout_button)
 
     def login(self):
         self.browser.find_element_by_link_text("Login").click()
@@ -157,7 +159,7 @@ class RegistrationPage(BasePage):
 class LoginPage(BasePage):
 
     def login_as_user(self, username, password):
-        field = self.browser.find_element_by_id('id_username')
+        field = self.browser.find_element_by_id('id_login')
         field.clear()
         field.send_keys(username)
         field = self.browser.find_element_by_id('id_password')

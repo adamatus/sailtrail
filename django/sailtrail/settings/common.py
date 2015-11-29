@@ -21,9 +21,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, '../../.uploads')
 SECRET_KEY = 'c9n93(^++p*%siz2#o_kkmwfq(k#%qcp_hu9dil7c%ppvpwclb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     '.sailtrail.net',
@@ -36,6 +34,7 @@ TEMPLATES = [
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': False,
             'context_processors': [
                 # Already defined Django-related contexts here
 
@@ -73,7 +72,6 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -92,7 +90,7 @@ ROOT_URLCONF = 'sailtrail.urls'
 
 WSGI_APPLICATION = 'sailtrail.wsgi.application'
 
-LOGIN_URL = '/login'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Database
@@ -112,10 +110,6 @@ DATABASES = {
 # Email
 
 DEFAULT_FROM_EMAIL = 'signup@sailtrail.net'
-
-# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-# EMAIL_FILE_PATH = '/home/ubuntu/sites/www.sailtrail.net/logs/email.log'
-
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
@@ -154,10 +148,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-#        'console': {
-#            'class': 'logging.StreamHandler',
-#        },
-	'file': {
+        'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/home/ubuntu/sites/www.sailtrail.net/logs/debug.log',
@@ -166,7 +157,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
     },
 }

@@ -1,10 +1,8 @@
 """Activity view module"""
 import json
 
-from django.shortcuts import render, redirect, render_to_response
-from django.core.mail import send_mail, EmailMessage
+from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Count, Max, Sum
 from django.contrib.auth.decorators import login_required
@@ -14,7 +12,7 @@ import numpy as np
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from .models import Activity, ActivityTrack, ACTIVITY_CHOICES
-from .forms import (UploadFileForm, ActivityDetailsForm, NewUserForm,
+from .forms import (UploadFileForm, ActivityDetailsForm,
                     ERROR_NO_UPLOAD_FILE_SELECTED,
                     ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
@@ -528,54 +526,3 @@ def untrim(request, activity_id, track_id):
         raise PermissionDenied
     track.reset_trim()
     return redirect('view_activity', activity_id)
-
-
-def register(request, form=None):
-    """Register user handler
-
-    Parameters
-    ----------
-    request
-    form
-
-    Returns
-    -------
-
-    """
-    if request.method == 'POST':
-        form = NewUserForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password2")
-            form.save()
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('home')
-    else:
-        if form is None:
-            form = NewUserForm()
-    return render(request, 'register.html',
-                  {'form': form})
-
-
-# Test sending email
-
-def send_email(request):
-    if request.method == 'POST':
-        try:
-            subject = request.POST['subject']
-            message = request.POST['message']
-            from_email = request.POST['from']
-            html_message = bool(request.POST.get('html-message', False))
-            recipient_list = [request.POST['to']]
-
-            email = EmailMessage(subject, message, from_email, recipient_list)
-            if html_message:
-                email.content_subtype = 'html'
-            email.send()
-        except KeyError:
-            return HttpResponse('Please fill in all fields')
-
-        return HttpResponse('Email sent :)')
-    else:
-        return render(request, 'send-email.html')

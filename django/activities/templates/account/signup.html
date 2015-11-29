@@ -5,17 +5,43 @@
 {% block title_text %}{% trans "Signup" %}{% endblock %}
 
 {% block main_section %}
-<h1>{% trans "Sign Up" %}</h1>
+    <div class="row">
+        <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+            <h1>{% trans "Register" %}</h1>
 
-<p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+            <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">log in</a>.{% endblocktrans %}</p>
 
-<form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-  {% csrf_token %}
-  {{ form.as_p }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-  <button type="submit">{% trans "Sign Up" %} &raquo;</button>
-</form>
+            {% include 'components/form-non-field-error.html' %}
 
+            <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{form.username.id_for_label}}">{{form.username.label}}</label>
+                    <input type="text" id="{{form.username.id_for_label}}" name="{{form.username.html_name}}" class="form-control" placeholder="username">
+                    {% include 'components/specific-form-error.html' with field=form.username %}
+                </div>
+                <div class="form-group">
+                    <label for="{{form.email.id_for_label}}">{{form.email.label}}</label>
+                    <input type="text" id="{{form.email.id_for_label}}" name="{{form.email.html_name}}" class="form-control" placeholder="user@example.com">
+                    {% include 'components/specific-form-error.html' with field=form.email %}
+                </div>
+                <div class="form-group">
+                    <label for="{{form.password1.id_for_label}}">{{form.password1.label}}</label>
+                    <input type="password" id="{{form.password1.id_for_label}}" name="{{form.password1.html_name}}" class="form-control" placeholder="password">
+                    {% include 'components/specific-form-error.html' with field=form.password1 %}
+                </div>
+                <div class="form-group">
+                    <label for="{{form.password2.id_for_label}}">{{form.password2.label}}</label>
+                    <input type="password" id="{{form.password2.id_for_label}}" name="{{form.password2.html_name}}" class="form-control" placeholder="password">
+                    {% include 'components/specific-form-error.html' with field=form.password2 %}
+                </div>
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                <div class="form-group text-center">
+                    <button type="submit" id="register-btn" class="btn btn-default">{% trans "Register" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
