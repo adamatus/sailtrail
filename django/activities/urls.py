@@ -8,8 +8,6 @@ urlpatterns = [
     url(r'^leaderboards$', views.leaderboards, name='leaderboards'),
     url(r'^upload$', views.upload, name='upload'),
 
-    url(r'^test_email$', views.send_email, name='send_email'),
-
     url(r'(\d+)/tracks/(\d+)/delete$', views.delete_track,
         name='delete_track'),
     url(r'(\d+)/tracks/(\d+)/trim$', views.trim, name='trim_track'),

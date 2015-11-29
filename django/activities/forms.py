@@ -2,7 +2,6 @@
 Activity form class
 """
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 from multiupload.fields import MultiFileField
 
@@ -51,13 +50,3 @@ class ActivityDetailsForm(forms.models.ModelForm):
             'name': {'required': ERROR_ACTIVITY_NAME_MISSING},
             'category': {'required': ERROR_ACTIVITY_CATEGORY_MISSING},
         }
-
-
-class NewUserForm(UserCreationForm):
-    """Form for new users"""
-
-    email = forms.EmailField(label="Email", required=True)
-
-    class Meta:
-        model = USER
-        fields = ("username", "email")
