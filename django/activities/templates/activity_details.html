@@ -9,18 +9,18 @@
 		<p>Start Time: {{ activity.start_time }}</p>
 		<p>Duration: {{ activity.duration }}</p>
 		<form role="form" method="POST" action="{% url 'details' activity.id %}" enctype="multipart/form-data">
-			{% include 'components/form-errors.html' %}
+			{% include 'components/form-errors.html' with form=detail_form%}
 			<div class="form-group">
-				{{ form.name }}
+				{{ detail_form.name }}
 			</div>
 			<div class="form-group">
-				{{ form.category }}
+				{{ detail_form.category }}
 			</div>
 			<div class="form-group">
-				{{ form.description }}
+				{{ detail_form.description }}
 			</div>
 			<div class="form-group">
-				Private {{ form.private }}
+				Private {{ detail_form.private }}
 			</div>
 			{% csrf_token %}
 			<button id="save-details" type="submit" class="btn btn-default">OK</button>
