@@ -26,7 +26,7 @@ ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
 
 def get_leaders():
     """GET request to the leaderboard"""
-    leader_list = Activity.objects.values(
+    leader_list = Activity.objects.filter(private=False).values(
         'user__username', 'category').annotate(
             max_speed=Max('model_max_speed')).order_by('-max_speed')
 
