@@ -1,5 +1,6 @@
 boto==2.38.0
 Django==1.8.0
+django-allauth==0.24.1
 django-bower==5.0.3
 django-ganalytics==0.4
 django-multiupload==0.3

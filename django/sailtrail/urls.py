@@ -16,6 +16,8 @@ urlpatterns = [
     url(r'^users/$', activity_views.user_list, name='user_list'),
     url(r'^users/(?P<username>\w+)/$', activity_views.user_page, name='user'),
 
+    url(r'^accounts/', include('allauth.urls')),
+
     url(r'^login/$',
         auth_views.login,
         {'template_name': 'login.html'}, name='login'),
