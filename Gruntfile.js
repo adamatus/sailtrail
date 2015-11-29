@@ -50,15 +50,21 @@ module.exports = function(grunt) {
             options: {
                 externalPylint: true,
                 force: true, // Don't fail (until everything is fixed)
+                rcfile: 'pylintrc',
             },
 
             activities: {
                 src: 'django/activities',
-                ignore: 'migrations',
+                options: {
+                    ignore: ['migrations', 'tests'],
+                },
             },
 
             sirf: {
                 src: 'django/sirf',
+                options: {
+                    ignore: ['tests'],
+                },
             },
 
             tests: {

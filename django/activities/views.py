@@ -1,3 +1,4 @@
+"""Activity view module"""
 import json
 
 from django.shortcuts import render, redirect
@@ -10,20 +11,21 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 import numpy as np
 
-from activities import UNITS, units, DATETIME_FORMAT_STR
+from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from .models import Activity, ActivityTrack, ACTIVITY_CHOICES
 from .forms import (UploadFileForm, ActivityDetailsForm, NewUserForm,
                     ERROR_NO_UPLOAD_FILE_SELECTED,
                     ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
 
-User = get_user_model()
+USER = get_user_model()
 
-errors = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
+ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
 def get_leaders():
+    """GET request to the leaderboard"""
     leader_list = Activity.objects.values(
         'user__username', 'category').annotate(
             max_speed=Max('model_max_speed')).order_by('-max_speed')
@@ -39,6 +41,16 @@ def get_leaders():
 
 
 def home_page(request, form=None):
+    """ Handle requests for home page
+    Parameters
+    ----------
+    request
+    form
+
+    Returns
+    -------
+
+    """
     if form is None:
         form = UploadFileForm()
 
@@ -52,19 +64,54 @@ def home_page(request, form=None):
                   {'activities': activities,
                    'form': form,
                    'leaders': get_leaders(),
-                   'val_errors': errors
-                   })
+                   'val_errors': ERRORS})
 
 
 def leaderboards(request):
+    """
+    Leaderboard view handler
+
+    Parameters
+    ----------
+    request
+
+    Returns
+    -------
+
+    """
     return render(request, 'leaderboards.html', {'leaders': get_leaders()})
 
 
 def activity_list(request, form=None):
+    """
+    Activity list view handler
+
+    Parameters
+    ----------
+    request
+    form
+
+    Returns
+    -------
+
+    """
     return home_page(request, form)
 
 
 def user_page(request, username, form=None):
+    """
+    Individual user page view handler
+
+    Parameters
+    ----------
+    request
+    username
+    form
+
+    Returns
+    -------
+
+    """
     if form is None:
         form = UploadFileForm()
 
@@ -84,20 +131,39 @@ def user_page(request, username, form=None):
                   {'activities': activities,
                    'username': username,
                    'summaries': summary,
-                   'form': form
-                   })
+                   'form': form})
 
 
 def user_list(request, form=None):
-    users = User.objects.all()
+    """User list view handler.
+
+    Parameters
+    ----------
+    request
+    form
+
+    Returns
+    -------
+
+    """
+    users = USER.objects.all()
     return render(request, 'user_list.html',
                   {'users': users,
-                   'form': form
-                   })
+                   'form': form})
 
 
 @login_required
 def upload(request):
+    """Upload handler
+
+    Parameters
+    ----------
+    request
+
+    Returns
+    -------
+
+    """
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -113,6 +179,17 @@ def upload(request):
 
 @login_required
 def upload_track(request, activity_id):
+    """Upload track handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+
+    Returns
+    -------
+
+    """
 
     activity = Activity.objects.get(id=activity_id)
 
@@ -134,6 +211,17 @@ def upload_track(request, activity_id):
 
 @login_required
 def wind_direction(request, activity_id):
+    """Wind direction handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+
+    Returns
+    -------
+
+    """
 
     activity = Activity.objects.get(id=activity_id)
 
@@ -152,6 +240,17 @@ def wind_direction(request, activity_id):
 
 @login_required
 def details(request, activity_id):
+    """ Activity detail view handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+
+    Returns
+    -------
+
+    """
     activity = Activity.objects.get(id=activity_id)
 
     # Only allow the owner of the activity to access details
@@ -177,18 +276,37 @@ def details(request, activity_id):
             activity.compute_stats()
 
     return render(request, 'activity_details.html', {'activity': activity,
-                                                     'units': UNITS,
+                                                     'units': UNIT_SETTING,
                                                      'form': form,
                                                      'cancel_link':
                                                      cancel_link})
 
 
 def verify_private_owner(activity, request):
+    """Helper to verify private ownership
+
+    Parameters
+    ----------
+    activity
+    request
+    """
     if activity.private and request.user != activity.user:
         raise PermissionDenied
 
 
 def view(request, activity_id, form=None):
+    """Activity view handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+    form
+
+    Returns
+    -------
+
+    """
     activity = Activity.objects.get(id=activity_id)
 
     # Check to see if current user can see this, 403 if necessary
@@ -200,14 +318,25 @@ def view(request, activity_id, form=None):
     return render(request,
                   'activity.html',
                   {'activity': activity,
-                   'units': UNITS,
+                   'units': UNIT_SETTING,
                    'form': form,
-                   'val_errors': errors,
-                   'owner': request.user == activity.user,
-                   })
+                   'val_errors': ERRORS,
+                   'owner': request.user == activity.user})
 
 
-def activity_json(request, activity_id, form=None):
+def activity_json(request, activity_id):
+    """ Activity JSON data endpoint. TO API
+
+    Parameters
+    ----------
+    request
+    activity_id
+    form
+
+    Returns
+    -------
+
+    """
     activity = Activity.objects.get(id=activity_id)
 
     # Check to see if current user can see this, 403 if necessary
@@ -218,6 +347,19 @@ def activity_json(request, activity_id, form=None):
 
 
 def view_track(request, activity_id, track_id, form=None):
+    """Track view handler
+
+    Parameters
+    ----------
+    activity_id
+    request
+    track_id
+    form
+
+    Returns
+    -------
+    """
+    del activity_id  # delete activity_id as it is not attached to track
 
     track = ActivityTrack.objects.get(id=track_id)
 
@@ -231,27 +373,47 @@ def view_track(request, activity_id, track_id, form=None):
                   'track.html',
                   {'track': track,
                    'activity': track.activity_id,
-                   'units': UNITS,
+                   'units': UNIT_SETTING,
                    'trimmed': track.trimmed,
-                   'val_errors': errors,
-                   'form': form,
-                   })
+                   'val_errors': ERRORS,
+                   'form': form})
 
 
-def track_json(request, activity_id, track_id, form=None):
+def track_json(request, activity_id, track_id):
+    """Track data API endpoint handler
+
+    Parameters
+    ----------
+    request
+    track_id
+
+    Returns
+    -------
+
+    """
+    del activity_id  # delete activity_id as it is not attached to track
 
     track = ActivityTrack.objects.get(id=track_id)
 
     # Check to see if current user can see this, 403 if necessary
     verify_private_owner(track.activity_id, request)
 
-    pos = list(track.get_trackpoints()
-                    .values('sog', 'lat', 'lon', 'timepoint'))
+    pos = list(track.get_trackpoints().values('sog', 'lat',
+                                              'lon', 'timepoint'))
 
     return return_json(pos)
 
 
 def return_json(pos):
+    """Helper method to return JSON data
+    Parameters
+    ----------
+    pos
+
+    Returns
+    -------
+
+    """
 
     stats = Stats(pos)
     distances = stats.distances()
@@ -265,12 +427,14 @@ def return_json(pos):
     lat = []
     lon = []
 
-    for p in pos:
-        lat.append(p['lat'])
-        lon.append(p['lon'])
+    for position in pos:
+        lat.append(position['lat'])
+        lon.append(position['lon'])
         speed.append(round(
-            (p['sog'] * units.m/units.s).to(UNITS['speed']).magnitude, 2))
-        time.append(p['timepoint'].strftime(DATETIME_FORMAT_STR))
+            (position['sog'] * UNITS.m / UNITS.s).to(
+                UNIT_SETTING['speed']).magnitude,
+            2))
+        time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
 
     out = dict(bearing=bearings.tolist(), time=time,
                speed=speed, lat=lat, lon=lon)
@@ -280,6 +444,17 @@ def return_json(pos):
 
 @login_required
 def delete(request, activity_id):
+    """Delete activity handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+
+    Returns
+    -------
+
+    """
     activity = Activity.objects.get(id=activity_id)
     if request.user != activity.user:
         raise PermissionDenied
@@ -289,6 +464,18 @@ def delete(request, activity_id):
 
 @login_required
 def delete_track(request, activity_id, track_id):
+    """Delete track handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+    track_id
+
+    Returns
+    -------
+
+    """
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied
@@ -301,6 +488,18 @@ def delete_track(request, activity_id, track_id):
 
 @login_required
 def trim(request, activity_id, track_id):
+    """Trim track handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+    track_id
+
+    Returns
+    -------
+
+    """
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied
@@ -310,6 +509,18 @@ def trim(request, activity_id, track_id):
 
 @login_required
 def untrim(request, activity_id, track_id):
+    """Untrim track handler
+
+    Parameters
+    ----------
+    request
+    activity_id
+    track_id
+
+    Returns
+    -------
+
+    """
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied
@@ -318,6 +529,17 @@ def untrim(request, activity_id, track_id):
 
 
 def register(request, form=None):
+    """Register user handler
+
+    Parameters
+    ----------
+    request
+    form
+
+    Returns
+    -------
+
+    """
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if form.is_valid():

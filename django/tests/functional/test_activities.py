@@ -108,7 +108,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.registration_page.register('testuser')
         self.assertTrue(self.home_page.is_current_url())
 
-    def test_visit_homepage_register_and_upload_first_activity(self):
+    def test_new_user_flow(self):
         # Visitor comes to homepage
         self.home_page.go_to_homepage()
 

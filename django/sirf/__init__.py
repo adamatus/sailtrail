@@ -1,340 +1,451 @@
-# Based on Python SiRF parser by Daniel O'Connor (See license below)
-# (http://www.dons.net.au/~darius/hgwebdir.cgi/sirf)
-#
-# Changes made:
-#  - Updated for Python3
-#  - Stripped out all code for reading/writing to active device
-#  - Switched from reduce(lambda x+y) to ''.join for char concat
-#  - Minor tweaks to names/order
-#  - Added function to directly read SBN file
+"""
+SiRF Parser
+Based on Python SiRF parser by Daniel O'Connor (See license below)
+(http://www.dons.net.au/~darius/hgwebdir.cgi/sirf)
 
-# Copyright (c) 2009
-#      Daniel O'Connor <darius@dons.net.au>.  All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY AUTHOR AND CONTRIBUTORS ``AS IS'' AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL AUTHOR OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-# SUCH DAMAGE.
+Changes made:
+ - Updated for Python3
+ - Stripped out all code for reading/writing to active device
+ - Switched from reduce(lambda x+y) to ''.join for char concat
+ - Minor tweaks to names/order
+ - Added function to directly read SBN file
+
+Copyright (c) 2009
+     Daniel O'Connor <darius@dons.net.au>.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL AUTHOR OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+"""
 
 import struct
 from functools import reduce
 
 
 class Parser(object):
+    """SiRF parser for processing binary SiRF format"""
 
-    def __init__(self, s=None):
+    def __init__(self):
+
+        keys = ['fr', 'ck', 'rx']
+        self.counts = dict(zip(keys, [0, 0, 0]))
+
         self.buffer = []
         self.state = 'init1'
-
-        self.fr_err = 0  # Framing error
-        self.ck_err = 0  # Checksum error
-        self.rx_cnt = 0  # Packet count
+        self.dataleft = 0
 
         self.pktq = []
-        self.s = s
 
     def __str__(self):
-        return "Parsed SBN Data [{} Packets]".format(self.rx_cnt)
+        return "Parsed SBN Data [{} Packets]".format(self.counts['rx'])
 
     def processstr(self, data):
-        return self.process(list(map(ord, data)))
+        """Process a string of data
+
+        Parameters
+        ----------
+        data
+            The data stream to process
+
+        Returns
+        -------
+        The number of packets processed
+        """
+        return self.process([ord(x) for x in data])
 
     def process(self, data):
-        pktcount = 0
-        for d in data:
-            # print "Looking at 0x%02x, state = %s" % (d, self.state)
+        """Process a list of data
 
-            if (self.state == 'init1'):
-                self.buffer = []
-                if (d != 0xa0):
-                    print("Start1 framing error, " +
-                          "got 0x%02x, expected 0xa0" % d)
-                    self.fr_err += 1
-                    continue
+        Parameters
+        ----------
+        data : list
+            The data stream to process
 
-                self.state = 'init2'
-
-            elif (self.state == 'init2'):
-                if (d != 0xa2):
-                    print("Start2 framing error, " +
-                          "got 0x%02x, expected 0xa2" % d)
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                self.state = 'sizemsb'
-
-            elif (self.state == 'sizemsb'):
-                # print "Size1 - 0x%02x" % (d)
-                if d > 0x7f:
-                    print("size msb too high (0x%02x)" % (d))
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                self.sizemsb = d
-                self.state = 'sizelsb'
-
-            elif (self.state == 'sizelsb'):
-                # print "Size2 - 0x%02x" % (d)
-                self.dataleft = self.sizemsb << 8 | d
-
-                if self.dataleft < 1:
-                    print("size is too small (0x%04x)" % (self.dataleft))
-                    self.state = 'init1'
-                    continue
-
-                if self.dataleft > 1024:
-                    print("size too large (0x%04x)" % (self.dataleft))
-                    self.fr_err += 1
-                    self.state = 'init1'
-                    continue
-
-                # print "Pkt size - 0x%04x" % (self.dataleft)
-                self.state = 'data'
-
-            elif (self.state == 'data'):
-                self.buffer.append(d)
-                self.dataleft = self.dataleft - 1
-
-                if self.dataleft == 0:
-                    self.state = 'cksum1'
-
-            elif (self.state == 'cksum1'):
-                self.cksummsb = d
-                self.state = 'cksum2'
-
-            elif (self.state == 'cksum2'):
-                self.rxcksum = self.cksummsb << 8 | d
-                self.state = 'end1'
-
-            elif (self.state == 'end1'):
-                if (d != 0xb0):
-                    print("End1 framing error, got 0x%02x, expected 0xb0" % d)
-                    self.state = 'init1'
-                    self.fr_err += 1
-                    continue
-
-                self.state = 'end2'
-
-            elif (self.state == 'end2'):
-                if (d != 0xb3):
-                    print("End2 framing error, got 0x%02x, expected 0xb3" % d)
-                    self.fr_err += 1
-                else:
-                    pktsum = reduce(lambda x, y: x + y, self.buffer) & 0x7fff
-                    if (pktsum != self.rxcksum):
-                        print("Checksum error: got 0x%04x, expected 0x%04x" %
-                              (self.rxcksum, pktsum))
-                        print("buffer is %s" % (str(self.buffer)))
-                        self.state = 'init1'
-                        self.ck_err += 1
-                    else:
-                        p = self._decode_packet_in_buffer()
-                        self.pktq.append(p)
-                        pktcount += 1
-                        self.rx_cnt += 1
-
+        Returns
+        -------
+        int
+            The number of packets processed
+        """
+        for data_frame in data:
+            try:
+                if self.state == 'init1':
+                    self.process_init1_frame(data_frame)
+                elif self.state == 'init2':
+                    self.process_init2_frame(data_frame)
+                elif self.state == 'sizemsb':
+                    sizemsb = self.process_size_msb(data_frame)
+                elif self.state == 'sizelsb':
+                    self.process_size_lsb(data_frame, sizemsb)
+                elif self.state == 'data':
+                    self.process_data(data_frame)
+                elif self.state == 'cksum1':
+                    cksummsb = self.process_checksum1(data_frame)
+                elif self.state == 'cksum2':
+                    rxcksum = self.process_checksum2(data_frame, cksummsb)
+                elif self.state == 'end1':
+                    self.process_end1(data_frame)
+                elif self.state == 'end2':
+                    self.process_end2(data_frame, rxcksum)
+            except ChecksumErrorException:
+                self.counts['ck'] += 1
+                self.state = 'init1'
+            except FrameErrorException:
+                self.counts['fr'] += 1
                 self.state = 'init1'
 
+        return self.counts['rx']
+
+    def process_init1_frame(self, data_frame):
+        """Process the init1 frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        self.buffer = []
+        if data_frame == 0xa0:
+            self.state = 'init2'
+        else:
+            raise FrameErrorException('init1', 0xa0, data_frame)
+
+    def process_init2_frame(self, data_frame):
+        """Process the init2 frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame == 0xa2:
+            self.state = 'sizemsb'
+        else:
+            raise FrameErrorException('init2', 0xa2, data_frame)
+
+    def process_size_msb(self, data_frame):
+        """Process the most significant byte of the size frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame <= 0x7f:
+            self.state = 'sizelsb'
+            return data_frame
+        else:
+            raise FrameErrorException('sizemsb', None, data_frame)
+
+    def process_size_lsb(self, data_frame, sizemsb):
+        """Process the least significant byte of the size frame
+
+        Parameters
+        ----------
+        sizemsb : int
+        data_frame : int
+        """
+        dataleft = sizemsb << 8 | data_frame
+        if 1 < dataleft <= 1024:
+            self.state = 'data'
+            self.dataleft = dataleft
+        else:
+            raise FrameErrorException('sizelsb', None, dataleft)
+
+    def process_data(self, data_frame):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        self.buffer.append(data_frame)
+        self.dataleft -= 1
+        if self.dataleft == 0:
+            self.state = 'cksum1'
+
+    def process_checksum1(self, data_frame):
+        """Process most significant bit of checksum frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        cksummsb = data_frame
+        self.state = 'cksum2'
+        return cksummsb
+
+    def process_checksum2(self, data_frame, checksum_msb):
+        """Process least significant bit of checksum frame
+
+        Parameters
+        ----------
+        data_frame : int
+        checksum_msb : int
+        """
+        rxcksum = checksum_msb << 8 | data_frame
+        self.state = 'end1'
+        return rxcksum
+
+    def process_end1(self, data_frame):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        """
+        if data_frame == 0xb0:
+            self.state = 'end2'
+        else:
+            raise FrameErrorException('end1', 0xb0, data_frame)
+
+    def process_end2(self, data_frame, rxcksum):
+        """Process a data frame
+
+        Parameters
+        ----------
+        data_frame : int
+        rxcksum : int
+        """
+        if data_frame == 0xb3:
+            pktsum = reduce(lambda x, y: x + y, self.buffer) & 0x7fff
+            self.state = 'init1'
+            if pktsum == rxcksum:
+                packet = self._decode_packets_in_buffer(self.buffer)
+                self.pktq.append(packet)
+                self.counts['rx'] += 1
             else:
-                print("Invalid state %s! Resetting" % (self.state))
-                self.state = 'init1'
+                raise ChecksumErrorException('end2', pktsum, rxcksum)
+        else:
+            raise FrameErrorException('end2', 0xb3, data_frame)
 
-        return pktcount
+    def _decode_packets_in_buffer(self, data):
+        """Decode packets in the buffer"""
 
-    def _decode_packet_in_buffer(self):
+        header = data[0]
 
-        data = self.buffer
-        if data[0] == 0x02:
-            fmt = '>iiihhhBBBhIB'
-            datastr = ''.join(list(map(chr, data[1:struct.calcsize(fmt) + 1])))
+        if header == 0x02:
+            self._decode_0x02_packet(data)
+        elif header == 0x06:
+            self._decode_0x06_packet(data)
+        elif header == 0x0a:
+            self._decode_0x0a_packet(data)
+        elif header == 0x0b:
+            self._decode_0x0b_packet(data)
+        elif header == 0x0c:
+            self._decode_0x0c_packet(data)
+        elif header == 0x29:
+            return self._decode_0x29_packet(data)
+        elif header == 0x34:
+            self._decode_0x34_packet(data)
+        elif header == 0xa6:
+            self._decode_0xa6_packet(data)
+        else:
+            print("Unknown packet type: {}".format(data[0]))
 
-            (xpos, ypos, zpos, xvel, yvel, zvel, mode1, hdop,
-             mode2, gpsweek, gpstow, nsats
-             ) = struct.unpack(fmt, bytes(datastr, 'Latin-1'))
+    @staticmethod
+    def _decode_0xa6_packet(data):
+        """Decode a 0xa6 packet"""
+        print("Message rate : MID 0x%02x, rate 0x%02x" %
+              (data[2], data[3]))
 
-            satprn = []
-            for i in range(nsats):
-                satprn.append(data[struct.calcsize(fmt) - 1 + i])
+    @staticmethod
+    def _decode_0x34_packet(data):
+        """Decode a 0x34 Packet"""
+        fmt = '>BBBBBHHIB'
+        datastr = ''.join([chr(x) for x in data[1:struct.calcsize(fmt) + 1]])
+        (hour, minute, second, day, month, year, offsetint, offsetfrac,
+         status) = struct.unpack(fmt, bytes(datastr, 'Latin-1'))
+        offset = offsetint + float(offsetfrac) / 1e9
+        print(("PPS : %04d/%02d/%02d %02d:%02d:%02d, " +
+               "Offset : %.9f, Status : 0x%02x") %
+              (year, month, day, hour, minute, second, offset, status))
 
-            xvel = float(xvel) / 8
-            yvel = float(yvel) / 8
-            zvel = float(zvel) / 8
-            hdop = float(hdop) / 5
-            gpstow = float(gpstow) / 100
+    @staticmethod
+    def _decode_0x29_packet(data):
+        """Decode a 0x29 Packet"""
+        fixtype = {
+            0: "none",
+            1: "1-SV KF",
+            2: "2-SV KF",
+            3: "3-SV KF",
+            4: "4+-SV KF",
+            5: "2D",
+            6: "3D",
+            7: "DR"
+        }
+        fmt = '>HHHIHBBBBHIiiiiBHHHHHIIIHIIIIIHHBBB'
+        datastr = ''.join([chr(x) for x in data[1:struct.calcsize(fmt) + 1]])
+        keys = ['navval', 'navtype', 'ewn', 'tow', 'year', 'month', 'day',
+                'hour', 'minute', 'second', 'satlst', 'latitude', 'longitude',
+                'alt_elip', 'alt_msl', 'datum', 'sog', 'cog', 'magvar',
+                'climbrate', 'headrate', 'est_horiz_pos_err',
+                'est_vert_pos_err', 'est_time_err', 'est_horiz_vel_err',
+                'clock_bias', 'clock_bias_err', 'clock_drift',
+                'clock_drift_err', 'distance', 'dist_err', 'heading_err',
+                'numsvs', 'hdop', 'addmodeinfo']
+        parsed = dict(zip(keys,
+                          struct.unpack(fmt, bytes(datastr, 'Latin-1'))))
 
-            print("Position: X: " +
-                  "%d m, Y: %d m, Z: %d m" % (xpos, ypos, zpos))
-            print("Velocity: X: " +
-                  "%.2f m/s, Y: %.2f m/s, Z: %.2f m/s" % (xvel, yvel, zvel))
-            print("HDOP: " +
-                  "%.1f, Week: %d, TOW: %.2f seconds" %
-                  (hdop, gpsweek, gpstow))
-
-        elif data[0] == 0x06:
-            nulidx = data.index(0)
-            print("SW Ver : %s" % ''.join(list(map(chr, data[1:nulidx]))))
-
-        elif data[0] == 0x0a:
-            errid = data[1] << 8 | data[2]
-            dlen = (data[3] << 8 | data[4]) * 4
-            print("                          Error ID : 0x%04x" % (errid))
-            if dlen > 0:
-                print("                          Length   : 0x%04x" % (dlen))
-                print("                          Payload  : %s" % (data[5:]))
-
-        elif data[0] == 0x0b:
-            print("                          Cmd Ack  : 0x%02x" % (data[1]))
-
-        elif data[0] == 0x0c:
-            print("                          Cmd NAck : 0x%02x" % (data[1]))
-
-        elif data[0] == 0x29:
-            fixtype = {
-                0: "none",
-                1: "1-SV KF",
-                2: "2-SV KF",
-                3: "3-SV KF",
-                4: "4+-SV KF",
-                5: "2D",
-                6: "3D",
-                7: "DR"
-                }
-            fmt = '>HHHIHBBBBHIiiiiBHHHHHIIIHIIIIIHHBBB'
-            datastr = ''.join(
-                list(map(chr, data[1:struct.calcsize(fmt) + 1])))
-
-            (navval, navtype, ewn, tow, year, month, day, hour, minute,
-             second, satlst, latitude, longitude, alt_elip, alt_msl,
-             datum, sog, cog, magvar, climbrate, headrate, estHPE, estVPE,
-             estTE, estHVE, clockbias, CBerr, clockdrift, CDerr, distance,
-             distanceErr, headErr, numsvs, hdop, addmodeinfo
-             ) = struct.unpack(fmt, bytes(datastr, 'Latin-1'))
-
-            out = {}
+        return {
             # GPS time of week (sec)
-            out['tow'] = float(tow) / 1e3
-
+            'tow': float(parsed['tow']) / 1e3,
             # Seconds
-            out['second'] = float(second) / 1e3
-
+            'second': float(parsed['second']) / 1e3,
             # Latitude/Longitude (degrees)
-            out['latitude'] = float(latitude) / 1e7
-            out['longitude'] = float(longitude) / 1e7
-
+            'latitude': float(parsed['latitude']) / 1e7,
+            'longitude': float(parsed['longitude']) / 1e7,
             # Altitude from ellipsoid (meters)
-            out['alt_elip'] = float(alt_elip) / 1e2
-
+            'alt_elip': float(parsed['alt_elip']) / 1e2,
             # Altitude from mean sea level (meters)
-            out['alt_msl'] = float(alt_msl) / 1e2
-
+            'alt_msl': float(parsed['alt_msl']) / 1e2,
             # Speed over ground ("m/s")
-            out['sog'] = float(sog) / 1e2
-
+            'sog': float(parsed['sog']) / 1e2,
             # Course over ground ("degrees clockwise from true north")
-            out['cog'] = float(cog) / 1e2
-
+            'cog': float(parsed['cog']) / 1e2,
             # Climb rate ("m/s")
-            out['climbrate'] = float(climbrate) / 1e2
-
+            'climbrate': float(parsed['climbrate']) / 1e2,
             # Heading rate ("deg/s")
-            out['headrate'] = float(headrate) / 1e2
-
+            'headrate': float(parsed['headrate']) / 1e2,
             # Estimated horizonal position error (meters)
-            out['estHPE'] = float(estHPE) / 1e2
-
+            'estHPE': float(parsed['est_horiz_pos_err']) / 1e2,
             # Estimated vertical position error (meters)
-            out['estVPE'] = float(estVPE) / 1e2
-
+            'estVPE': float(parsed['est_vert_pos_err']) / 1e2,
             # Estimated time error (seconds)
-            out['estTE'] = float(estTE) / 1e2
-
+            'estTE': float(parsed['est_time_err']) / 1e2,
             # Estimated horizontal velocity error (m/s)
-            out['estHVE'] = float(estHVE) / 1e2
-
+            'estHVE': float(parsed['est_horiz_vel_err']) / 1e2,
             # Clock bias ("m")
-            out['clockbias'] = float(clockbias) / 1e2
-
+            'clockbias': float(parsed['clock_bias']) / 1e2,
             # Clock bias error ("meters")
-            out['CBerr'] = float(CBerr) / 1e2
-
+            'CBerr': float(parsed['clock_bias_err']) / 1e2,
             # Clock drift ("m/s")
-            out['clockdrift'] = float(clockdrift) / 1e2
-
+            'clockdrift': float(parsed['clock_drift']) / 1e2,
             # Clock drift error ("m/s")
-            out['CDerr'] = float(CDerr) / 1e2
-
+            'CDerr': float(parsed['clock_drift_err']) / 1e2,
             # Distance travelled since reset (meters)
-            out['distance'] = distance
-
+            'distance': parsed['distance'],
             # Distance Error (meters)
-            out['distanceErr'] = distanceErr
-
+            'distanceErr': parsed['dist_err'],
             # Heading error (degrees)
-            out['headErr'] = float(headErr) / 1e2
-
+            'headErr': float(parsed['heading_err']) / 1e2,
             # Number of sats
-            out['numsvs'] = numsvs
-
+            'numsvs': parsed['numsvs'],
             # Horizontal dilution of precision (.2 resolution)
-            out['hdop'] = float(hdop) / 5
-
+            'hdop': float(parsed['hdop']) / 5,
             # Fix type
-            out['fixtype'] = fixtype[navtype & 0x7]
-
+            'fixtype': fixtype[parsed['navtype'] & 0x7],
             # Bitmap of sats used in solution Bit 0 = Sat 1, etc.
-            out['satlst'] = satlst
-
+            'satlst': parsed['satlst'],
             # Map datum to which lat, long, alt apply: 21 = WGS-84
-            out['datum'] = datum
-
+            'datum': parsed['datum'],
             # Magnetic variation [NOT IMPLEMENTED]
-            out['magvar'] = magvar
+            'magvar': parsed['magvar'],
+            'date': '{:02}/{:02}/{:02}'.format(parsed['year'],
+                                               parsed['month'],
+                                               parsed['day']),
+            'time': '{:02}:{:02}:{:02}'.format(parsed['hour'],
+                                               parsed['minute'],
+                                               int(parsed['second'] / 1e3))
+        }
 
-            out['date'] = '{:02}/{:02}/{:02}'.format(year, month, day)
-            out['time'] = '{:02}:{:02}:{:02}'.format(hour,
-                                                     minute, int(second/1e3))
+    @staticmethod
+    def _decode_0x0c_packet(data):
+        """Decode a 0x0c Packet"""
+        print("                          Cmd NAck : 0x%02x" % (data[1]))
 
-            return out
+    @staticmethod
+    def _decode_0x0b_packet(data):
+        """Decode a 0x0b Packet"""
+        print("                          Cmd Ack  : 0x%02x" % (data[1]))
 
-        elif data[0] == 0x34:
-            fmt = '>BBBBBHHIB'
-            datastr = ''.join(list(map(chr, data[1:struct.calcsize(fmt) + 1])))
+    @staticmethod
+    def _decode_0x0a_packet(data):
+        """Decode a 0x0a Packet"""
+        errid = data[1] << 8 | data[2]
+        dlen = (data[3] << 8 | data[4]) * 4
+        print("                          Error ID : 0x%04x" % errid)
+        if dlen > 0:
+            print("                          Length   : 0x%04x" % dlen)
+            print("                          Payload  : %s" % (data[5:]))
 
-            (hour, minute, second, day, month, year,
-             offsetint, offsetfrac, status
-             ) = struct.unpack(fmt, bytes(datastr, 'Latin-1'))
+    @staticmethod
+    def _decode_0x06_packet(data):
+        """Decode a 0x06 Packet"""
+        nulidx = data.index(0)
+        print("SW Ver : %s" % ''.join([chr(x) for x in data[1:nulidx]]))
 
-            offset = offsetint + float(offsetfrac) / 1e9
-            print(("PPS : %04d/%02d/%02d %02d:%02d:%02d, " +
-                   "Offset : %.9f, Status : 0x%02x") %
-                  (year, month, day, hour, minute, second, offset, status))
+    @staticmethod
+    def _decode_0x02_packet(data):
+        """Decode a 0x02 Packet"""
+        fmt = '>iiihhhBBBhIB'
+        keys = ['xpos', 'ypos', 'zpos', 'xvel', 'yvel', 'zvel', 'mode1',
+                'hdop', 'mode2', 'gpsweek', 'gpstow', 'nsats']
+        datastr = ''.join([chr(x) for x in data[1:struct.calcsize(fmt) + 1]])
+        parsed = dict(zip(keys,
+                          struct.unpack(fmt, bytes(datastr, 'Latin-1'))))
 
-        elif data[0] == 0xa6:
-            print("Message rate : MID 0x%02x, rate 0x%02x" %
-                  (data[2], data[3]))
+        satprn = []
+        for i in range(parsed['nsats']):
+            satprn.append(data[struct.calcsize(fmt) - 1 + i])
+
+        print("Position: X: " +
+              "%d m, Y: %d m, Z: %d m" % (parsed['xpos'], parsed['ypos'],
+                                          parsed['zpos']))
+        print("Velocity: X: %.2f m/s, Y: %.2f m/s, Z: %.2f m/s" %
+              (float(parsed['xvel']) / 8,
+               float(parsed['yvel']) / 8,
+               float(parsed['zvel']) / 8))
+        print("HDOP: " +
+              "%.1f, Week: %d, TOW: %.2f seconds" %
+              (float(parsed['hdop']) / 5,
+               parsed['gpsweek'],
+               float(parsed['gpstow']) / 100))
 
 
 def read_sbn(filename):
-    with open(filename, 'rb') as f:
-        sbn = f.read()
-    p = Parser()
-    p.process(sbn)
-    return p
+    """Read a .SBN binary file and process it
+
+    Parameters
+    ----------
+    filename : string
+        Path to SBN file
+
+    Returns
+    -------
+    Parser
+        Pre-parsed Parser
+
+    """
+    with open(filename, 'rb') as file:
+        sbn = file.read()
+    parser = Parser()
+    parser.process(sbn)
+    return parser
+
+
+class FrameErrorException(Exception):
+    """Frame error"""
+    def __init__(self, cur_state, expected, actual):
+        super(FrameErrorException, self).__init__()
+        self.cur_state = cur_state
+        self.expected = expected
+        self.actual = actual
+
+
+class ChecksumErrorException(FrameErrorException):
+    """Data checksum error"""
+    pass

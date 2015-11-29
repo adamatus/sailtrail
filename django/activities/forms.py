@@ -1,3 +1,6 @@
+"""
+Activity form class
+"""
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
@@ -5,7 +8,7 @@ from multiupload.fields import MultiFileField
 
 from .models import Activity
 
-User = get_user_model()
+USER = get_user_model()
 
 ERROR_NO_UPLOAD_FILE_SELECTED = 'Please choose a file before clicking upload!'
 ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
@@ -14,6 +17,7 @@ ERROR_UNSUPPORTED_FILE_TYPE = 'Only GPX and SBN files are currently supported.'
 
 
 class UploadFileForm(forms.Form):
+    """Form for uploading files"""
     upfile = MultiFileField(
         min_num=1,
         max_num=24,
@@ -24,6 +28,7 @@ class UploadFileForm(forms.Form):
 
 
 class ActivityDetailsForm(forms.models.ModelForm):
+    """Form for activity details"""
 
     class Meta:
         model = Activity
@@ -49,8 +54,10 @@ class ActivityDetailsForm(forms.models.ModelForm):
 
 
 class NewUserForm(UserCreationForm):
+    """Form for new users"""
+
     email = forms.EmailField(label="Email", required=True)
 
     class Meta:
-        model = User
+        model = USER
         fields = ("username", "email")
