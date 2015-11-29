@@ -115,7 +115,7 @@ class TestNewActivityDetailView(TestCase):
 
     def test_new_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['form'],
+        self.assertIsInstance(response.context['detail_form'],
                               ActivityDetailsForm)
 
     def test_POST_to_new_view_redirects_to_activity(self):
@@ -173,7 +173,7 @@ class TestActivityDetailView(TestCase):
 
     def test_detail_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['form'],
+        self.assertIsInstance(response.context['detail_form'],
                               ActivityDetailsForm)
 
     def test_detail_view_shows_current_values(self):

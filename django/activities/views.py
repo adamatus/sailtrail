@@ -277,7 +277,8 @@ def details(request, activity_id):
 
     return render(request, 'activity_details.html', {'activity': activity,
                                                      'units': UNIT_SETTING,
-                                                     'form': form,
+                                                     'form': UploadFileForm(),
+                                                     'detail_form': form,
                                                      'cancel_link':
                                                      cancel_link})
 
