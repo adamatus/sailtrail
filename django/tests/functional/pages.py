@@ -1,10 +1,32 @@
 import os
 import time
 
+from selenium.common.exceptions import StaleElementReferenceException, \
+    NoSuchElementException
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 
 ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
+
+TIMEOUT = 3
+
+
+def wait_for(condition_function):
+    """Wait for function to evaluate as true.  Timeout after a while.
+
+    Parameters
+    ----------
+    condition_function : function
+
+    """
+    start_time = time.time()
+    while time.time() < start_time + TIMEOUT:
+        if condition_function():
+            return True
+        else:
+            time.sleep(0.1)
+    raise Exception('Timeout waiting for {}'.format(
+        condition_function.__name__))
 
 
 class BasePage(object):
@@ -16,25 +38,66 @@ class BasePage(object):
     def get_alerts(self):
         return self.browser.find_element_by_css_selector('.alert-danger').text
 
+    def get_all_alerts(self):
+        return self.browser.find_elements_by_css_selector('.alert-danger')
+
+    def is_alert_free(self):
+        try:
+            self.browser.find_element_by_css_selector('.alert-danger')
+            return False
+        except NoSuchElementException:
+            return True
+
+    def is_user_dropdown_present(self, username):
+        try:
+            link = self.browser.find_element_by_id('nav-user-dropdown-toggle')
+            print(link.text)
+            return username == link.text.strip()
+        except NoSuchElementException:
+            return False
+
     def get_page_content(self):
         return self.browser.find_element_by_tag_name('body').text
 
+    def click_through_to_new_page(self, elem):
+        body = self.browser.find_element_by_tag_name('body')
+        elem.click()
+
+        def link_has_gone_stale():
+            try:
+                body.find_elements_by_id('doesnt-matter')
+                return False
+            except StaleElementReferenceException:
+                return True
+
+        wait_for(link_has_gone_stale)
+
+    def enter_text_in_field_by_id(self, text, element_id):
+        field = self.browser.find_element_by_id(element_id)
+        field.clear()
+        field.send_keys(text)
+
     def logout(self):
-        self.browser.find_element_by_link_text("Logout").click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        logout_button = self.browser.find_element_by_link_text("Logout")
+        self.click_through_to_new_page(logout_button)
 
     def login(self):
         self.browser.find_element_by_link_text("Login").click()
 
     def upload_file(self, filename):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
         upload_box.send_keys(os.path.join(ASSET_PATH, filename))
+        print("About to click upload...")
         self.click_upload()
 
     def upload_without_file(self):
-        self.browser.find_element_by_id('upload-file-modal-btn').click()
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        self.browser.find_element_by_id('nav-upload-link').click()
         self.click_upload()
 
     def click_upload(self):
@@ -65,25 +128,46 @@ class HomePage(BasePage):
 class RegistrationPage(BasePage):
 
     def register(self, username):
-        field = self.browser.find_element_by_id('id_username')
-        field.send_keys(username)
-        field = self.browser.find_element_by_id('id_email')
-        field.send_keys('test@example.com')
-        field = self.browser.find_element_by_id('id_password1')
-        field.send_keys('password')
-        field = self.browser.find_element_by_id('id_password2')
-        field.send_keys('password')
-        self.browser.find_element_by_id('register-btn').click()
+        self.enter_username(username)
+        self.enter_email('test@example.com')
+        self.enter_password('password')
+        self.click_register()
+
+    def enter_username(self, username):
+        self.enter_text_in_field_by_id(username, 'id_username')
+
+    def enter_email(self, email):
+        self.enter_text_in_field_by_id(email, 'id_email')
+
+    def enter_password(self, password):
+        self.enter_password1(password)
+        self.enter_password2(password)
+
+    def enter_password1(self, password):
+        self.enter_text_in_field_by_id(password, 'id_password1')
+
+    def enter_password2(self, password):
+        self.enter_text_in_field_by_id(password, 'id_password2')
+
+    def click_register(self):
+        register_button = self.browser.find_element_by_id('register-btn')
+        self.click_through_to_new_page(register_button)
 
 
 class LoginPage(BasePage):
 
-    def login(self, username, password):
+    def login_as_user(self, username, password):
         field = self.browser.find_element_by_id('id_username')
+        field.clear()
         field.send_keys(username)
         field = self.browser.find_element_by_id('id_password')
+        field.clear()
         field.send_keys(password)
-        self.browser.find_element_by_id('login-btn').click()
+        self.click_login()
+
+    def click_login(self):
+        login_button = self.browser.find_element_by_id('login-btn')
+        self.click_through_to_new_page(login_button)
 
 
 class ActivityPage(BasePage):
@@ -118,7 +202,7 @@ class ActivityPage(BasePage):
         # Silly sleeps to deal with fade effect of modal
         time.sleep(.1)
         is_visible = self.browser.find_element_by_id(
-            'upload-modal').is_displayed()
+            'upload-track-modal').is_displayed()
         time.sleep(.1)
         return is_visible
 
@@ -134,8 +218,8 @@ class ActivityPage(BasePage):
 
 class ActivityDetailsPage(BasePage):
 
-    def enter_text(self, id, text):
-        field = self.browser.find_element_by_id(id)
+    def enter_text(self, element_id, text):
+        field = self.browser.find_element_by_id(element_id)
         field.clear()
         field.send_keys(text)
 
@@ -183,10 +267,10 @@ class ActivityTrackPage(BasePage):
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal
-        time.sleep(.1)
+        time.sleep(.5)
         is_visible = self.browser.find_element_by_id(
             'delete_modal').is_displayed()
-        time.sleep(.1)
+        time.sleep(.5)
         return is_visible
 
     def press_right_arrow(self):
@@ -205,4 +289,9 @@ class ActivityTrackPage(BasePage):
 
     def click_trim_activity(self):
         time.sleep(.5)
-        self.browser.find_element_by_id('trim-activity').click()
+        trim_button = self.browser.find_element_by_id('trim-activity')
+        self.click_through_to_new_page(trim_button)
+
+    def click_untrim(self):
+        untrim_button = self.browser.find_element_by_link_text('Untrim')
+        self.click_through_to_new_page(untrim_button)

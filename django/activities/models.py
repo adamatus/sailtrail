@@ -1,3 +1,4 @@
+"""Model mapping for activities"""
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -11,7 +12,7 @@ import pytz
 
 import os.path
 
-from activities import UNITS, units, DATETIME_FORMAT_STR
+from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 
 SAILING = 'SL'
 WINDSURFING = 'WS'
@@ -28,6 +29,7 @@ ACTIVITY_CHOICES = (
 
 
 class Activity(models.Model):
+    """Activity model"""
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     datetime = models.DateTimeField(null=True)
@@ -47,45 +49,53 @@ class Activity(models.Model):
         ordering = ['-datetime']
 
     @property
-    def end_time(self):
-        return self.track.last().trim_end.time()
-
-    @property
     def start_time(self):
+        """Get the start time for the activity"""
         return self.track.first().trim_start.time()
 
     @property
+    def end_time(self):
+        """Get the ending time for the activity"""
+        return self.track.last().trim_end.time()
+
+    @property
     def date(self):
+        """Get the start date for the activity"""
         return self.track.first().trim_start.date()
 
     @property
     def duration(self):
+        """Get the duration for the activity"""
         return (self.track.last().trim_end -
                 self.track.first().trim_start)
 
     @property
     def max_speed(self):
+        """Get the max speed for the activity"""
         if self.model_max_speed is None:
             pos = self.get_trackpoints()
             stats = Stats(pos)
             self.model_max_speed = stats.max_speed.magnitude
             self.save()
 
-        speed = (self.model_max_speed * units.m/units.s).to(UNITS['speed'])
+        speed = (self.model_max_speed * UNITS.m / UNITS.s).to(
+            UNIT_SETTING['speed'])
         return '{:~.2f}'.format(speed)
 
     @property
     def distance(self):
+        """Get the dirance for the activity"""
         if self.model_distance is None:
             pos = self.get_trackpoints()
             stats = Stats(pos)
             self.model_distance = stats.distance().magnitude
             self.save()
 
-        dist = (self.model_distance * units.m).to(UNITS['dist'])
+        dist = (self.model_distance * UNITS.m).to(UNIT_SETTING['dist'])
         return '{:~.2f}'.format(dist)
 
     def compute_stats(self):
+        """Compute the activity stats"""
         pos = self.get_trackpoints()
         stats = Stats(pos)
         self.model_distance = stats.distance().magnitude
@@ -94,18 +104,26 @@ class Activity(models.Model):
         self.save()
 
     def add_track(self, upfile):
+        """Add a new track to the activity
+
+        Parameters
+        ----------
+        upfile : file
+        """
         ActivityTrack.create_new(upfile, self)
 
     def get_trackpoints(self):
+        """Helper to return the trackpoints"""
         out = []
         for track in self.track.all().order_by("trim_start"):
             out.extend(
-                track.get_trackpoints()
-                     .values('sog', 'lat', 'lon', 'timepoint'))
+                track.get_trackpoints().values('sog', 'lat',
+                                               'lon', 'timepoint'))
         return out
 
 
 class ActivityTrack(models.Model):
+    """Activity Track model"""
     original_filename = models.CharField(max_length=255, null=False,
                                          blank=False)
     trim_start = models.DateTimeField(null=True, default=None)
@@ -118,6 +136,8 @@ class ActivityTrack(models.Model):
         ordering = ['trim_start']
 
     def initialize_stats(self):
+        """Initialize activity stats"""
+
         self.reset_trim()
 
         if self.activity_id.datetime is None:
@@ -128,7 +148,15 @@ class ActivityTrack(models.Model):
             self.activity_id.save()
 
     def trim(self, trim_start=-1, trim_end=-1):
-        """Trim the activity to the given time interval"""
+        """Trim the activity to the given time interval
+
+        Parameters
+        ----------
+        trim_start
+           The timepoint to start the trim at
+        trim_end
+           The timepoint to end the trim at
+        """
 
         do_save = False
 
@@ -159,6 +187,7 @@ class ActivityTrack(models.Model):
             self.activity_id.compute_stats()
 
     def reset_trim(self):
+        """Reset the track trim"""
         self.trim_start = self.trackpoint.first().timepoint
         self.trim_end = self.trackpoint.last().timepoint
         self.trimmed = False
@@ -166,12 +195,22 @@ class ActivityTrack(models.Model):
         self.activity_id.compute_stats()
 
     def get_trackpoints(self):
+        """Get sorted trackpoints for an activity"""
         return self.trackpoint.filter(
             timepoint__range=(self.trim_start, self.trim_end)
         ).order_by('timepoint')
 
     @staticmethod
     def create_new(upfile, activity_id):
+        """Create a new activity
+
+        Parameters
+        ----------
+        upfile : file
+            The file to upload
+        activity_id : int
+            The activity id
+        """
         track = ActivityTrack.objects.create(activity_id=activity_id,
                                              original_filename=upfile.name)
         _create_trackpoints(track, upfile)
@@ -180,6 +219,14 @@ class ActivityTrack(models.Model):
 
 
 def _create_trackpoints(track, upfile):
+    """Create trackpoints from file
+
+    Parameters
+    ----------
+    track : int
+    upfile : file
+
+    """
     filetype = os.path.splitext(upfile.name)[1][1:].upper()
 
     if filetype == 'SBN':
@@ -191,26 +238,41 @@ def _create_trackpoints(track, upfile):
 
 
 def _create_sbn_trackpoints(track, upfile):
-    d = Parser()
-    d.process(upfile.read())
-    d = [x for x in d.pktq
-         if x is not None and x['fixtype'] != 'none']  # filter out Nones
+    """Parse SBN trackpoints
+
+    Parameters
+    ----------
+    upfile : file
+    track : int
+    """
+    data = Parser()
+    data.process(upfile.read())
+    # filter out Nones
+    data = [x for x in data.pktq if x is not None and x['fixtype'] != 'none']
 
     insert = []
     app = insert.append  # cache append method for speed.. maybe?
-    for tp in d:
+    fmt = '%H:%M:%S %Y/%m/%d'
+    for track_point in data:
         app(ActivityTrackpoint(
-            lat=tp['latitude'],
-            lon=tp['longitude'],
-            sog=tp['sog'],
-            timepoint=dt.strptime('{} {}'.format(
-                tp['time'], tp['date']),
-                '%H:%M:%S %Y/%m/%d').replace(tzinfo=pytz.UTC),
+            lat=track_point['latitude'],
+            lon=track_point['longitude'],
+            sog=track_point['sog'],
+            timepoint=dt.strptime('{} {}'.format(track_point['time'],
+                                                 track_point['date']),
+                                  fmt).replace(tzinfo=pytz.UTC),
             track_id=track))
     ActivityTrackpoint.objects.bulk_create(insert)
 
 
 def _create_gpx_trackpoints(track, upfile):
+    """Parse GPX trackpoints
+
+    Parameters
+    ----------
+    track : int
+    upfile : file
+    """
     gpx = upfile.read().decode('utf-8')
     gpx = gpxpy.parse(gpx)
 
@@ -238,6 +300,7 @@ def _create_gpx_trackpoints(track, upfile):
 
 
 class ActivityTrackpoint(models.Model):
+    """Individual activity trackpoint"""
     timepoint = models.DateTimeField()
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees

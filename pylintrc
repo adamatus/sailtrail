@@ -1,0 +1,11 @@
+[MASTER]
+extension-pkg-whitelist=numpy
+
+# List of plugins (as comma separated values of python modules names) to load,
+# usually to register additional checkers.
+load-plugins=pylint_django
+
+# pylint can't really handle Django (static code analysis doesn't
+# do well with the ORM), so add all the ORM derived classes here,
+# and everything will be fine.
+generated-members=track,trackpoint

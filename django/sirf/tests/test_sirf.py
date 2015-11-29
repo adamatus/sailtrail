@@ -9,7 +9,7 @@ from sirf.stats import Stats
 
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         'test_assets')
+                         'assets')
 TEST_FILE = os.path.join(ASSET_DIR, 'test-small.sbn')
 
 # Read in the points for the testfile
@@ -31,7 +31,7 @@ class TestSirf:
 
     def test_reading_of_sirf_file(self):
         p = sirf.read_sbn(os.path.join(ASSET_DIR, 'test.sbn'))
-        assert p.rx_cnt == 679
+        assert p.counts['rx'] == 679
         assert p.pktq[1]['date'] == '2013/07/09'
         assert p.pktq[1]['time'] == '23:54:47'
         assert p.pktq[1]['fixtype'] == '4+-SV KF'

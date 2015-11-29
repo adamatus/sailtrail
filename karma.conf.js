@@ -19,7 +19,7 @@ module.exports = function(config) {
 
         // list of files to exclude
         exclude: [
-          '**/*.bundle.js',
+            '**/*.bundle.js',
         ],
 
 
@@ -35,7 +35,6 @@ module.exports = function(config) {
             debug: true,
             transform: [
                 'debowerify',
-                ['browserify-istanbul', {'ignore': ['**/*.spec', '**/bower_components/**']}],
             ],
         },
 
@@ -43,7 +42,7 @@ module.exports = function(config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['mocha', 'coverage'],
+        reporters: ['dots'],
 
 
         // coverage reporter configuration

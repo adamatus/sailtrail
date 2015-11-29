@@ -39,6 +39,41 @@ module.exports = function(grunt) {
             target: ['django/**/*.js', 'django/**/*.spec', '!**/*.bundle.js'],
         },
 
+        flake8: {
+            src: [
+                'django/**/*.py',
+                '!**/migrations/*.py',
+            ],
+        },
+
+        pylint: {
+            options: {
+                externalPylint: true,
+                rcfile: 'pylintrc',
+            },
+
+            activities: {
+                src: 'django/activities',
+                options: {
+                    ignore: ['migrations', 'tests'],
+                },
+            },
+
+            sirf: {
+                src: 'django/sirf',
+                options: {
+                    ignore: ['tests'],
+                },
+            },
+
+            tests: {
+                src: 'django/tests',
+                options: {
+                    disable: 'missing-docstring',
+                },
+            },
+        },
+
         watch: {
             sass: {
                 files: sasslist,
@@ -113,10 +148,19 @@ module.exports = function(grunt) {
             },
 
             jstest: {
+                options: {
+                    reporters: ['mocha', 'coverage'],
+                    browserify: {
+                        transform: [
+                            'debowerify',
+                            ['browserify-istanbul', {'ignore': ['**/*.spec', '**/bower_components/**']}],
+                        ],
+                    },
+                },
                 singleRun: true,
             },
 
-            'jstest-watch': {
+            jsdev: {
             },
         },
 
@@ -134,16 +178,16 @@ module.exports = function(grunt) {
                     cwd: 'django',
                 },
             },
+            pyfuncdev: {
+                command: 'py.test -f --lf --color=yes tests',
+            },
+            pyfunctest: {
+                command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
+            },
+            pydev: {
+                command: 'py.test -f --lf --color=yes activities',
+            },
             pytest: {
-                command: 'py.test -n 2 --color=yes --durations=5 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities sirf',
-            },
-            pyfunc: {
-                command: 'py.test --color=yes --durations=5 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
-            },
-            pywatch: {
-                command: 'py.test -f --lf --color=yes --durations=5 activities',
-            },
-            'pytest-verbose': {
                 command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities sirf',
             },
         },
@@ -158,19 +202,26 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-flake8');
+    grunt.loadNpmTasks('grunt-pylint');
     grunt.loadNpmTasks('grunt-shell');
 
     // Register tasks here
     grunt.registerTask('default', []);
 
-    grunt.registerTask('test', ['eslint', 'karma:jstest', 'shell:pytest', 'shell:pyfunc']);
-    grunt.registerTask('unittest', ['karma:jstest', 'shell:pytest']);
-    grunt.registerTask('functest', ['shell:pyfunc']);
-    grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
-    grunt.registerTask('pytest', ['shell:pytest']);
+    // TDD-Cycle watcher test tasks
+    grunt.registerTask('jsdev', ['karma:jsdev']);
+    grunt.registerTask('pydev', ['shell:pydev']);
+    grunt.registerTask('funcdev', ['shell:pyfuncdev']);
 
+    // Full code analysis tasks
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'flake8', 'pylint', 'shell:pytest', 'shell:pyfunctest']);
+    grunt.registerTask('unittest', ['karma:jstest', 'shell:pytest']);
+    grunt.registerTask('functest', ['shell:pyfunctest']);
+    grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
+    grunt.registerTask('pytest', ['flake8', 'pylint', 'shell:pytest']);
+
+    // Two tasks to run for interactive editing with livereload website
     grunt.registerTask('dev', ['browserify', 'watch']);
-    grunt.registerTask('jsdev', ['karma:jstest-watch']);
-    grunt.registerTask('pydev', ['shell:pywatch']);
     grunt.registerTask('runserver', ['django-manage:runserver']);
 };

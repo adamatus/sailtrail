@@ -1,3 +1,4 @@
+"""Routing for activity related pages"""
 from django.conf.urls import url
 
 from activities import views
