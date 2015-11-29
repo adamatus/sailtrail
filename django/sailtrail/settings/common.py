@@ -21,9 +21,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, '../../.uploads')
 SECRET_KEY = 'c9n93(^++p*%siz2#o_kkmwfq(k#%qcp_hu9dil7c%ppvpwclb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-TEMPLATE_DEBUG = False
+TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = [
     '.sailtrail.net',
@@ -69,10 +69,22 @@ LOGIN_REDIRECT_URL = '/'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, '../../../database/db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sailtrail',
+        'USER': 'sailTrail5QLRoot',
+        'PASSWORD': 'accidentbarefreshsurface',
+        'HOST': 'sailtrailpostgres.c7pplqgwazdn.us-west-2.rds.amazonaws.com',
+        'PORT': '5432'
     }
 }
+
+# Email
+
+EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
+EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'AKIAJIRS6B7SSKBGER2Q'
+EMAIL_HOST_PASSWORD = 'AvBdiWm8OHP0EWlrN20dn/F8fjkxGaUYki16nO40gKjj'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
