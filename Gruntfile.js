@@ -21,7 +21,7 @@ module.exports = function(grunt) {
                 tagName: 'v%VERSION%',
                 tagMessage: 'Version %VERSION%',
                 push: true,
-                pushTo: 'dev',
+                pushTo: 'origin',
                 gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
                 globalReplace: false,
             },
@@ -231,4 +231,6 @@ module.exports = function(grunt) {
     // Two tasks to run for interactive editing with livereload website
     grunt.registerTask('dev', ['browserify', 'watch']);
     grunt.registerTask('runserver', ['django-manage:runserver']);
+
+    grunt.registerTask('changelog', ['conventionalChangelog']);
 };

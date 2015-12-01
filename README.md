@@ -74,13 +74,13 @@ conjunction with the above task.)
 For a patch release:
 
     grunt bump-only
-    grunt conventionalChangelog
+    grunt changelog
     # Verify CHANGELOG.md looks good
     grunt bump-commit
 
 For a minor release:
 
     grunt bump-only:minor
-    grunt conventionalChangelog
+    grunt changelog
     # Verify CHANGELOG.md looks good, add release name to release
     grunt bump-commit
