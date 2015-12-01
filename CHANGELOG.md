@@ -1,3 +1,10 @@
+<a name="0.1.10"></a>
+## [0.1.10](https://github.com/adamatus/sailtrail/compare/v0.1.9...v0.1.10) (2015-12-01)
+
+### Features
+
+* Add sitemap.xml and robots.txt ([107184d](https://github.com/adamatus/sailtrail/commit/107184d))
+
 <a name="0.1.9"></a>
 ## [0.1.9](https://github.com/adamatus/sailtrail/compare/v0.1.8...v0.1.9) (2015-12-01)
 
