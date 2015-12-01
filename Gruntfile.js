@@ -13,10 +13,10 @@ module.exports = function(grunt) {
 
         bump: {
             options: {
-                files: ['package.json', 'bower.json'],
+                files: ['package.json', 'bower.json', 'django/activities/templates/components/footer.html'],
                 commit: true,
                 commitMessage: 'chore: Release v%VERSION%',
-                commitFiles: ['package.json', 'bower.json', 'CHANGELOG.md'],
+                commitFiles: ['package.json', 'bower.json', 'CHANGELOG.md', 'django/activities/templates/components/footer.html'],
                 createTag: true,
                 tagName: 'v%VERSION%',
                 tagMessage: 'Version %VERSION%',
