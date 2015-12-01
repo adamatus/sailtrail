@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sites',
+    'django.contrib.sitemaps',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -164,7 +165,7 @@ LOGGING = {
 
 GANALYTICS_TRACKING_CODE = 'UA-64530274-1'
 
-SITE_ID = 2
+SITE_ID = 3
 
 # ALLAUTH Settings
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
