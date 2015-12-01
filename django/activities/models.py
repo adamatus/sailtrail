@@ -1,6 +1,7 @@
 """Model mapping for activities"""
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from sirf.stats import Stats
 from sirf import Parser
@@ -47,6 +48,10 @@ class Activity(models.Model):
 
     class Meta:
         ordering = ['-datetime']
+
+    def get_absolute_url(self):
+        """Get the URL path for this activity"""
+        return reverse('activities.views.view', args=[str(self.id)])
 
     @property
     def start_time(self):
