@@ -2,7 +2,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
-
 from activities import views as activity_views
 from activities.sitemap import ActivitySitemap, LeaderboardSitemap, \
     UsersSitemap
@@ -26,6 +25,12 @@ urlpatterns = [
 
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
+
+    url(r'^robots\.txt$', TemplateView.as_view(
+        template_name='robots.txt',
+        content_type='text/plain'),
+        name='robots.txt',
+        ),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^djangojs/', include('djangojs.urls')),
