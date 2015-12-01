@@ -44,7 +44,7 @@ class UsersSitemap(SailtrailSitemap):
 
     def items(self):
         """Get items to appear in this sitemap section"""
-        return User.objects.filter(is_active=True)
+        return User.objects.filter(is_active=True, is_superuser=False)
 
     def location(self, obj):
         """Get location for these entries"""
