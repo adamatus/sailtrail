@@ -1,3 +1,14 @@
+<a name="0.1.9"></a>
+## [0.1.9](https://github.com/adamatus/sailtrail/compare/v0.1.8...v0.1.9) (2015-12-01)
+
+### Bug Fixes
+
+* FIx gruntfile changelog settings ([c674416](https://github.com/adamatus/sailtrail/commit/c674416))
+
+### Features
+
+* Add version to homepage ([80265a5](https://github.com/adamatus/sailtrail/commit/80265a5))
+
 <a name="0.1.8"></a>
 ## [0.1.8](https://github.com/adamatus/sailtrail/compare/v0.1.7...v0.1.8) (2015-11-29)
 
