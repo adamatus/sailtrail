@@ -60,14 +60,17 @@ on the console and an html report will be placed in .cover/python/func/index.htm
 
 ### Live Site Preview
 
-Run a watcher to automatically compile and bundle CSS and JS.
+Run a watcher to automatically compile and bundle CSS and JS, and start a 
+livereload server to monitor changes to any of those files.
+
 
     grunt dev
 
-Run a watcher to automatically reload live server on python changes (use in
-conjunction with the above task.)
+Run a watcher to automatically restart the django development server on
+any python changes, then (in conjunction with the above task) reload the
+browser via a livereload call.
 
-    grunt runserver
+    ./django/manage.py runserver
 
 ### Cut New Release
 

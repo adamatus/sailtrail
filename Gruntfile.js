@@ -106,49 +106,6 @@ module.exports = function(grunt) {
             },
         },
 
-        'django-manage': {
-            options: {
-                app: 'sailtrail',
-                manage_path: './django/',
-            },
-
-            test: {
-                options: {
-                    command: 'test',
-                    args: [
-                        'activities',
-                        'sirf',
-                        'tests',
-                    ],
-                },
-            },
-
-            unittest: {
-                options: {
-                    command: 'test',
-                    args: [
-                        'activities',
-                        'sirf',
-                    ],
-                },
-            },
-
-            functest: {
-                options: {
-                    command: 'test',
-                    args: [
-                        'tests',
-                    ],
-                },
-            },
-
-            runserver: {
-                options: {
-                    command: 'runlivereloadserver',
-                },
-            },
-        },
-
         karma: {
             options: {
                 configFile: 'karma.conf.js',
@@ -204,7 +161,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-bump');
     grunt.loadNpmTasks('grunt-conventional-changelog');
-    grunt.loadNpmTasks('grunt-contrib-django');
     grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-eslint');
