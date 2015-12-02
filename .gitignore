@@ -10,4 +10,5 @@ bower_components
 .uploads
 .cover
 .cache
+.sass-cache
 .database
