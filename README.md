@@ -87,3 +87,36 @@ For a minor release:
     grunt changelog
     # Verify CHANGELOG.md looks good, add release name to release
     grunt bump-commit
+
+## Deploy
+
+Log in to instance via SSH.
+
+Go to site directory (and activate virtualenv):
+
+    cd /home/ubuntu/sites/www.sailtrail.net/source
+    source ../virtualenv/bin/activate
+
+Stash the temporary settings change, pull changes, apply stashed change,
+and push a new tag to indicate what code in is prod:
+
+    git stash
+    git pull
+    git stash apply
+    git tag prod
+    git push -f origin prod
+
+Were there DB changes?
+
+    ./django/manage.py migrate
+
+Were the Javascript/CSS changs?
+
+    grunt browserify
+    grunt sass
+    ./django/maange.py collectstatic
+
+Restart the server
+
+    sudo restart gunicorn
+
