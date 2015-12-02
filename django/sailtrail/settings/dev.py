@@ -19,9 +19,15 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# LiveReload needs to go before 'django.contrib.staticfiles'
+INSTALLED_APPS = ('livereload',) + INSTALLED_APPS
+
 INSTALLED_APPS += (
-    'livereload',
     'debug_toolbar',
+)
+
+MIDDLEWARE_CLASSES += (
+    'livereload.middleware.LiveReloadScript',
 )
 
 DATABASES = {
