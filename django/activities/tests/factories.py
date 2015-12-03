@@ -1,13 +1,12 @@
-import factory
-from factory.fuzzy import FuzzyFloat
-
+from datetime import datetime
 from math import floor
 
-from activities.models import (Activity, ActivityTrack,
-                               ActivityTrackpoint)
+import factory
 from django.contrib.auth import get_user_model
+from factory.fuzzy import FuzzyFloat
 
-from datetime import datetime
+from api.models import (Activity, ActivityTrack,
+                        ActivityTrackpoint)
 
 User = get_user_model()
 

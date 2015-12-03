@@ -2,13 +2,13 @@ import os.path
 from datetime import datetime, time, date
 
 import pytest
-from pytz import timezone
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from pytz import timezone
 
-from activities.models import (Activity, ActivityTrack,
-                               ActivityTrackpoint, _create_trackpoints)
-from .factories import UserFactory, ActivityFactory
+from api.models import (Activity, ActivityTrack,
+                        ActivityTrackpoint, _create_trackpoints)
+from activities.tests.factories import UserFactory, ActivityFactory
 
 User = get_user_model()
 

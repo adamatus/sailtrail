@@ -1,11 +1,11 @@
 """
 Activity form class
 """
-from django import forms
 from django.contrib.auth import get_user_model
 from multiupload.fields import MultiFileField
 
-from .models import Activity
+from api.models import Activity
+from django import forms
 
 USER = get_user_model()
 

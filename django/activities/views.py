@@ -1,21 +1,21 @@
 """Activity view module"""
 import json
 
-from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
-from django.db.models import Q, Count, Max, Sum
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.core.exceptions import PermissionDenied
 import numpy as np
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.db.models import Q, Count, Max, Sum
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from .models import Activity, ActivityTrack, ACTIVITY_CHOICES
+from api.models import Activity, ActivityTrack, ACTIVITY_CHOICES
+from sirf.stats import Stats
 from .forms import (UploadFileForm, ActivityDetailsForm,
                     ERROR_NO_UPLOAD_FILE_SELECTED,
                     ERROR_UNSUPPORTED_FILE_TYPE)
-from sirf.stats import Stats
 
 USER = get_user_model()
 

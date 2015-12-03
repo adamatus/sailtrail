@@ -68,6 +68,7 @@ INSTALLED_APPS = (
     'djangojs',
     'core',
     'activities',
+    'api',
     'djangobower',
     'ganalytics',
 

@@ -2,7 +2,8 @@
 from django.contrib.auth.models import User
 from django.contrib.sitemaps import Sitemap
 from django.core.urlresolvers import reverse
-from .models import Activity
+
+from api.models import Activity
 
 
 class SailtrailSitemap(Sitemap):
