@@ -14,6 +14,7 @@ sitemaps = {'activities': ActivitySitemap,
 urlpatterns = [
     url(r'^$', activity_views.home_page, name='home'),
     url(r'^activities/', include('activities.urls')),
+    url(r'^api/', include('api.urls')),
     url(r'^about', TemplateView.as_view(
         template_name='about.html'),
         name='about'),

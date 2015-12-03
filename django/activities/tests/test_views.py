@@ -1,7 +1,5 @@
 import os.path
 
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -13,8 +11,6 @@ from core.forms import (UploadFileForm, ERROR_NO_UPLOAD_FILE_SELECTED)
 from api.models import Activity, ActivityTrack
 from .factories import (UserFactory, ActivityFactory, ActivityTrackFactory,
                         ActivityTrackpointFactory)
-
-User = get_user_model()
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
@@ -236,25 +232,6 @@ class TestActivityView(TestCase):
         response = self.client.get(reverse('view_activity', args=[1]))
         self.assertContains(response, 'Max Speed')
         self.assertContains(response, 'knots')
-
-
-class TestDeleteActivityView(TestCase):
-
-    def setUp(self):
-        self.user = UserFactory.create(username='test')
-        self.client.login(username='test', password='password')
-        Activity.objects.create(user=self.user)
-
-    def test_delete_redirects_to_homepage(self):
-        response = self.client.get(reverse('delete_activity',
-                                           args=[1]))
-        self.assertRedirects(response, '/')
-
-    def test_delete_removes_item_from_db(self):
-        self.client.get(reverse('delete_activity', args=[1]))
-        self.assertRaises(ObjectDoesNotExist,
-                          lambda: Activity.objects.get(id=1)
-                          )
 
 
 class TestLeaderboardView(TestCase):
