@@ -13,9 +13,10 @@ from django.shortcuts import render, redirect
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from api.models import Activity, ActivityTrack, ACTIVITY_CHOICES
 from sirf.stats import Stats
-from .forms import (UploadFileForm, ActivityDetailsForm,
-                    ERROR_NO_UPLOAD_FILE_SELECTED,
-                    ERROR_UNSUPPORTED_FILE_TYPE)
+from .forms import ActivityDetailsForm
+from core.forms import (UploadFileForm,
+                        ERROR_NO_UPLOAD_FILE_SELECTED,
+                        ERROR_UNSUPPORTED_FILE_TYPE)
 
 USER = get_user_model()
 

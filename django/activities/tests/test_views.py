@@ -6,10 +6,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from activities.forms import (UploadFileForm, ActivityDetailsForm,
-                              ERROR_NO_UPLOAD_FILE_SELECTED,
+from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
+from core.forms import (UploadFileForm, ERROR_NO_UPLOAD_FILE_SELECTED)
 from api.models import Activity, ActivityTrack
 from .factories import (UserFactory, ActivityFactory, ActivityTrackFactory,
                         ActivityTrackpointFactory)

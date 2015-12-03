@@ -72,6 +72,13 @@ module.exports = function(grunt) {
                 },
             },
 
+            core: {
+                src: 'django/core',
+                options: {
+                    ignore: ['migrations', 'tests'],
+                },
+            },
+
             sirf: {
                 src: 'django/sirf',
                 options: {
@@ -156,10 +163,10 @@ module.exports = function(grunt) {
                 command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
             },
             pydev: {
-                command: 'py.test -f --lf --color=yes activities api',
+                command: 'py.test -f --lf --color=yes activities api core',
             },
             pytest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities api sirf',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities api core sirf',
             },
         },
     });

@@ -3,9 +3,9 @@ from django.core import mail
 
 from selenium import webdriver
 
-from activities.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
-                              ERROR_ACTIVITY_NAME_MISSING,
-                              ERROR_UNSUPPORTED_FILE_TYPE)
+from activities.forms import ERROR_ACTIVITY_NAME_MISSING
+from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
+                        ERROR_UNSUPPORTED_FILE_TYPE)
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
                     RegistrationPage, LoginPage, ActivityTrackPage)
 
