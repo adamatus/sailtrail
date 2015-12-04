@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from api.models import Activity
-from activities.tests.factories import UserFactory
+from api.tests.factories import UserFactory
 
 
 class TestDeleteActivityView(TestCase):

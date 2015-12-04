@@ -1,7 +1,7 @@
 import pytest
 
 from activities.forms import ActivityDetailsForm
-from .factories import ActivityFactory
+from api.tests.factories import ActivityFactory
 
 
 @pytest.mark.django_db

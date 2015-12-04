@@ -7,10 +7,11 @@ from django.test import TestCase
 from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
-from core.forms import (UploadFileForm, ERROR_NO_UPLOAD_FILE_SELECTED)
 from api.models import Activity, ActivityTrack
-from .factories import (UserFactory, ActivityFactory, ActivityTrackFactory,
-                        ActivityTrackpointFactory)
+from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
+                                 ActivityTrackpointFactory)
+from core.forms import (UploadFileForm, ERROR_NO_UPLOAD_FILE_SELECTED)
+from users.tests.factories import UserFactory
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')

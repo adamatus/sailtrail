@@ -2,15 +2,13 @@ import os.path
 from datetime import datetime, time, date
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from pytz import timezone
 
 from api.models import (Activity, ActivityTrack,
                         ActivityTrackpoint, _create_trackpoints)
-from activities.tests.factories import UserFactory, ActivityFactory
-
-User = get_user_model()
+from api.tests.factories import ActivityFactory
+from users.tests.factories import UserFactory
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
