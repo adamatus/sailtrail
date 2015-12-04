@@ -58,33 +58,39 @@ module.exports = function(grunt) {
                 rcfile: 'pylintrc',
             },
 
-            activities: {
-                src: 'django/activities',
+            apps: {
+                src: [
+                    'django/activities',
+                    'django/api',
+                    'django/core',
+                    'django/sirf',
+                    'django/users',
+                ],
                 options: {
                     ignore: ['migrations', 'tests'],
                 },
             },
 
-            api: {
-                src: 'django/api',
-                options: {
-                    ignore: ['migrations', 'tests'],
-                },
-            },
-
-            core: {
-                src: 'django/core',
-                options: {
-                    ignore: ['migrations', 'tests'],
-                },
-            },
-
-            sirf: {
-                src: 'django/sirf',
-                options: {
-                    ignore: ['tests'],
-                },
-            },
+            //api: {
+            //    src: 'django/api',
+            //    options: {
+            //        ignore: ['migrations', 'tests'],
+            //    },
+            //},
+            //
+            //core: {
+            //    src: 'django/core',
+            //    options: {
+            //        ignore: ['migrations', 'tests'],
+            //    },
+            //},
+            //
+            //sirf: {
+            //    src: 'django/sirf',
+            //    options: {
+            //        ignore: ['tests'],
+            //    },
+            //},
 
             tests: {
                 src: 'django/tests',
@@ -163,10 +169,10 @@ module.exports = function(grunt) {
                 command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
             },
             pydev: {
-                command: 'py.test -f --lf --color=yes activities api core',
+                command: 'py.test -f --lf --color=yes activities api core sirf users',
             },
             pytest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities api core sirf',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities api core sirf users',
             },
         },
     });

@@ -65,10 +65,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'djangojs',
     'core',
     'activities',
     'api',
+    'users',
+
     'djangobower',
     'ganalytics',
 
