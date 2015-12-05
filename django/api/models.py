@@ -1,5 +1,6 @@
 """Model mapping for activities"""
 from django.db import models
+from django.db.models import Count, Max, Sum
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
@@ -311,3 +312,23 @@ class ActivityTrackpoint(models.Model):
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
     track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
+
+
+def get_users_activities(user, cur_user):
+    """Get list of activities, including private activities if current user"""
+    activities = Activity.objects.filter(
+        user__username=user.username)
+
+    # Filter out private activities if the user is not viewing themselves
+    if cur_user.username != user.username:
+        activities = activities.filter(private=False)
+
+    return activities
+
+
+def summarize_by_category(activities):
+    """Summarize activities by category"""
+    return activities.values('category').annotate(
+        count=Count('category'),
+        max_speed=Max('model_max_speed'),
+        total_dist=Sum('model_distance')).order_by('-max_speed')

@@ -1,68 +1,38 @@
 """Activity view module"""
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Max, Sum
-from django.shortcuts import render
-
-from api.models import Activity
-from core.forms import (UploadFileForm,
-                        ERROR_NO_UPLOAD_FILE_SELECTED,
-                        ERROR_UNSUPPORTED_FILE_TYPE)
-
-USER = get_user_model()
-
-ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
-              bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
+from django.views.generic import ListView, DetailView
+from api.models import get_users_activities, summarize_by_category
+from core.forms import UploadFileForm
 
 
-def user_page(request, username, form=None):
-    """
-    Individual user page view handler
+class UserView(DetailView):
+    """Individual user page view"""
+    model = get_user_model()
+    slug_field = 'username'
+    template_name = 'user.html'
+    context_object_name = 'view_user'
 
-    Parameters
-    ----------
-    request
-    username
-    form
+    def get_context_data(self, **kwargs):
+        """Add additional content to the user page"""
+        context = super(UserView, self).get_context_data(**kwargs)
 
-    Returns
-    -------
+        activities = get_users_activities(self.object,
+                                          self.request.user)
+        context['activities'] = activities
+        context['summaries'] = summarize_by_category(activities)
+        context['form'] = UploadFileForm()
 
-    """
-    if form is None:
-        form = UploadFileForm()
-
-    activities = Activity.objects.filter(user__username=username)
-
-    # Filter out private activities if the user is not viewing themselves
-    if request.user.username != username:
-        activities = activities.filter(private=False)
-
-    # Summarize activities by category
-    summary = activities.values('category').annotate(
-        count=Count('category'),
-        max_speed=Max('model_max_speed'),
-        total_dist=Sum('model_distance')).order_by('-max_speed')
-
-    return render(request, 'user.html',
-                  {'activities': activities,
-                   'username': username,
-                   'summaries': summary,
-                   'form': form})
+        return context
 
 
-def user_list(request, form=None):
-    """User list view handler.
+class UserListView(ListView):
+    """List of all users"""
+    model = get_user_model()
+    template_name = 'user_list.html'
+    context_object_name = 'users'
 
-    Parameters
-    ----------
-    request
-    form
-
-    Returns
-    -------
-
-    """
-    users = USER.objects.all()
-    return render(request, 'user_list.html',
-                  {'users': users,
-                   'form': form})
+    def get_context_data(self, **kwargs):
+        """Add additional data to user list context"""
+        context = super(UserListView, self).get_context_data(**kwargs)
+        context['form'] = UploadFileForm()
+        return context

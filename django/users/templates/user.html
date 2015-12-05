@@ -6,7 +6,7 @@
 {% load unit_conversions %}
       <div class="row">
         <div class="col-md-7">
-          <h2>Activity List for {{username}}</h2>
+          <h2>Activity List for {{view_user.username}}</h2>
           {% for activity in activities %}
           <div class='activity'>
             <h3><a href="/activities/{{ activity.id }}/">{{ activity.name }}</a>{% if activity.private %} <i>(Private)</i>{% endif %}</h3>
