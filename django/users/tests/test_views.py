@@ -3,7 +3,7 @@ from unittest.mock import patch, sentinel
 
 from django.test import RequestFactory
 
-from core.forms import UploadFileForm
+from core.views import UploadFormMixin
 from users.tests.factories import UserFactory
 from users.views import UserListView, UserView
 
@@ -35,17 +35,10 @@ class TestUserView(unittest.TestCase):
         self.assertEqual(context['activities'], sentinel.activity_query_set)
         self.assertEqual(context['summaries'], sentinel.summary)
 
-    def test_get_context_data_adds_form(self):
-        context = self.view.get_context_data()
-        self.assertIsInstance(context['form'], UploadFileForm)
+    def test_includes_upload_form_mixin(self):
+        self.assertIsInstance(self.view, UploadFormMixin)
 
 
 class TestUserListView(unittest.TestCase):
-
-    def test_context_data_adds_form(self):
-        view = UserListView()
-        view.object_list = []
-
-        context = view.get_context_data()
-
-        self.assertIsInstance(context['form'], UploadFileForm)
+    def test_includes_upload_form_mixin(self):
+        self.assertIsInstance(UserListView(), UploadFormMixin)

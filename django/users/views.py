@@ -1,11 +1,12 @@
 """Activity view module"""
 from django.contrib.auth import get_user_model
 from django.views.generic import ListView, DetailView
+
 from api.models import get_users_activities, summarize_by_category
-from core.forms import UploadFileForm
+from core.views import UploadFormMixin
 
 
-class UserView(DetailView):
+class UserView(UploadFormMixin, DetailView):
     """Individual user page view"""
     model = get_user_model()
     slug_field = 'username'
@@ -20,19 +21,12 @@ class UserView(DetailView):
                                           self.request.user)
         context['activities'] = activities
         context['summaries'] = summarize_by_category(activities)
-        context['form'] = UploadFileForm()
 
         return context
 
 
-class UserListView(ListView):
+class UserListView(UploadFormMixin, ListView):
     """List of all users"""
     model = get_user_model()
     template_name = 'user_list.html'
     context_object_name = 'users'
-
-    def get_context_data(self, **kwargs):
-        """Add additional data to user list context"""
-        context = super(UserListView, self).get_context_data(**kwargs)
-        context['form'] = UploadFileForm()
-        return context
