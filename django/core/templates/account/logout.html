@@ -15,10 +15,13 @@
             <form method="post" action="{% url 'account_logout' %}">
                 {% csrf_token %}
                 {% if redirect_field_value %}
-                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                    <input type="hidden" name="{{ redirect_field_name }}"
+                           value="{{ redirect_field_value }}"/>
                 {% endif %}
                 <div class="form-group">
-                    <button id="logout-btn" type="submit" class="btn btn-default">Sign Out</button>
+                    <button id="logout-btn" type="submit"
+                            class="btn btn-default">Sign Out
+                    </button>
                 </div>
             </form>
         </div>

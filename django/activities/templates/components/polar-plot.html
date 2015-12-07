@@ -1,10 +1,15 @@
 <div class="row">
-  <div id="polar-plot" class="col-xs-8"></div>
-  <div class="col-xs-4">
-    <p>Estimated Wind Direction</p>
-    <input id="manual-wind-dir" type="number"/ {% if not owner %}disabled{% endif %}>
-    <div class="checkbox">
-      <input id="polar-frame-of-ref" type="checkbox" data-toggle="toggle" data-on="Boat<br>Centered" data-off="World<br>Centered" data-onstyle="default" data-offstyle="default" data-size="small">
+    <div id="polar-plot" class="col-xs-8"></div>
+    <div class="col-xs-4">
+        <p>Estimated Wind Direction</p>
+        <input id="manual-wind-dir" type="number"
+               {% if not user == activity.user %}disabled{% endif %}/>
+
+        <div class="checkbox">
+            <input id="polar-frame-of-ref" type="checkbox" data-toggle="toggle"
+                   data-on="Boat<br>Centered" data-off="World<br>Centered"
+                   data-onstyle="default" data-offstyle="default"
+                   data-size="small">
+        </div>
     </div>
-  </div>
 </div>
