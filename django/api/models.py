@@ -1,6 +1,7 @@
 """Model mapping for activities"""
+from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.db.models import Count, Max, Sum
+from django.db.models import Count, Max, Sum, Q
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
@@ -52,7 +53,7 @@ class Activity(models.Model):
 
     def get_absolute_url(self):
         """Get the URL path for this activity"""
-        return reverse('activities.views.view', args=[str(self.id)])
+        return reverse('view_activity', args=[str(self.id)])
 
     @property
     def start_time(self):
@@ -332,3 +333,39 @@ def summarize_by_category(activities):
         count=Count('category'),
         max_speed=Max('model_max_speed'),
         total_dist=Sum('model_distance')).order_by('-max_speed')
+
+
+def get_leaders():
+    """Build list of leaders for the leaderboard"""
+    leader_list = Activity.objects.filter(private=False).values(
+        'user__username', 'category').annotate(
+            max_speed=Max('model_max_speed')).order_by('-max_speed')
+
+    leaders = []
+
+    for key, category in ACTIVITY_CHOICES:
+        values = [x for x in leader_list if x['category'] == key]
+        if len(values) > 0:
+            leaders.append({'category': category, 'leaders': values})
+
+    return leaders
+
+
+def get_activities(cur_user):
+    """Get activities, include current users private activities"""
+    activities = Activity.objects.exclude(name__isnull=True)
+
+    # Remove private activities for all but the current user
+    return activities.exclude(
+        ~Q(user__username=cur_user.username), private=True)
+
+
+def verify_private_owner(activity, request):
+    """Helper to verify private ownership"""
+
+    # Convert track to activity, if necessary
+    if isinstance(activity, ActivityTrack):
+        activity = activity.activity_id
+
+    if activity.private and request.user != activity.user:
+        raise PermissionDenied

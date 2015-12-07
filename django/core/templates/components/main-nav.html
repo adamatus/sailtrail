@@ -22,8 +22,10 @@
               <ul class="dropdown-menu" role="menu">
                 <li><a href="{% url "user" user.username %}">My activities</a></li>
                 <li><a href="#">My settings</a></li>
+                  {%  if upload_form %}
                 <li class="divider"></li>
                 <li><a id="nav-upload-link" href="#" data-toggle="modal" data-target="#upload-modal">Upload new activity</a></li>
+                  {% endif %}
                 <li class="divider"></li>
                 <li><a href="{% url 'account_logout' %}">Logout</a></li>
               </ul>

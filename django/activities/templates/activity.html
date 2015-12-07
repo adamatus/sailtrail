@@ -34,18 +34,18 @@
 		{% if activity.private %}
 		<p><i>This activity is currently private</i></p>
 		{% endif %}
-		{% if owner %}
+		{% if user == activity.user %}
 			<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
 			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete</button>
 		  {% url "delete_activity" activity.id as delete_url %}
 		  {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
 			<button id="upload-file-modal-btn" type="submit" class="btn btn-default" data-toggle="modal" data-target="#upload-track-modal">Add Track</button>
-			{% url "upload_track" activity.id as upload_url %}
+			{% url "upload_track" activity_id=activity.id as upload_url %}
 			{% include 'components/upload-modal.html' with modal_id="upload-track-modal" header="Add track to this activity" action=upload_url %}
 		{% endif %}
 		{% include 'components/track-map-and-plot.html' %}
 
-		{% if owner %}
+        {% if user == activity.user %}
     <h4>Activity Track Segments</h3>
 		<ul>
 			{% for track in activity.track.all %}

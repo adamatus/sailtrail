@@ -10,11 +10,10 @@ from activities.forms import (ActivityDetailsForm,
 from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
                                  ActivityTrackpointFactory)
-from core.forms import (UploadFileForm, ERROR_NO_UPLOAD_FILE_SELECTED)
+from core.forms import UploadFileForm
 from users.tests.factories import UserFactory
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__),
-                          'assets')
+ASSET_PATH = os.path.join(os.path.dirname(__file__), 'assets')
 
 with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
@@ -28,7 +27,7 @@ class TestHomepageView(TestCase):
 
     def test_homepage_uses_upload_form(self):
         response = self.client.get('/')
-        self.assertIsInstance(response.context['form'],
+        self.assertIsInstance(response.context['upload_form'],
                               UploadFileForm)
 
     def test_home_page_shows_existing_activities(self):
@@ -86,14 +85,6 @@ class TestFileUploadView(TestCase):
                              reverse('details',
                                      args=[1]))
 
-    def test_GET_request_renders_homepage(self):
-        response = self.client.get(reverse('upload'))
-        self.assertTemplateUsed(response, 'home.html')
-
-    def test_POST_without_file_displays_error(self):
-        response = self.client.post(reverse('upload'))
-        self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
-
 
 class TestNewActivityDetailView(TestCase):
 
@@ -111,7 +102,7 @@ class TestNewActivityDetailView(TestCase):
 
     def test_new_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['detail_form'],
+        self.assertIsInstance(response.context['form'],
                               ActivityDetailsForm)
 
     def test_POST_to_new_view_redirects_to_activity(self):
@@ -169,7 +160,7 @@ class TestActivityDetailView(TestCase):
 
     def test_detail_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['detail_form'],
+        self.assertIsInstance(response.context['form'],
                               ActivityDetailsForm)
 
     def test_detail_view_shows_current_values(self):

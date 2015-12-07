@@ -9,9 +9,9 @@
 				</div>
 				<div class="modal-body">
           <p>Currently supported formats: SBN, GPX</p>
-					{{ form.title }}
-					{{ form.upfile }}
-					{{ form.activity }}
+					{{ upload_form.title }}
+					{{ upload_form.upfile }}
+					{{ upload_form.activity }}
 					{% csrf_token %}
 				</div>
 				<div class="modal-footer">

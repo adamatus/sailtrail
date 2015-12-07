@@ -1,13 +1,14 @@
 """Activity view module"""
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Max
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
+from django.views.generic import TemplateView, DetailView, UpdateView, View
 
-from activities import UNIT_SETTING
-from api.models import Activity, ActivityTrack, ACTIVITY_CHOICES
 from .forms import ActivityDetailsForm
+from activities import UNIT_SETTING
+from api.models import Activity, ActivityTrack, get_leaders, get_activities, \
+    verify_private_owner
+from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
                         ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
@@ -16,252 +17,112 @@ ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
-def get_leaders():
-    """GET request to the leaderboard"""
-    leader_list = Activity.objects.filter(private=False).values(
-        'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
+class HomePageView(UploadFormMixin, TemplateView):
+    """ Handle requests for home page"""
+    template_name = 'home.html'
 
-    leaders = []
-
-    for key, category in ACTIVITY_CHOICES:
-        values = [x for x in leader_list if x['category'] == key]
-        if len(values) > 0:
-            leaders.append({'category': category, 'leaders': values})
-
-    return leaders
+    def get_context_data(self, **kwargs):
+        """Update the context with addition homepage data"""
+        context = super(HomePageView, self).get_context_data(**kwargs)
+        context['activities'] = get_activities(self.request.user)
+        context['leaders'] = get_leaders()
+        context['val_errors'] = ERRORS
+        return context
 
 
-def home_page(request, form=None):
-    """ Handle requests for home page
-    Parameters
-    ----------
-    request
-    form
+class LeaderboardView(UploadFormMixin, TemplateView):
+    """Leaderboard view"""
+    template_name = 'leaderboards.html'
 
-    Returns
-    -------
-
-    """
-    if form is None:
-        form = UploadFileForm()
-
-    activities = Activity.objects.exclude(name__isnull=True)
-
-    # Remove private activities for all but the current user
-    activities = activities.exclude(
-        ~Q(user__username=request.user.username), private=True)
-
-    return render(request, 'home.html',
-                  {'activities': activities,
-                   'form': form,
-                   'leaders': get_leaders(),
-                   'val_errors': ERRORS})
+    def get_context_data(self, **kwargs):
+        """Update the context with leaders"""
+        context = super(LeaderboardView, self).get_context_data(**kwargs)
+        context['leaders'] = get_leaders()
+        return context
 
 
-def leaderboards(request):
-    """
-    Leaderboard view handler
+class UploadView(View):
+    """Upload view"""
 
-    Parameters
-    ----------
-    request
-
-    Returns
-    -------
-
-    """
-    return render(request, 'leaderboards.html', {'leaders': get_leaders()})
-
-
-def activity_list(request, form=None):
-    """
-    Activity list view handler
-
-    Parameters
-    ----------
-    request
-    form
-
-    Returns
-    -------
-
-    """
-    return home_page(request, form)
-
-
-@login_required
-def upload(request):
-    """Upload handler
-
-    Parameters
-    ----------
-    request
-
-    Returns
-    -------
-
-    """
-    if request.method == 'POST':
+    def post(self, request):
+        """Handle post request"""
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             activity = Activity.objects.create(user=request.user)
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
             return redirect('details', activity.id)
-    else:
-        form = UploadFileForm()
-
-    return home_page(request, form=form)
+        else:
+            raise SuspiciousOperation
 
 
-@login_required
-def upload_track(request, activity_id):
-    """Upload track handler
+class UploadTrackView(View):
+    """Upload track view"""
 
-    Parameters
-    ----------
-    request
-    activity_id
+    def post(self, request, activity_id):
+        """Handle post request"""
+        activity = Activity.objects.get(id=activity_id)
 
-    Returns
-    -------
+        # Check to see if current user owns this activity, if not 403
+        if request.user != activity.user:
+            raise PermissionDenied
 
-    """
-
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user owns this activity, if not 403
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
-            return redirect('view_activity', activity.id)
-    else:
-        form = UploadFileForm()
-
-    return view(request, activity_id, form=form)
-
-
-@login_required
-def details(request, activity_id):
-    """ Activity detail view handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-
-    # Only allow the owner of the activity to access details
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    cancel_link = reverse('view_activity', args=[activity.id])
-
-    if request.method == 'POST':
-        request.POST['activity_id'] = activity_id
-        form = ActivityDetailsForm(request.POST, instance=activity)
-        if form.is_valid():
-            form.save()
-            return redirect('view_activity', activity.id)
+            return redirect('view_activity', pk=activity.id)
         else:
-            if activity.name is None:
-                cancel_link = reverse('delete_activity', args=[activity.id])
-
-    else:
-        form = ActivityDetailsForm(instance=activity)
-        if activity.name is None:
-            cancel_link = reverse('delete_activity', args=[activity.id])
-            activity.compute_stats()
-
-    return render(request, 'activity_details.html', {'activity': activity,
-                                                     'units': UNIT_SETTING,
-                                                     'form': UploadFileForm(),
-                                                     'detail_form': form,
-                                                     'cancel_link':
-                                                     cancel_link})
+            raise SuspiciousOperation
 
 
-def verify_private_owner(activity, request):
-    """Helper to verify private ownership
+class DetailsView(UpdateView):
+    """Activity details updating view"""
+    model = Activity
+    template_name = 'activity_details.html'
+    form_class = ActivityDetailsForm
 
-    Parameters
-    ----------
-    activity
-    request
-    """
-    if activity.private and request.user != activity.user:
-        raise PermissionDenied
+    def get_object(self, queryset=None):
+        """Get activity, only allowing owner to see private activities"""
+        activity = super().get_object(queryset)
+        if self.request.user != activity.user:
+            raise PermissionDenied
+        return activity
 
-
-def view(request, activity_id, form=None):
-    """Activity view handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    form
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(activity, request)
-
-    if form is None:
-        form = UploadFileForm()
-
-    return render(request,
-                  'activity.html',
-                  {'activity': activity,
-                   'units': UNIT_SETTING,
-                   'form': form,
-                   'val_errors': ERRORS,
-                   'owner': request.user == activity.user})
+    def get_context_data(self, **kwargs):
+        """Add additional content to the user page"""
+        context = super(DetailsView, self).get_context_data(**kwargs)
+        if self.object.name is None:
+            cancel_link = reverse('delete_activity', args=[self.object.id])
+        else:
+            cancel_link = reverse('view_activity', args=[self.object.id])
+        context['cancel_link'] = cancel_link
+        context['units'] = UNIT_SETTING
+        return context
 
 
-def view_track(request, activity_id, track_id, form=None):
-    """Track view handler
+class ActivityView(UploadFormMixin, DetailView):
+    """Activity view"""
+    model = Activity
+    template_name = 'activity.html'
+    context_object_name = 'activity'
 
-    Parameters
-    ----------
-    activity_id
-    request
-    track_id
-    form
+    def get_object(self, queryset=None):
+        """Get activity, only allowing owner to see private activities"""
+        activity = super().get_object(queryset)
+        verify_private_owner(activity, self.request)
+        return activity
 
-    Returns
-    -------
-    """
-    del activity_id  # delete activity_id as it is not attached to track
+    def get_context_data(self, **kwargs):
+        """Add additional content to the user page"""
+        context = super(ActivityView, self).get_context_data(**kwargs)
+        context['val_errors'] = ERRORS
+        context['units'] = UNIT_SETTING
+        return context
 
-    track = ActivityTrack.objects.get(id=track_id)
 
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(track.activity_id, request)
-
-    if form is None:
-        form = UploadFileForm()
-
-    return render(request,
-                  'track.html',
-                  {'track': track,
-                   'activity': track.activity_id,
-                   'units': UNIT_SETTING,
-                   'trimmed': track.trimmed,
-                   'val_errors': ERRORS,
-                   'form': form})
+class ActivityTrackView(ActivityView):
+    """Activity Track view"""
+    model = ActivityTrack
+    template_name = 'track.html'
+    context_object_name = 'track'

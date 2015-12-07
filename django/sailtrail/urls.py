@@ -2,9 +2,9 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
-from activities import views as activity_views
 from activities.sitemap import ActivitySitemap, LeaderboardSitemap, \
     UsersSitemap
+from activities.views import HomePageView
 
 sitemaps = {'activities': ActivitySitemap,
             'leaderboards': LeaderboardSitemap,
@@ -12,7 +12,7 @@ sitemaps = {'activities': ActivitySitemap,
             }
 
 urlpatterns = [
-    url(r'^$', activity_views.home_page, name='home'),
+    url(r'^$', HomePageView.as_view(), name='home'),
 
     url(r'^activities/', include('activities.urls')),
     url(r'^api/', include('api.urls')),

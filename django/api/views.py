@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from api.models import Activity, ActivityTrack
+from api.models import Activity, ActivityTrack, verify_private_owner
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
@@ -47,18 +47,6 @@ def wind_direction(request, activity_id):
     return HttpResponse(
         json.dumps(dict(wind_direction=activity.wind_direction)),
         content_type="application/json")
-
-
-def verify_private_owner(activity, request):
-    """Helper to verify private ownership
-
-    Parameters
-    ----------
-    activity
-    request
-    """
-    if activity.private and request.user != activity.user:
-        raise PermissionDenied
 
 
 def activity_json(request, activity_id):

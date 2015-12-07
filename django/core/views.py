@@ -9,5 +9,5 @@ class UploadFormMixin(object):
     def get_context_data(self, **kwargs):
         """Add additional data to user list context"""
         context = super(UploadFormMixin, self).get_context_data(**kwargs)
-        context['form'] = UploadFileForm()
+        context['upload_form'] = UploadFileForm()
         return context

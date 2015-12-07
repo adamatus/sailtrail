@@ -24,12 +24,12 @@
 			</div>
 			<div class="col-md-6" style="padding-top: 1em;">
       {% include 'components/speed-plot.html' %}
-				{% if trimmed %}
-				<a href="{% url 'untrim_track' activity.id track.id %}" class="btn btn-default">Untrim</a>
+				{% if track.trimmed %}
+				<a href="{% url 'untrim_track' track.activity_id.id track.id %}" class="btn btn-default">Untrim</a>
 				{% else %}
 				<button class="btn btn-default" id="trim-start">Trim Start</button>
 				<button class="btn btn-default" id="trim-end">Trim End</button>
-				<form role="form" action="{% url 'trim_track' activity.id track.id %}" method="POST">
+				<form role="form" action="{% url 'trim_track' track.activity_id.id track.id %}" method="POST">
 
 
 					<input type="hidden" id="input-trim-start" name="trim-start" value='-1'>
@@ -45,10 +45,10 @@
 {% block extra_bottom_js %}
 	{% js 'activities/activity_viewer.bundle.js' %}
 		<script>
-var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
-    wind_direction = "{{ activity.wind_direction }}" == "None" ? null : +"{{activity.wind_direction}}",
+var max_speed = +"{{ track.activity_id.max_speed }}".split(' ')[0],
+    wind_direction = "{{ track.activity_id.wind_direction }}" == "None" ? null : +"{{track.activity_id.wind_direction}}",
 		units = {{ units|safe }},
-		json_url = "{% url 'track_json' activity.id track.id %}";
+		json_url = "{% url 'track_json' track.activity_id.id track.id %}";
 
 activity_viewer.init(json_url, max_speed, wind_direction, units);
 		</script>

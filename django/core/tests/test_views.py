@@ -1,6 +1,6 @@
 import unittest
 
-from django.views.generic import View, TemplateView
+from django.views.generic import TemplateView
 
 from core.forms import UploadFileForm
 from core.views import UploadFormMixin
@@ -16,4 +16,4 @@ class TestUploadFormMixing(unittest.TestCase):
         view = self.DummyView()
         context = view.get_context_data()
 
-        self.assertIsInstance(context['form'], UploadFileForm)
+        self.assertIsInstance(context['upload_form'], UploadFileForm)

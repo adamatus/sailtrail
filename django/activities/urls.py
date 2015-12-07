@@ -1,16 +1,24 @@
 """Routing for activity related pages"""
 from django.conf.urls import url
+from django.contrib.auth.decorators import login_required
 
 from activities import views
 
 urlpatterns = [
-    url(r'^$', views.activity_list, name='activity_list'),
-    url(r'^leaderboards$', views.leaderboards, name='leaderboards'),
-    url(r'^upload$', views.upload, name='upload'),
+    url(r'^$', views.HomePageView.as_view(), name='activity_list'),
+    url(r'^leaderboards$', views.LeaderboardView.as_view(),
+        name='leaderboards'),
+    url(r'^upload$', login_required(views.UploadView.as_view()),
+        name='upload'),
 
-    url(r'(\d+)/tracks/(\d+)/$', views.view_track, name="view_track"),
-    url(r'(\d+)/tracks/upload$', views.upload_track, name='upload_track'),
+    url(r'(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/$',
+        views.ActivityTrackView.as_view(),
+        name="view_track"),
+    url(r'(?P<activity_id>\d+)/tracks/upload$',
+        views.UploadTrackView.as_view(),
+        name='upload_track'),
 
-    url(r'(\d+)/details/$', views.details, name='details'),
-    url(r'(\d+)/$', views.view, name='view_activity'),
+    url(r'(?P<pk>\d+)/details/$', login_required(views.DetailsView.as_view()),
+        name='details'),
+    url(r'(?P<pk>\d+)/$', views.ActivityView.as_view(), name='view_activity'),
 ]
