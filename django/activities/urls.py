@@ -6,8 +6,6 @@ from activities import views
 
 urlpatterns = [
     url(r'^$', views.HomePageView.as_view(), name='activity_list'),
-    url(r'^leaderboards$', views.LeaderboardView.as_view(),
-        name='leaderboards'),
     url(r'^upload$', login_required(views.UploadView.as_view()),
         name='upload'),
 

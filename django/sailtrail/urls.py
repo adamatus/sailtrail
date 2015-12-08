@@ -16,6 +16,7 @@ urlpatterns = [
 
     url(r'^activities/', include('activities.urls')),
     url(r'^api/', include('api.urls')),
+    url(r'^leaderboards/', include('leaders.urls')),
     url(r'^users/', include('users.urls')),
 
     url(r'^accounts/', include('allauth.urls')),
