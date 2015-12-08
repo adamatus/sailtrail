@@ -11,13 +11,31 @@ alpha-500, upwind/downwind performance, tack angles, and more!
 
 ### Setup
 
-    mkdir source
+The recommended setup relies on pyenv (and pyenv-virtualenv), brew, and npm.  From a new base
+project directory (e.g., sailtrail), use the following to begin development.
+
     mkdir database
     mkdir static
+    pyenv install 3.4.3
+    pyenv virtualenv 3.4.3 sailtrail
+    pyenv local sailtrail
     git clone ssh://repo source
     cd source
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    pip install -r dev-requirements.txt
     npm install
+    brew install chromedriver
     ./node_modules/.bin/bower install
+
+Test the installation by running the following:
+
+    grunt test
+
+If functional tests fail because something else is using the default port, use the following to
+provide a range for the test runner to try:
+
+    export DJANGO_LIVE_TEST_SERVER_ADDRESS="localhost:8000-8010,8080,9200-9300"
 
 ### TDD Cycle
 
