@@ -53,6 +53,11 @@ on the console and an html report will be placed in .cover/python/unit/index.htm
 
     grunt pytest
 
+Run all integration tests with coverage and timing. Coverage will be printed
+on the console and an html report will be placed in .cover/python/int/index.html
+
+    grunt inttest
+
 Run all functional tests with coverage and timing. Coverage will be printed
 on the console and an html report will be placed in .cover/python/func/index.html
 

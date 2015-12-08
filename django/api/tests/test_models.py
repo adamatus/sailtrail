@@ -33,7 +33,8 @@ def my_round(num, places=3):
 
 
 @pytest.mark.django_db
-class TestActivityModel:
+@pytest.mark.integration
+class TestActivityModelIntegration:
 
     def test_fields_exist_as_expected(self):
         a = Activity(user=UserFactory.create())
@@ -83,7 +84,8 @@ def activity_track():
 
 
 @pytest.mark.django_db
-class TestActivityTrackModel:
+@pytest.mark.integration
+class TestActivityTrackModelIntegration:
 
     def test_model_ordering_on_dates_with_most_last_first(self):
         files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
@@ -163,7 +165,8 @@ class TestActivityTrackModel:
 
 
 @pytest.mark.django_db
-class TestIntegrationOfActivityModels:
+@pytest.mark.integration
+class TestIntegrationOfActivityModelsIntegration:
 
     def test_upload_sbn_creates_trackpoints(self):
         test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)

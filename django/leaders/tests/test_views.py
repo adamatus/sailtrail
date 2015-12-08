@@ -1,3 +1,5 @@
+import pytest
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -5,7 +7,8 @@ from api.tests.factories import ActivityFactory
 from users.tests.factories import UserFactory
 
 
-class TestLeaderboardView(TestCase):
+@pytest.mark.integration
+class TestLeaderboardViewIntegration(TestCase):
 
     def setUp(self):
         self.user1 = UserFactory.create(username='test1')

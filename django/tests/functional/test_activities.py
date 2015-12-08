@@ -1,3 +1,5 @@
+import pytest
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core import mail
 
@@ -10,6 +12,7 @@ from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
                     RegistrationPage, LoginPage, ActivityTrackPage)
 
 
+@pytest.mark.functional
 class ActivitiesTest(StaticLiveServerTestCase):
     fixtures = ['two-users-no-data.json']
 

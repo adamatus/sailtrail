@@ -1,4 +1,5 @@
 import os.path
+import pytest
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
@@ -19,14 +20,15 @@ with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
 
 
-class TestHomepageView(TestCase):
+@pytest.mark.integration
+class TestHomepageViewIntegration(TestCase):
 
     def test_home_page_renders_home_template(self):
-        response = self.client.get('/')
+        response = self.client.get(reverse('home'))
         self.assertTemplateUsed(response, 'home.html')
 
     def test_homepage_uses_upload_form(self):
-        response = self.client.get('/')
+        response = self.client.get(reverse('home'))
         self.assertIsInstance(response.context['upload_form'],
                               UploadFileForm)
 
@@ -42,7 +44,7 @@ class TestHomepageView(TestCase):
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
 
-        response = self.client.get('/')
+        response = self.client.get(reverse('home'))
         self.assertContains(response, 'First snowkite of the season')
         self.assertContains(response, 'Snowkite lesson:')
 
@@ -53,10 +55,11 @@ class TestHomepageView(TestCase):
             activity_id=a
         )
 
-        response = self.client.get('/')
+        response = self.client.get(reverse('home'))
         self.assertNotContains(response, '></a>')
 
 
+@pytest.mark.integration
 class TestFileUploadView(TestCase):
 
     def setUp(self):
@@ -86,7 +89,8 @@ class TestFileUploadView(TestCase):
                                      args=[1]))
 
 
-class TestNewActivityDetailView(TestCase):
+@pytest.mark.integration
+class TestNewActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
@@ -144,7 +148,8 @@ class TestNewActivityDetailView(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_CATEGORY_MISSING)
 
 
-class TestActivityDetailView(TestCase):
+@pytest.mark.integration
+class TestActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
@@ -198,7 +203,8 @@ class TestActivityDetailView(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
 
 
-class TestActivityView(TestCase):
+@pytest.mark.integration
+class TestActivityViewIntegration(TestCase):
 
     def setUp(self):
         a = ActivityFactory.create(

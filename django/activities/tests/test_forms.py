@@ -5,7 +5,8 @@ from api.tests.factories import ActivityFactory
 
 
 @pytest.mark.django_db
-class TestActivityDetailsForm:
+@pytest.mark.integration
+class TestActivityDetailsFormIntegration:
 
     def test_form_renders_correct_fields(self):
         form = ActivityDetailsForm()
