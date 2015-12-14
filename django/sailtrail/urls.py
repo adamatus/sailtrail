@@ -2,9 +2,11 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
-from activities.sitemap import ActivitySitemap, LeaderboardSitemap, \
-    UsersSitemap
+
+from activities.sitemap import ActivitySitemap
 from activities.views import HomePageView
+from leaders.sitemap import LeaderboardSitemap
+from users.sitemap import UsersSitemap
 
 sitemaps = {'activities': ActivitySitemap,
             'leaderboards': LeaderboardSitemap,
