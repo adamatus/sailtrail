@@ -315,57 +315,63 @@ class ActivityTrackpoint(models.Model):
     track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
 
 
-def get_users_activities(user, cur_user):
-    """Get list of activities, including private activities if current user"""
-    activities = Activity.objects.filter(
-        user__username=user.username)
+class Helper(object):
+    """Helper methods to access model objects
 
-    # Filter out private activities if the user is not viewing themselves
-    if cur_user.username != user.username:
-        activities = activities.filter(private=False)
+    Methods to perform queries, etc. Easy to mock"""
 
-    return activities
+    @staticmethod
+    def get_users_activities(user, cur_user):
+        """Get list of activities, including private activities if cur user"""
+        activities = Activity.objects.filter(
+            user__username=user.username)
 
+        # Filter out private activities if the user is not viewing themselves
+        if cur_user.username != user.username:
+            activities = activities.filter(private=False)
 
-def summarize_by_category(activities):
-    """Summarize activities by category"""
-    return activities.values('category').annotate(
-        count=Count('category'),
-        max_speed=Max('model_max_speed'),
-        total_dist=Sum('model_distance')).order_by('-max_speed')
+        return activities
 
+    @staticmethod
+    def summarize_by_category(activities):
+        """Summarize activities by category"""
+        return activities.values('category').annotate(
+            count=Count('category'),
+            max_speed=Max('model_max_speed'),
+            total_dist=Sum('model_distance')).order_by('-max_speed')
 
-def get_leaders():
-    """Build list of leaders for the leaderboard"""
-    leader_list = Activity.objects.filter(private=False).values(
-        'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
+    @staticmethod
+    def get_leaders():
+        """Build list of leaders for the leaderboard"""
+        leader_list = Activity.objects.filter(private=False).values(
+            'user__username', 'category').annotate(
+                max_speed=Max('model_max_speed')).order_by('-max_speed')
 
-    leaders = []
+        leaders = []
 
-    for key, category in ACTIVITY_CHOICES:
-        values = [x for x in leader_list if x['category'] == key]
-        if len(values) > 0:
-            leaders.append({'category': category, 'leaders': values})
+        for key, category in ACTIVITY_CHOICES:
+            values = [x for x in leader_list if x['category'] == key]
+            if len(values) > 0:
+                leaders.append({'category': category, 'leaders': values})
 
-    return leaders
+        return leaders
 
+    @staticmethod
+    def get_activities(cur_user):
+        """Get activities, include current users private activities"""
+        activities = Activity.objects.exclude(name__isnull=True)
 
-def get_activities(cur_user):
-    """Get activities, include current users private activities"""
-    activities = Activity.objects.exclude(name__isnull=True)
+        # Remove private activities for all but the current user
+        return activities.exclude(
+            ~Q(user__username=cur_user.username), private=True)
 
-    # Remove private activities for all but the current user
-    return activities.exclude(
-        ~Q(user__username=cur_user.username), private=True)
+    @staticmethod
+    def verify_private_owner(activity, request):
+        """Helper to verify private ownership"""
 
+        # Convert track to activity, if necessary
+        if isinstance(activity, ActivityTrack):
+            activity = activity.activity_id
 
-def verify_private_owner(activity, request):
-    """Helper to verify private ownership"""
-
-    # Convert track to activity, if necessary
-    if isinstance(activity, ActivityTrack):
-        activity = activity.activity_id
-
-    if activity.private and request.user != activity.user:
-        raise PermissionDenied
+        if activity.private and request.user != activity.user:
+            raise PermissionDenied

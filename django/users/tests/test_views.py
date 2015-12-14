@@ -19,18 +19,19 @@ class TestUserView(unittest.TestCase):
         view.object = self.user
         self.view = view
 
-    @patch('users.views.summarize_by_category')
-    @patch('users.views.get_users_activities')
-    def test_get_context_data_populates_activities(self, mock_get,
-                                                   mock_summarize):
+    @patch('users.views.Helper')
+    def test_get_context_data_populates_activities(self, mock_helper):
 
-        mock_get.return_value = sentinel.activity_query_set
-        mock_summarize.return_value = sentinel.summary
+        mock_helper.get_users_activities.return_value = \
+            sentinel.activity_query_set
+        mock_helper.summarize_by_category.return_value = sentinel.summary
 
         context = self.view.get_context_data()
 
-        mock_get.assert_called_once_with(self.user, self.user)
-        mock_summarize.assert_called_once_with(sentinel.activity_query_set)
+        mock_helper.get_users_activities.assert_called_once_with(self.user,
+                                                                 self.user)
+        mock_helper.summarize_by_category.assert_called_once_with(
+            sentinel.activity_query_set)
 
         self.assertEqual(context['activities'], sentinel.activity_query_set)
         self.assertEqual(context['summaries'], sentinel.summary)
@@ -40,5 +41,6 @@ class TestUserView(unittest.TestCase):
 
 
 class TestUserListView(unittest.TestCase):
+
     def test_includes_upload_form_mixin(self):
         self.assertIsInstance(UserListView(), UploadFormMixin)

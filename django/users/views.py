@@ -2,7 +2,7 @@
 from django.contrib.auth import get_user_model
 from django.views.generic import ListView, DetailView
 
-from api.models import get_users_activities, summarize_by_category
+from api.models import Helper
 from core.views import UploadFormMixin
 
 
@@ -17,10 +17,10 @@ class UserView(UploadFormMixin, DetailView):
         """Add additional content to the user page"""
         context = super(UserView, self).get_context_data(**kwargs)
 
-        activities = get_users_activities(self.object,
-                                          self.request.user)
+        activities = Helper.get_users_activities(self.object,
+                                                 self.request.user)
         context['activities'] = activities
-        context['summaries'] = summarize_by_category(activities)
+        context['summaries'] = Helper.summarize_by_category(activities)
 
         return context
 

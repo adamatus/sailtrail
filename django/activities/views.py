@@ -6,8 +6,7 @@ from django.views.generic import TemplateView, DetailView, UpdateView, View
 
 from .forms import ActivityDetailsForm
 from activities import UNIT_SETTING
-from api.models import Activity, ActivityTrack, get_leaders, get_activities, \
-    verify_private_owner
+from api.models import Activity, ActivityTrack, Helper
 from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
                         ERROR_NO_UPLOAD_FILE_SELECTED,
@@ -24,8 +23,8 @@ class HomePageView(UploadFormMixin, TemplateView):
     def get_context_data(self, **kwargs):
         """Update the context with addition homepage data"""
         context = super(HomePageView, self).get_context_data(**kwargs)
-        context['activities'] = get_activities(self.request.user)
-        context['leaders'] = get_leaders()
+        context['activities'] = Helper.get_activities(self.request.user)
+        context['leaders'] = Helper.get_leaders()
         context['val_errors'] = ERRORS
         return context
 
@@ -73,7 +72,9 @@ class DetailsView(UpdateView):
 
     def get_object(self, queryset=None):
         """Get activity, only allowing owner to see private activities"""
-        activity = super().get_object(queryset)
+        activity = super(DetailsView, self).get_object(queryset)
+        print(activity.user)
+        print(self.request.user)
         if self.request.user != activity.user:
             raise PermissionDenied
         return activity
@@ -99,7 +100,7 @@ class ActivityView(UploadFormMixin, DetailView):
     def get_object(self, queryset=None):
         """Get activity, only allowing owner to see private activities"""
         activity = super().get_object(queryset)
-        verify_private_owner(activity, self.request)
+        Helper.verify_private_owner(activity, self.request)
         return activity
 
     def get_context_data(self, **kwargs):

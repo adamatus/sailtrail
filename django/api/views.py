@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from api.models import Activity, ActivityTrack, verify_private_owner
+from api.models import Activity, ActivityTrack, Helper
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
@@ -65,7 +65,7 @@ def activity_json(request, activity_id):
     activity = Activity.objects.get(id=activity_id)
 
     # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(activity, request)
+    Helper.verify_private_owner(activity, request)
 
     pos = activity.get_trackpoints()
     return return_json(pos)
@@ -88,7 +88,7 @@ def track_json(request, activity_id, track_id):
     track = ActivityTrack.objects.get(id=track_id)
 
     # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(track.activity_id, request)
+    Helper.verify_private_owner(track.activity_id, request)
 
     pos = list(track.get_trackpoints().values('sog', 'lat',
                                               'lon', 'timepoint'))
