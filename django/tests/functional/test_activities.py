@@ -2,6 +2,7 @@ import pytest
 import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 
 from django.core import mail
@@ -12,7 +13,8 @@ from activities.forms import ERROR_ACTIVITY_NAME_MISSING
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
-                    RegistrationPage, LoginPage, ActivityTrackPage)
+                    RegistrationPage, LoginPage, ActivityTrackPage,
+                    SettingsPage, ChangePasswordPage)
 
 
 @pytest.mark.functional
@@ -30,6 +32,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.activity_page = ActivityPage(self)
         self.track_page = ActivityTrackPage(self)
         self.login_page = LoginPage(self)
+        self.settings_page = SettingsPage(self)
 
     def tearDown(self):
         self.browser.quit()
@@ -43,7 +46,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # Visitor comes to homepage
         self.home_page.go_to_homepage()
 
-        # The notice the register link and click it, then try to immediatly
+        # The notice the register link and click it, then try to immediately
         # click register
         self.home_page.go_to_registration()
         self.registration_page.click_register()
@@ -299,6 +302,76 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.home_page.upload_file('bad.txt')
         self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE, self.home_page.get_alerts())
         self.home_page.cancel_upload()
+
+    def test_change_user_password(self):
+
+        settings_page = SettingsPage(self)
+        change_password_page = ChangePasswordPage(self)
+
+        self.home_page.go_to_homepage()
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'password')
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+        # User goes to their settings page
+        self.home_page.goto_user_settings()
+        content = settings_page.get_page_content()
+        self.assertIn("Settings for registered", content)
+
+        # Click link to change password and are taken to the password page
+        self.settings_page.click_change_password()
+        self.assertIn('Change Password', self.browser.title)
+
+        # They try to click change password without entering anything and
+        # are warned not to do that
+        change_password_page.submit_password_change()
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(3, len(alerts))
+        self.assertIn("This field is required", alerts[0].text)
+        self.assertIn("This field is required", alerts[1].text)
+        self.assertIn("This field is required", alerts[2].text)
+
+        # They then enter the wrong current password, but a matching new
+        # password
+        change_password_page.change_password('badpassword', 'newpassword',
+                                             'newpassword')
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(1, len(alerts))
+        self.assertIn("Please type your current password", alerts[0].text)
+
+        # They then enter the current password, but non-matching new passwords
+        change_password_page.change_password('password', 'newpassword',
+                                             'newpassword2')
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(1, len(alerts))
+        self.assertIn("You must type the same password each time",
+                      alerts[0].text)
+
+        # They then enter the current password and matching new passwords and
+        # are redirected back to the homepage where an alert tells them they
+        # have successfully updated their password
+        change_password_page.change_password('password', 'newpassword',
+                                             'newpassword')
+        settings_page.assert_is_current_url_for_user('registered')
+        self.assertIn("Password successfully updated",
+                      settings_page.get_success_alert_text())
+
+        # They refresh the page and notice that the alert is now gone
+        self.browser.refresh()
+        settings_page.assert_is_current_url_for_user('registered')
+        with self.assertRaises(NoSuchElementException):
+            settings_page.get_success_alert_text()
+
+        # The logout and are able to log back in with the new password
+        # They enter a good, existing username and are taken back to the
+        # homepage where they can see they are logged in
+        self.home_page.logout()
+        self.assertFalse(self.home_page.is_user_dropdown_present('registered'))
+
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'newpassword')
+        self.assertTrue(self.home_page.is_current_url())
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
 
     def test_private_activity(self):
         # Registered user comes in and logs in

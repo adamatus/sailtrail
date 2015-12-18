@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
 
@@ -7,6 +8,7 @@ from activities.sitemap import ActivitySitemap
 from activities.views import HomePageView
 from leaders.sitemap import LeaderboardSitemap
 from users.sitemap import UsersSitemap
+from users.views import ChangePasswordView
 
 sitemaps = {'activities': ActivitySitemap,
             'leaderboards': LeaderboardSitemap,
@@ -21,6 +23,9 @@ urlpatterns = [
     url(r'^leaderboards/', include('leaders.urls')),
     url(r'^users/', include('users.urls')),
 
+    url(r'^accounts/password/change',
+        login_required(ChangePasswordView.as_view()),
+        name='change_password'),
     url(r'^accounts/', include('allauth.urls')),
 
     url(r'^about', TemplateView.as_view(
