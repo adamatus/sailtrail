@@ -1,0 +1,36 @@
+{% load static %}
+{% load js %}
+{% load ganalytics %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SailTrail :: {% block title_text %}{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'> -->
+    {% ganalytics %}
+
+    {% css 'bootstrap/dist/css/bootstrap.min.css' %}
+    {% css 'leaflet/dist/leaflet.css' %}
+    {% css 'activities/css/plots.css' %}
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+{% include 'components/main-nav.html' %}
+
+<div class="container">
+    {% block main_section %}{% endblock %}
+    {% include 'components/footer.html' %}
+</div>
+{% if upload_form %}
+    {% url "upload" as upload_url %}
+    {% include 'components/upload-modal.html' with modal_id="upload-modal" header="Upload new activity" action=upload_url %}
+{% endif %}
+<script>L_PREFER_CANVAS = true;</script>
+{% js 'jquery/dist/jquery.min.js' %}
+{% js 'bootstrap/dist/js/bootstrap.min.js' %}
+{% include 'components/upload-validation.html' %}
+{% block extra_bottom_js %}{% endblock %}
+</body>
+</html>

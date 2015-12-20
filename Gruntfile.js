@@ -58,17 +58,16 @@ module.exports = function(grunt) {
                 rcfile: 'pylintrc',
             },
 
-            activities: {
-                src: 'django/activities',
+            apps: {
+                src: [
+                    'django/api',
+                    'django/core',
+                    'django/leaders',
+                    'django/sirf',
+                    'django/users',
+                ],
                 options: {
                     ignore: ['migrations', 'tests'],
-                },
-            },
-
-            sirf: {
-                src: 'django/sirf',
-                options: {
-                    ignore: ['tests'],
                 },
             },
 
@@ -143,16 +142,22 @@ module.exports = function(grunt) {
                 },
             },
             pyfuncdev: {
-                command: 'py.test -f --lf --color=yes tests',
+                command: 'py.test -f --lf --color=yes . -m functional',
             },
             pyfunctest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . tests',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . -m functional',
+            },
+            pyintdev: {
+                command: 'py.test -f --lf --color=yes . -m integration',
+            },
+            pyinttest: {
+                command: 'py.test -v --color=yes --durations=0 --cov-config .int-coveragerc --cov-report term-missing --cov-report html --cov . -m integration',
             },
             pydev: {
-                command: 'py.test -f --lf --color=yes activities',
+                command: 'py.test -f --lf --color=yes . -m "not functional and not integration"',
             },
             pytest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . activities sirf',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . -m "not functional and not integration"',
             },
         },
     });
@@ -178,9 +183,10 @@ module.exports = function(grunt) {
     grunt.registerTask('funcdev', ['shell:pyfuncdev']);
 
     // Full code analysis tasks
-    grunt.registerTask('test', ['eslint', 'karma:jstest', 'flake8', 'pylint', 'shell:pytest', 'shell:pyfunctest']);
+    grunt.registerTask('test', ['eslint', 'karma:jstest', 'flake8', 'pylint', 'shell:pytest', 'shell:pyinttest', 'shell:pyfunctest']);
     grunt.registerTask('unittest', ['karma:jstest', 'shell:pytest']);
     grunt.registerTask('functest', ['shell:pyfunctest']);
+    grunt.registerTask('inttest', ['shell:pyinttest']);
     grunt.registerTask('jstest', ['eslint', 'karma:jstest']);
     grunt.registerTask('pytest', ['flake8', 'pylint', 'shell:pytest']);
 

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title_text %}{% trans "Verify Your E-mail Address" %}{% endblock %}
+
+{% block main_section %}
+    <div class="row">
+        <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+            <h1>{% trans "Verify Your E-mail Address" %}</h1>
+
+            <p>{% blocktrans %}We have sent an e-mail to you for verification.
+                Follow the link provided to finalize the signup process. Please
+                contact us if you do not receive it within a few
+                minutes.{% endblocktrans %}</p>
+        </div>
+    </div>
+
+{% endblock %}

@@ -2,6 +2,9 @@
 branch = True
 omit = 
 	*/migrations/*
+    */functional/*
+    manage.py
+    sailtrail/wsgi.py
 
 [html]
 directory = ../.cover/python/units

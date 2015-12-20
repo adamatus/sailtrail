@@ -1,6 +1,8 @@
 [MASTER]
 extension-pkg-whitelist=numpy
 
+disable=too-many-ancestors,too-few-public-methods
+
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
 load-plugins=pylint_django

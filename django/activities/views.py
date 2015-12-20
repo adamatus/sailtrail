@@ -1,528 +1,116 @@
 """Activity view module"""
-import json
-
-from django.shortcuts import render, redirect
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
-from django.contrib.auth import get_user_model
-from django.db.models import Q, Count, Max, Sum
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.core.exceptions import PermissionDenied
-import numpy as np
+from django.shortcuts import redirect
+from django.views.generic import TemplateView, DetailView, UpdateView, View
 
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from .models import Activity, ActivityTrack, ACTIVITY_CHOICES
-from .forms import (UploadFileForm, ActivityDetailsForm,
-                    ERROR_NO_UPLOAD_FILE_SELECTED,
-                    ERROR_UNSUPPORTED_FILE_TYPE)
-from sirf.stats import Stats
-
-USER = get_user_model()
+from .forms import ActivityDetailsForm
+from activities import UNIT_SETTING
+from api.models import Activity, ActivityTrack, Helper
+from core.views import UploadFormMixin
+from core.forms import (UploadFileForm,
+                        ERROR_NO_UPLOAD_FILE_SELECTED,
+                        ERROR_UNSUPPORTED_FILE_TYPE)
 
 ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
-def get_leaders():
-    """GET request to the leaderboard"""
-    leader_list = Activity.objects.filter(private=False).values(
-        'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
+class HomePageView(UploadFormMixin, TemplateView):
+    """ Handle requests for home page"""
+    template_name = 'home.html'
 
-    leaders = []
-
-    for key, category in ACTIVITY_CHOICES:
-        values = [x for x in leader_list if x['category'] == key]
-        if len(values) > 0:
-            leaders.append({'category': category, 'leaders': values})
-
-    return leaders
+    def get_context_data(self, **kwargs):
+        """Update the context with addition homepage data"""
+        context = super(HomePageView, self).get_context_data(**kwargs)
+        context['activities'] = Helper.get_activities(self.request.user)
+        context['leaders'] = Helper.get_leaders()
+        context['val_errors'] = ERRORS
+        return context
 
 
-def home_page(request, form=None):
-    """ Handle requests for home page
-    Parameters
-    ----------
-    request
-    form
+class UploadView(View):
+    """Upload view"""
 
-    Returns
-    -------
-
-    """
-    if form is None:
-        form = UploadFileForm()
-
-    activities = Activity.objects.exclude(name__isnull=True)
-
-    # Remove private activities for all but the current user
-    activities = activities.exclude(
-        ~Q(user__username=request.user.username), private=True)
-
-    return render(request, 'home.html',
-                  {'activities': activities,
-                   'form': form,
-                   'leaders': get_leaders(),
-                   'val_errors': ERRORS})
-
-
-def leaderboards(request):
-    """
-    Leaderboard view handler
-
-    Parameters
-    ----------
-    request
-
-    Returns
-    -------
-
-    """
-    return render(request, 'leaderboards.html', {'leaders': get_leaders()})
-
-
-def activity_list(request, form=None):
-    """
-    Activity list view handler
-
-    Parameters
-    ----------
-    request
-    form
-
-    Returns
-    -------
-
-    """
-    return home_page(request, form)
-
-
-def user_page(request, username, form=None):
-    """
-    Individual user page view handler
-
-    Parameters
-    ----------
-    request
-    username
-    form
-
-    Returns
-    -------
-
-    """
-    if form is None:
-        form = UploadFileForm()
-
-    activities = Activity.objects.filter(user__username=username)
-
-    # Filter out private activities if the user is not viewing themselves
-    if request.user.username != username:
-        activities = activities.filter(private=False)
-
-    # Summarize activities by category
-    summary = activities.values('category').annotate(
-        count=Count('category'),
-        max_speed=Max('model_max_speed'),
-        total_dist=Sum('model_distance')).order_by('-max_speed')
-
-    return render(request, 'user.html',
-                  {'activities': activities,
-                   'username': username,
-                   'summaries': summary,
-                   'form': form})
-
-
-def user_list(request, form=None):
-    """User list view handler.
-
-    Parameters
-    ----------
-    request
-    form
-
-    Returns
-    -------
-
-    """
-    users = USER.objects.all()
-    return render(request, 'user_list.html',
-                  {'users': users,
-                   'form': form})
-
-
-@login_required
-def upload(request):
-    """Upload handler
-
-    Parameters
-    ----------
-    request
-
-    Returns
-    -------
-
-    """
-    if request.method == 'POST':
+    def post(self, request):
+        """Handle post request"""
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             activity = Activity.objects.create(user=request.user)
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
             return redirect('details', activity.id)
-    else:
-        form = UploadFileForm()
-
-    return home_page(request, form=form)
+        else:
+            raise SuspiciousOperation
 
 
-@login_required
-def upload_track(request, activity_id):
-    """Upload track handler
+class UploadTrackView(View):
+    """Upload track view"""
 
-    Parameters
-    ----------
-    request
-    activity_id
+    def post(self, request, activity_id):
+        """Handle post request"""
+        activity = Activity.objects.get(id=activity_id)
 
-    Returns
-    -------
+        # Check to see if current user owns this activity, if not 403
+        if request.user != activity.user:
+            raise PermissionDenied
 
-    """
-
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user owns this activity, if not 403
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
-            return redirect('view_activity', activity.id)
-    else:
-        form = UploadFileForm()
-
-    return view(request, activity_id, form=form)
-
-
-@login_required
-def wind_direction(request, activity_id):
-    """Wind direction handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
-
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user owns this activity, if not 403
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    if request.method == 'POST':
-        activity.wind_direction = request.POST['wind_direction']
-        activity.save()
-
-    return HttpResponse(
-        json.dumps(dict(wind_direction=activity.wind_direction)),
-        content_type="application/json")
-
-
-@login_required
-def details(request, activity_id):
-    """ Activity detail view handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-
-    # Only allow the owner of the activity to access details
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    cancel_link = reverse('view_activity', args=[activity.id])
-
-    if request.method == 'POST':
-        request.POST['activity_id'] = activity_id
-        form = ActivityDetailsForm(request.POST, instance=activity)
-        if form.is_valid():
-            form.save()
-            return redirect('view_activity', activity.id)
+            return redirect('view_activity', pk=activity.id)
         else:
-            if activity.name is None:
-                cancel_link = reverse('delete_activity', args=[activity.id])
-
-    else:
-        form = ActivityDetailsForm(instance=activity)
-        if activity.name is None:
-            cancel_link = reverse('delete_activity', args=[activity.id])
-            activity.compute_stats()
-
-    return render(request, 'activity_details.html', {'activity': activity,
-                                                     'units': UNIT_SETTING,
-                                                     'form': UploadFileForm(),
-                                                     'detail_form': form,
-                                                     'cancel_link':
-                                                     cancel_link})
-
-
-def verify_private_owner(activity, request):
-    """Helper to verify private ownership
-
-    Parameters
-    ----------
-    activity
-    request
-    """
-    if activity.private and request.user != activity.user:
-        raise PermissionDenied
-
-
-def view(request, activity_id, form=None):
-    """Activity view handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    form
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(activity, request)
-
-    if form is None:
-        form = UploadFileForm()
-
-    return render(request,
-                  'activity.html',
-                  {'activity': activity,
-                   'units': UNIT_SETTING,
-                   'form': form,
-                   'val_errors': ERRORS,
-                   'owner': request.user == activity.user})
-
-
-def activity_json(request, activity_id):
-    """ Activity JSON data endpoint. TO API
-
-    Parameters
-    ----------
-    request
-    activity_id
-    form
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(activity, request)
-
-    pos = activity.get_trackpoints()
-    return return_json(pos)
-
-
-def view_track(request, activity_id, track_id, form=None):
-    """Track view handler
-
-    Parameters
-    ----------
-    activity_id
-    request
-    track_id
-    form
-
-    Returns
-    -------
-    """
-    del activity_id  # delete activity_id as it is not attached to track
-
-    track = ActivityTrack.objects.get(id=track_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(track.activity_id, request)
-
-    if form is None:
-        form = UploadFileForm()
-
-    return render(request,
-                  'track.html',
-                  {'track': track,
-                   'activity': track.activity_id,
-                   'units': UNIT_SETTING,
-                   'trimmed': track.trimmed,
-                   'val_errors': ERRORS,
-                   'form': form})
-
-
-def track_json(request, activity_id, track_id):
-    """Track data API endpoint handler
-
-    Parameters
-    ----------
-    request
-    track_id
-
-    Returns
-    -------
-
-    """
-    del activity_id  # delete activity_id as it is not attached to track
-
-    track = ActivityTrack.objects.get(id=track_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(track.activity_id, request)
-
-    pos = list(track.get_trackpoints().values('sog', 'lat',
-                                              'lon', 'timepoint'))
-
-    return return_json(pos)
-
-
-def return_json(pos):
-    """Helper method to return JSON data
-    Parameters
-    ----------
-    pos
-
-    Returns
-    -------
-
-    """
-
-    stats = Stats(pos)
-    distances = stats.distances()
-    bearings = stats.bearing()
-
-    # hack to get same size arrays (just repeat final element)
-    distances = np.round(np.append(distances, distances[-1]), 3)
-    bearings = np.round(np.append(bearings, bearings[-1]))
-    speed = []
-    time = []
-    lat = []
-    lon = []
-
-    for position in pos:
-        lat.append(position['lat'])
-        lon.append(position['lon'])
-        speed.append(round(
-            (position['sog'] * UNITS.m / UNITS.s).to(
-                UNIT_SETTING['speed']).magnitude,
-            2))
-        time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
-
-    out = dict(bearing=bearings.tolist(), time=time,
-               speed=speed, lat=lat, lon=lon)
-
-    return HttpResponse(json.dumps(out), content_type="application/json")
-
-
-@login_required
-def delete(request, activity_id):
-    """Delete activity handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
-    activity = Activity.objects.get(id=activity_id)
-    if request.user != activity.user:
-        raise PermissionDenied
-    activity.delete()
-    return redirect('home')
-
-
-@login_required
-def delete_track(request, activity_id, track_id):
-    """Delete track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
-    track = ActivityTrack.objects.get(id=track_id)
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.delete()
-    track.activity_id.model_distance = None
-    track.activity_id.model_max_speed = None
-    track.activity_id.compute_stats()
-    return redirect('view_activity', activity_id)
-
-
-@login_required
-def trim(request, activity_id, track_id):
-    """Trim track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
-    track = ActivityTrack.objects.get(id=track_id)
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.trim(request.POST['trim-start'], request.POST['trim-end'])
-    return redirect('view_activity', activity_id)
-
-
-@login_required
-def untrim(request, activity_id, track_id):
-    """Untrim track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
-    track = ActivityTrack.objects.get(id=track_id)
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.reset_trim()
-    return redirect('view_activity', activity_id)
+            raise SuspiciousOperation
+
+
+class DetailsView(UpdateView):
+    """Activity details updating view"""
+    model = Activity
+    template_name = 'activity_details.html'
+    form_class = ActivityDetailsForm
+
+    def get_object(self, queryset=None):
+        """Get activity, only allowing owner to see private activities"""
+        activity = super(DetailsView, self).get_object(queryset)
+        if self.request.user != activity.user:
+            raise PermissionDenied
+        return activity
+
+    def get_context_data(self, **kwargs):
+        """Add additional content to the user page"""
+        context = super(DetailsView, self).get_context_data(**kwargs)
+        if self.object.name is None:
+            cancel_link = reverse('delete_activity', args=[self.object.id])
+        else:
+            cancel_link = reverse('view_activity', args=[self.object.id])
+        context['cancel_link'] = cancel_link
+        context['units'] = UNIT_SETTING
+        return context
+
+
+class ActivityView(UploadFormMixin, DetailView):
+    """Activity view"""
+    model = Activity
+    template_name = 'activity.html'
+    context_object_name = 'activity'
+
+    def get_object(self, queryset=None):
+        """Get activity, only allowing owner to see private activities"""
+        activity = super().get_object(queryset)
+        Helper.verify_private_owner(activity, self.request)
+        return activity
+
+    def get_context_data(self, **kwargs):
+        """Add additional content to the user page"""
+        context = super(ActivityView, self).get_context_data(**kwargs)
+        context['val_errors'] = ERRORS
+        context['units'] = UNIT_SETTING
+        return context
+
+
+class ActivityTrackView(ActivityView):
+    """Activity Track view"""
+    model = ActivityTrack
+    template_name = 'track.html'
+    context_object_name = 'track'

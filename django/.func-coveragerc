@@ -2,6 +2,8 @@
 branch = True
 omit = 
 	*/migrations/*
+    manage.py
+    sailtrail/wsgi.py
 
 [html]
 directory = ../.cover/python/func

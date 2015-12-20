@@ -2,28 +2,11 @@
 Activity form class
 """
 from django import forms
-from django.contrib.auth import get_user_model
-from multiupload.fields import MultiFileField
 
-from .models import Activity
+from api.models import Activity
 
-USER = get_user_model()
-
-ERROR_NO_UPLOAD_FILE_SELECTED = 'Please choose a file before clicking upload!'
 ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
 ERROR_ACTIVITY_CATEGORY_MISSING = 'Please enter a category for this activity!'
-ERROR_UNSUPPORTED_FILE_TYPE = 'Only GPX and SBN files are currently supported.'
-
-
-class UploadFileForm(forms.Form):
-    """Form for uploading files"""
-    upfile = MultiFileField(
-        min_num=1,
-        max_num=24,
-        max_file_size=1014*1024*24,
-        label='Activity file',
-        error_messages={'required': ERROR_NO_UPLOAD_FILE_SELECTED}
-    )
 
 
 class ActivityDetailsForm(forms.models.ModelForm):

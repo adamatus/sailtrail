@@ -4,67 +4,88 @@
 {% block title_text %}{{ activity.name }}{% endblock %}
 
 {% block extra_styles %}
-{% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
-{% css 'bootstrap-toggle/css/bootstrap-toggle.min.css' %}
-<style>
-  .slider.slider-horizontal {
-		width: 100%;
-	}
-</style>
+    {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+    {% css 'bootstrap-toggle/css/bootstrap-toggle.min.css' %}
+    <style>
+        .slider.slider-horizontal {
+            width: 100%;
+        }
+    </style>
 {% endblock %}
 
 {% load static %}
 {% block main_section %}
-{% load unit_conversions %}
-		<h1>{{ activity.name }}</h1>
-    <p>{{ activity.get_category_display }} by <a href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a> at {{ activity.start_time }} on {{ activity.date }}</p>
+    {% load unit_conversions %}
+    <h1>{{ activity.name }}</h1>
+    <p>{{ activity.get_category_display }} by <a
+            href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+        at {{ activity.start_time }} on {{ activity.date }}</p>
     <div class="row">
-    <div class="col-md-4">
-    <table class="table table-condensed">
-      <thead>
-        <tr class="small"><th>Duration</th><th>Distance</th><th>Max Speed</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>{{ activity.duration }}</td><td>{{ activity.model_distance|distance }}</td><td>{{ activity.model_max_speed|speed }}</td></tr>
-      </tbody>
-    </table>
-    </div>
+        <div class="col-md-4">
+            <table class="table table-condensed">
+                <thead>
+                <tr class="small">
+                    <th>Duration</th>
+                    <th>Distance</th>
+                    <th>Max Speed</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ activity.duration }}</td>
+                    <td>{{ activity.model_distance|distance }}</td>
+                    <td>{{ activity.model_max_speed|speed }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     {% if activity.description %}<p>{{ activity.description }}</p>{% endif %}
-		{% if activity.private %}
-		<p><i>This activity is currently private</i></p>
-		{% endif %}
-		{% if owner %}
-			<a class="btn btn-default" href="{% url 'details' activity.id %}">Edit</a>
-			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete</button>
-		  {% url "delete_activity" activity.id as delete_url %}
-		  {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
-			<button id="upload-file-modal-btn" type="submit" class="btn btn-default" data-toggle="modal" data-target="#upload-track-modal">Add Track</button>
-			{% url "upload_track" activity.id as upload_url %}
-			{% include 'components/upload-modal.html' with modal_id="upload-track-modal" header="Add track to this activity" action=upload_url %}
-		{% endif %}
-		{% include 'components/track-map-and-plot.html' %}
+    {% if activity.private %}
+        <p><i>This activity is currently private</i></p>
+    {% endif %}
+    {% if user == activity.user %}
+        <a class="btn btn-default"
+           href="{% url 'details' activity.id %}">Edit</a>
+        <button type="button" class="btn btn-default" data-toggle="modal"
+                data-target="#delete_modal" id="activity_delete_button">Delete
+        </button>
+        {% url "delete_activity" activity.id as delete_url %}
+        {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
+        <button id="upload-file-modal-btn" type="submit" class="btn btn-default"
+                data-toggle="modal" data-target="#upload-track-modal">Add Track
+        </button>
+        {% url "upload_track" activity_id=activity.id as upload_url %}
+        {% include 'components/upload-modal.html' with modal_id="upload-track-modal" header="Add track to this activity" action=upload_url %}
+    {% endif %}
+    {% include 'components/track-map-and-plot.html' %}
 
-		{% if owner %}
-    <h4>Activity Track Segments</h3>
-		<ul>
-			{% for track in activity.track.all %}
-			<li><a href="tracks/{{ track.id}}/">{{ track.original_filename }} {% if track.trimmed %}(trimmed){% endif %}</a></li>
-			{% endfor %}
-		</ul>
-		{% endif %}
+    {% if user == activity.user %}
+        <h4>Activity Track Segments</h4>
+        <ul>
+            {% for track in activity.track.all %}
+                <li>
+                    <a href="tracks/{{ track.id }}/">{{ track.original_filename }}
+                        {% if track.trimmed %}(trimmed){% endif %}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}
 
 {% block extra_bottom_js %}
-  {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
-	{% js 'activities/activity_viewer.bundle.js' %}
-		<script>
-var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
-    wind_direction = "{{ activity.wind_direction }}" == "None" ? null : +"{{activity.wind_direction}}",
-		units = {{ units|safe }},
-		json_url = "{% url 'activity_json' activity.id %}";
+    {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
+    {% js 'activities/activity_viewer.bundle.js' %}
+    <script>
+        var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+                wind_direction = "{{ activity.wind_direction }}" == "None"
+                        ? null : +"{{activity.wind_direction}}",
+                units = {{ units|safe }},
+                urls = {
+                    winddir: "{% url 'activity_wind_direction' activity.id %}",
+                    json: "{% url 'activity_json' activity.id %}"
+                };
 
-activity_viewer.init(json_url, max_speed, wind_direction, units);
+        activity_viewer.init(urls, max_speed, wind_direction, units);
 
-  </script>
+    </script>
 {% endblock %}
