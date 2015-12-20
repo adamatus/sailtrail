@@ -62,8 +62,11 @@
                                  == "None" ? null
                         : +"{{track.activity_id.wind_direction}}",
                 units = {{ units|safe }},
-                json_url = "{% url 'track_json' track.activity_id.id track.id %}";
+                urls = {
+                    json: "{% url 'track_json' track.activity_id.id track.id %}",
+                    winddir: "{% url 'activity_wind_direction' track.activity_id.id %}"
+                };
 
-        activity_viewer.init(json_url, max_speed, wind_direction, units);
+        activity_viewer.init(urls, max_speed, wind_direction, units);
     </script>
 {% endblock %}

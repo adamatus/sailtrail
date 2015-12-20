@@ -1,5 +1,6 @@
 """Routing for activity related pages"""
 from django.conf.urls import url
+from django.contrib.auth.decorators import login_required
 
 from api import views
 
@@ -14,6 +15,7 @@ urlpatterns = [
 
     url(r'activity/(\d+)/delete$', views.delete, name='delete_activity'),
     url(r'activity/(\d+)/json$', views.activity_json, name='activity_json'),
-    url(r'activity/(\d+)/wind_direction$', views.wind_direction,
+    url(r'activities/(?P<pk>\d+)/wind_direction$',
+        login_required(views.WindDirection.as_view()),
         name='activity_wind_direction'),
 ]

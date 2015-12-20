@@ -16,6 +16,7 @@ activity_viewer = {
     data: undefined,
     max_speed: undefined,
     units: undefined,
+    urls: undefined,
     do_track: true,
     do_speed: true,
     do_polars: true,
@@ -24,14 +25,17 @@ activity_viewer = {
     /**
      * Initialize all the parts of an activity page asynchronously
      *
-     * @param {String} pos_url The URL to fetch the data from
+     * @param {Object} urls The URLs to fetch the data from
      * @param {Number} max_speed Precomputed max speed, used for axis max
+     * @param {Number} wind_direction The current wind-direction estimate
      * @param {Object} units Object holding the current unit details
+     * @param {Object} config Optional config object
      */
-    init: function(pos_url, max_speed, wind_direction, units, config) {
+    init: function(urls, max_speed, wind_direction, units, config) {
         this.max_speed = max_speed;
         this.units = units;
         this.wind_direction = wind_direction;
+        this.urls = urls;
         if (config) {
             this.do_track = config.do_track || true;
             this.do_speed = config.do_speed || true;
@@ -39,7 +43,7 @@ activity_viewer = {
             this.do_slider = config.do_slider || true;
         }
 
-        d3.json(pos_url, this.setup.bind(this));
+        d3.json(urls.json, this.setup.bind(this));
     },
 
     /**
@@ -64,7 +68,7 @@ activity_viewer = {
             speed_viewer.draw_plot(this.data, this.max_speed, this.units, this.time_slider);
         }
         if (this.do_polars) {
-            polar_viewer.draw_plot(this.data, this.wind_direction, this.time_slider);
+            polar_viewer.draw_plot(this.data, this.wind_direction, this.time_slider, this.urls.winddir);
         }
     },
 

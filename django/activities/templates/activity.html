@@ -80,9 +80,12 @@
                 wind_direction = "{{ activity.wind_direction }}" == "None"
                         ? null : +"{{activity.wind_direction}}",
                 units = {{ units|safe }},
-                json_url = "{% url 'activity_json' activity.id %}";
+                urls = {
+                    winddir: "{% url 'activity_wind_direction' activity.id %}",
+                    json: "{% url 'activity_json' activity.id %}"
+                };
 
-        activity_viewer.init(json_url, max_speed, wind_direction, units);
+        activity_viewer.init(urls, max_speed, wind_direction, units);
 
     </script>
 {% endblock %}

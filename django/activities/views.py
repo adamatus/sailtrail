@@ -73,8 +73,6 @@ class DetailsView(UpdateView):
     def get_object(self, queryset=None):
         """Get activity, only allowing owner to see private activities"""
         activity = super(DetailsView, self).get_object(queryset)
-        print(activity.user)
-        print(self.request.user)
         if self.request.user != activity.user:
             raise PermissionDenied
         return activity

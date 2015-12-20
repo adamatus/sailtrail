@@ -208,6 +208,10 @@ class ActivityPage(BasePage):
         time.sleep(.1)
         return is_visible
 
+    def get_winddir(self):
+        wind_dir_input = self.browser.find_element_by_id('manual-wind-dir')
+        return wind_dir_input.get_attribute('value')
+
     def upload_track(self, filename):
         if not self.add_track_modal_is_visible():
             self.browser.find_element_by_id('upload-file-modal-btn').click()

@@ -1,6 +1,9 @@
 import pytest
+import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium.webdriver.common.keys import Keys
+
 from django.core import mail
 
 from selenium import webdriver
@@ -436,6 +439,21 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # are as they were before
         self.assertIn(name, self.activity_page.get_page_content())
         self.assertIn(new_desc, self.activity_page.get_page_content())
+
+        # They notice the computed wind direction on the activity page
+        self.assertEqual('3', self.activity_page.get_winddir())
+
+        # They press the down button three times, noticing the wind direction
+        # updates afterwards
+        self.browser.find_element_by_tag_name('body').send_keys(
+            Keys.ARROW_DOWN, Keys.ARROW_DOWN, Keys.ARROW_DOWN
+        )
+        self.assertEqual('0', self.activity_page.get_winddir())
+        time.sleep(.5)  # Wait for AJAX POST to finish
+
+        # They reload the browser and see that the value is still 0
+        self.browser.refresh()
+        self.assertEqual('0', self.activity_page.get_winddir())
 
     def test_deleting_activity(self):
         self.home_page.go_to_homepage()

@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.views.generic import View
+from django.views.generic.detail import SingleObjectMixin
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from api.models import Activity, ActivityTrack, Helper
@@ -20,48 +22,32 @@ ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
-@login_required
-def wind_direction(request, activity_id):
-    """Wind direction handler
+class WindDirection(SingleObjectMixin, View):
+    """Wind direction handler"""
+    model = Activity
 
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
-
-    activity = Activity.objects.get(id=activity_id)
-
-    # Check to see if current user owns this activity, if not 403
-    if request.user != activity.user:
-        raise PermissionDenied
-
-    if request.method == 'POST':
+    def post(self, request, *args, **kwargs):
+        """Save an updated wind direction"""
+        activity = self.get_object()
+        if request.user != activity.user:
+            raise PermissionDenied
         activity.wind_direction = request.POST['wind_direction']
         activity.save()
+        return self.get(request, *args, **kwargs)
 
-    return HttpResponse(
-        json.dumps(dict(wind_direction=activity.wind_direction)),
-        content_type="application/json")
+    def get(self, request, *args, **kwargs):
+        """Return wind direction as JSON"""
+        del args, kwargs  # remove to eliminate unused-warnings
+        activity = self.get_object()
+        if request.user != activity.user and activity.private:
+            raise PermissionDenied
+        return HttpResponse(
+            json.dumps(dict(wind_direction=activity.wind_direction)),
+            content_type="application/json")
 
 
 def activity_json(request, activity_id):
-    """ Activity JSON data endpoint. TO API
-
-    Parameters
-    ----------
-    request
-    activity_id
-    form
-
-    Returns
-    -------
-
-    """
+    """ Activity JSON data endpoint"""
     activity = Activity.objects.get(id=activity_id)
 
     # Check to see if current user can see this, 403 if necessary
@@ -72,17 +58,7 @@ def activity_json(request, activity_id):
 
 
 def track_json(request, activity_id, track_id):
-    """Track data API endpoint handler
-
-    Parameters
-    ----------
-    request
-    track_id
-
-    Returns
-    -------
-
-    """
+    """Track data API endpoint handler"""
     del activity_id  # delete activity_id as it is not attached to track
 
     track = ActivityTrack.objects.get(id=track_id)
@@ -97,15 +73,7 @@ def track_json(request, activity_id, track_id):
 
 
 def return_json(pos):
-    """Helper method to return JSON data
-    Parameters
-    ----------
-    pos
-
-    Returns
-    -------
-
-    """
+    """Helper method to return JSON data"""
 
     stats = Stats(pos)
     distances = stats.distances()
@@ -136,17 +104,7 @@ def return_json(pos):
 
 @login_required
 def delete(request, activity_id):
-    """Delete activity handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-
-    Returns
-    -------
-
-    """
+    """Delete activity handler"""
     activity = Activity.objects.get(id=activity_id)
     if request.user != activity.user:
         raise PermissionDenied
@@ -156,18 +114,7 @@ def delete(request, activity_id):
 
 @login_required
 def delete_track(request, activity_id, track_id):
-    """Delete track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
+    """Delete track handler"""
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied
@@ -180,18 +127,7 @@ def delete_track(request, activity_id, track_id):
 
 @login_required
 def trim(request, activity_id, track_id):
-    """Trim track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
+    """Trim track handler"""
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied
@@ -201,18 +137,7 @@ def trim(request, activity_id, track_id):
 
 @login_required
 def untrim(request, activity_id, track_id):
-    """Untrim track handler
-
-    Parameters
-    ----------
-    request
-    activity_id
-    track_id
-
-    Returns
-    -------
-
-    """
+    """Untrim track handler"""
     track = ActivityTrack.objects.get(id=track_id)
     if request.user != track.activity_id.user:
         raise PermissionDenied

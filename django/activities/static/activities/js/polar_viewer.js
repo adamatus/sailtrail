@@ -13,6 +13,7 @@ module.exports = {
     polars: undefined,
     plot: undefined,
     marker: undefined,
+    winddir_url: undefined,
     x: undefined,
     y: undefined,
     marker_pos: 0,
@@ -31,10 +32,11 @@ module.exports = {
      * Main function to initialize plot
      *
      * @param {Object} data Arrays of track info
-     * @param {Number} max_speed Precomputed max speed, used for axis max
-     * @param {Object} units Object holding the current unit details
+     * @param {Integer} wind_direction
+     * @param {Element} time_slider The time_slider element
+     * @param {String} winddir_url The url of this activites wind direction endpoint
      */
-    draw_plot: function(data, wind_direction, time_slider) {
+    draw_plot: function(data, wind_direction, time_slider, winddir_url) {
         var width = $('#polar-plot').width(),
             height = $('#polar-plot').height(),
             radius = Math.min(width, height) / 2 - 30,
@@ -53,6 +55,7 @@ module.exports = {
             diffs, i, j;
 
         this.data = data;
+        this.winddir_url = winddir_url;
 
         // Compute polars (inefficiently for now)
 
@@ -103,7 +106,7 @@ module.exports = {
         this.bearings = data.bearing;
         this.speeds = data.speed;
 
-        if (!wind_direction) {
+        if (wind_direction === null) {
             // Attempt to guess where the breeze is coming from by finding the
             // min around the polar plot.  This is very naive and will need
             // improvement
@@ -125,7 +128,7 @@ module.exports = {
             $('#manual-wind-dir').val(this.wind_offset);
         } else {
             this.wind_offset = wind_direction;
-            $('#manual-wind-dir').val(this.wind_offset);
+            // $('#manual-wind-dir').val(this.wind_offset);
         }
 
         // Create the scale for the radius of the polar plot,
@@ -293,7 +296,7 @@ module.exports = {
         clearTimeout(this.wait_to_post);
         self.wait_to_post = setTimeout(
             function() {
-                $.post(window.location.href + 'wind_direction', { csrfmiddlewaretoken: csrftoken, wind_direction: self.wind_offset});
+                $.post(self.winddir_url, { csrfmiddlewaretoken: csrftoken, wind_direction: self.wind_offset});
             },
             500
         );
@@ -312,7 +315,8 @@ module.exports = {
     },
 
     /**
-     * Toggle the orientation of the polar plot from actual direction to wind at top
+     * Toggle the orientation of the polar plot from actual direction to wind
+     * at top
      */
     toggle_mode: function() {
         var toggle = $('#polar-frame-of-ref'),
