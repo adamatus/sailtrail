@@ -1,6 +1,7 @@
 import os
 import time
 
+from django.core.urlresolvers import reverse
 from selenium.common.exceptions import StaleElementReferenceException, \
     NoSuchElementException
 from selenium.webdriver.support.ui import Select
@@ -37,6 +38,9 @@ class BasePage(object):
 
     def get_alerts(self):
         return self.browser.find_element_by_css_selector('.alert-danger').text
+
+    def get_success_alert_text(self):
+        return self.browser.find_element_by_css_selector('.alert-success').text
 
     def get_all_alerts(self):
         return self.browser.find_elements_by_css_selector('.alert-danger')
@@ -87,6 +91,11 @@ class BasePage(object):
     def login(self):
         self.browser.find_element_by_link_text("Login").click()
 
+    def goto_user_settings(self):
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+        my_settings = self.browser.find_element_by_link_text("My settings")
+        self.click_through_to_new_page(my_settings)
+
     def upload_file(self, filename):
         self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
         self.browser.find_element_by_id('nav-upload-link').click()
@@ -125,6 +134,62 @@ class HomePage(BasePage):
 
     def activity_list_is_empty(self):
         return [] == self.browser.find_elements_by_css_selector('.activity')
+
+
+class SettingsPage(BasePage):
+
+    def click_change_password(self):
+        change_password_link = self.browser.find_element_by_link_text(
+            'Change password')
+        self.click_through_to_new_page(change_password_link)
+
+    def click_change_email(self):
+        change_email_link = self.browser.find_element_by_link_text(
+            'Change email')
+        self.click_through_to_new_page(change_email_link)
+
+    def assert_is_current_url_for_user(self, username):
+        cur_url = self.browser.current_url
+        expected_url = self.test.live_server_url + reverse('user_settings',
+                                                           args=[username])
+        self.test.assertEqual(cur_url, expected_url)
+
+
+class ChangeEmailPage(BasePage):
+
+    def click_add_email(self):
+        submit_password_btn = self.browser.find_element_by_id(
+            'change-email-btn')
+        self.click_through_to_new_page(submit_password_btn)
+
+    def enter_email_and_submit(self, email):
+        field = self.browser.find_element_by_id('id_email')
+        field.clear()
+        field.send_keys(email)
+        self.click_add_email()
+
+
+class ChangePasswordPage(BasePage):
+    def submit_password_change(self):
+        submit_password_btn = self.browser.find_element_by_id(
+            'change-passwd-btn')
+        self.click_through_to_new_page(submit_password_btn)
+
+    def change_password(self, oldpassword, newpassword1, newpassword2):
+
+        self.enter_oldpassword(oldpassword)
+        self.enter_newpassword1(newpassword1)
+        self.enter_newpassword2(newpassword2)
+        self.submit_password_change()
+
+    def enter_oldpassword(self, oldpassword):
+        self.enter_text_in_field_by_id(oldpassword, 'id_oldpassword')
+
+    def enter_newpassword1(self, newpassword1):
+        self.enter_text_in_field_by_id(newpassword1, 'id_password1')
+
+    def enter_newpassword2(self, newpassword2):
+        self.enter_text_in_field_by_id(newpassword2, 'id_password2')
 
 
 class RegistrationPage(BasePage):

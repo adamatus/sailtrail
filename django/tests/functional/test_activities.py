@@ -2,6 +2,7 @@ import pytest
 import time
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 
 from django.core import mail
@@ -12,7 +13,8 @@ from activities.forms import ERROR_ACTIVITY_NAME_MISSING
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
-                    RegistrationPage, LoginPage, ActivityTrackPage)
+                    RegistrationPage, LoginPage, ActivityTrackPage,
+                    SettingsPage, ChangePasswordPage, ChangeEmailPage)
 
 
 @pytest.mark.functional
@@ -30,6 +32,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.activity_page = ActivityPage(self)
         self.track_page = ActivityTrackPage(self)
         self.login_page = LoginPage(self)
+        self.settings_page = SettingsPage(self)
 
     def tearDown(self):
         self.browser.quit()
@@ -43,7 +46,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         # Visitor comes to homepage
         self.home_page.go_to_homepage()
 
-        # The notice the register link and click it, then try to immediatly
+        # The notice the register link and click it, then try to immediately
         # click register
         self.home_page.go_to_registration()
         self.registration_page.click_register()
@@ -299,6 +302,165 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.home_page.upload_file('bad.txt')
         self.assertIn(ERROR_UNSUPPORTED_FILE_TYPE, self.home_page.get_alerts())
         self.home_page.cancel_upload()
+
+    def test_change_user_password(self):
+
+        settings_page = SettingsPage(self)
+        change_password_page = ChangePasswordPage(self)
+
+        self.home_page.go_to_homepage()
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'password')
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+        # User goes to their settings page
+        self.home_page.goto_user_settings()
+        content = settings_page.get_page_content()
+        self.assertIn("Settings for registered", content)
+
+        # Click link to change password and are taken to the password page
+        settings_page.click_change_password()
+        self.assertIn('Change Password', self.browser.title)
+
+        # They try to click change password without entering anything and
+        # are warned not to do that
+        change_password_page.submit_password_change()
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(3, len(alerts))
+        self.assertIn("This field is required", alerts[0].text)
+        self.assertIn("This field is required", alerts[1].text)
+        self.assertIn("This field is required", alerts[2].text)
+
+        # They then enter the wrong current password, but a matching new
+        # password
+        change_password_page.change_password('badpassword', 'newpassword',
+                                             'newpassword')
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(1, len(alerts))
+        self.assertIn("Please type your current password", alerts[0].text)
+
+        # They then enter the current password, but non-matching new passwords
+        change_password_page.change_password('password', 'newpassword',
+                                             'newpassword2')
+        alerts = change_password_page.get_all_alerts()
+        self.assertEqual(1, len(alerts))
+        self.assertIn("You must type the same password each time",
+                      alerts[0].text)
+
+        # They then enter the current password and matching new passwords and
+        # are redirected back to the homepage where an alert tells them they
+        # have successfully updated their password
+        change_password_page.change_password('password', 'newpassword',
+                                             'newpassword')
+        settings_page.assert_is_current_url_for_user('registered')
+        self.assertIn("Password successfully updated",
+                      settings_page.get_success_alert_text())
+
+        # They refresh the page and notice that the alert is now gone
+        self.browser.refresh()
+        settings_page.assert_is_current_url_for_user('registered')
+        with self.assertRaises(NoSuchElementException):
+            settings_page.get_success_alert_text()
+
+        # The logout and are able to log back in with the new password
+        # They enter a good, existing username and are taken back to the
+        # homepage where they can see they are logged in
+        self.home_page.logout()
+        self.assertFalse(self.home_page.is_user_dropdown_present('registered'))
+
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'newpassword')
+        self.assertTrue(self.home_page.is_current_url())
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+    def test_change_email(self):
+        settings_page = SettingsPage(self)
+        change_email_page = ChangeEmailPage(self)
+
+        self.home_page.go_to_homepage()
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'password')
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+        # User goes to their settings page
+        self.home_page.goto_user_settings()
+
+        # They click the change email link and are taken to the email page
+        settings_page.click_change_email()
+        self.assertIn('Your email addresses', self.browser.title)
+
+        # They try to add a new email address without entering anything
+        # and are warned about it
+        change_email_page.click_add_email()
+        self.assertIn("This field is required",
+                      change_email_page.get_alerts())
+
+        # They enter an invalid address and are warned about it
+        change_email_page.enter_email_and_submit("test")
+        self.assertIn("Enter a valid email address",
+                      change_email_page.get_alerts())
+
+        # They enter the address they are already registered with and are
+        # warned
+        change_email_page.enter_email_and_submit("registered@example.com")
+        self.assertIn("This e-mail address is already associated with " +
+                      "this account", change_email_page.get_alerts())
+
+        # They enter the address that another user has used and are warned
+        change_email_page.enter_email_and_submit("another@example.com")
+        self.assertIn("This e-mail address is already associated with " +
+                      "another account", change_email_page.get_alerts())
+
+        # They enter a new address and see it added to the list, unverified
+        change_email_page.enter_email_and_submit("test@example.com")
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+        self.assertIn("Unverified", content)
+
+        # They check their inbox, where they have a confirmation link, which
+        # they follow
+        message = mail.outbox[0]
+        for line in message.body.split('\n'):
+            if 'localhost' in line:
+                url = line.split(' ')[-1][8:]
+        self.browser.get(url)
+        submit_btn = self.browser.find_element_by_id('submit-btn')
+        content = change_email_page.get_page_content()
+        self.assertIn("Please confirm that test@example.com", content)
+        self.home_page.click_through_to_new_page(submit_btn)
+
+        # User goes to their settings page and go back to the email page, where
+        # they see that their new address is verified
+        self.home_page.goto_user_settings()
+        settings_page.click_change_email()
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+        self.assertNotIn("Unverified", content)
+
+        # They select the new email from the list and click remove
+        self.browser.find_element_by_id('email_radio_2').click()
+        self.browser.find_element_by_name('action_remove').click()
+
+        # The are warned, and click cancel
+        alert = self.browser.switch_to.alert
+        self.assertEqual(alert.text,
+                         "Do you really want to remove " +
+                         "the selected e-mail address?")
+        alert.dismiss()
+
+        # The address is still in the list
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+
+        # They click cancel again
+        self.browser.find_element_by_id('email_radio_2').click()
+        self.browser.find_element_by_name('action_remove').click()
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+        # The address is no longer in the list
+        content = change_email_page.get_page_content()
+        self.assertNotIn("test@example.com", content)
 
     def test_private_activity(self):
         # Registered user comes in and logs in
