@@ -5,7 +5,7 @@ from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
 
 from activities.sitemap import ActivitySitemap
-from activities.views import HomePageView
+from homepage.views import HomePageView
 from leaders.sitemap import LeaderboardSitemap
 from users.sitemap import UsersSitemap
 from users.views import ChangePasswordView

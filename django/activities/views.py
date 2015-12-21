@@ -2,7 +2,7 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from django.views.generic import TemplateView, DetailView, UpdateView, View
+from django.views.generic import DetailView, UpdateView, View
 
 from .forms import ActivityDetailsForm
 from activities import UNIT_SETTING
@@ -14,19 +14,6 @@ from core.forms import (UploadFileForm,
 
 ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
-
-
-class HomePageView(UploadFormMixin, TemplateView):
-    """ Handle requests for home page"""
-    template_name = 'home.html'
-
-    def get_context_data(self, **kwargs):
-        """Update the context with addition homepage data"""
-        context = super(HomePageView, self).get_context_data(**kwargs)
-        context['activities'] = Helper.get_activities(self.request.user)
-        context['leaders'] = Helper.get_leaders()
-        context['val_errors'] = ERRORS
-        return context
 
 
 class UploadView(View):
