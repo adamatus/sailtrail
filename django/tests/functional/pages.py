@@ -143,11 +143,30 @@ class SettingsPage(BasePage):
             'Change password')
         self.click_through_to_new_page(change_password_link)
 
+    def click_change_email(self):
+        change_email_link = self.browser.find_element_by_link_text(
+            'Change email')
+        self.click_through_to_new_page(change_email_link)
+
     def assert_is_current_url_for_user(self, username):
         cur_url = self.browser.current_url
         expected_url = self.test.live_server_url + reverse('user_settings',
                                                            args=[username])
         self.test.assertEqual(cur_url, expected_url)
+
+
+class ChangeEmailPage(BasePage):
+
+    def click_add_email(self):
+        submit_password_btn = self.browser.find_element_by_id(
+            'change-email-btn')
+        self.click_through_to_new_page(submit_password_btn)
+
+    def enter_email_and_submit(self, email):
+        field = self.browser.find_element_by_id('id_email')
+        field.clear()
+        field.send_keys(email)
+        self.click_add_email()
 
 
 class ChangePasswordPage(BasePage):

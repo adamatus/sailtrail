@@ -4,7 +4,7 @@
 
 {% block main_section %}
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
             <h2>Settings for {{view_user.username}}</h2>
 
             {% if notify %}
@@ -16,7 +16,10 @@
             </div>
             {%  endif %}
 
-            <a href="{% url 'account_change_password' %}">Change password</a>
+            <ul>
+                <li><a href="{% url 'account_email' %}">Change email</a></li>
+                <li><a href="{% url 'account_change_password' %}">Change password</a></li>
+            </ul>
         </div>
       </div>
 {% endblock %}

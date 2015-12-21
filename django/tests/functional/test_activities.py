@@ -14,7 +14,7 @@ from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
                     RegistrationPage, LoginPage, ActivityTrackPage,
-                    SettingsPage, ChangePasswordPage)
+                    SettingsPage, ChangePasswordPage, ChangeEmailPage)
 
 
 @pytest.mark.functional
@@ -319,7 +319,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertIn("Settings for registered", content)
 
         # Click link to change password and are taken to the password page
-        self.settings_page.click_change_password()
+        settings_page.click_change_password()
         self.assertIn('Change Password', self.browser.title)
 
         # They try to click change password without entering anything and
@@ -372,6 +372,95 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.login_page.login_as_user('registered', 'newpassword')
         self.assertTrue(self.home_page.is_current_url())
         self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+    def test_change_email(self):
+        settings_page = SettingsPage(self)
+        change_email_page = ChangeEmailPage(self)
+
+        self.home_page.go_to_homepage()
+        self.home_page.login()
+        self.login_page.login_as_user('registered', 'password')
+        self.assertTrue(self.home_page.is_user_dropdown_present('registered'))
+
+        # User goes to their settings page
+        self.home_page.goto_user_settings()
+
+        # They click the change email link and are taken to the email page
+        settings_page.click_change_email()
+        self.assertIn('Your email addresses', self.browser.title)
+
+        # They try to add a new email address without entering anything
+        # and are warned about it
+        change_email_page.click_add_email()
+        self.assertIn("This field is required",
+                      change_email_page.get_alerts())
+
+        # They enter an invalid address and are warned about it
+        change_email_page.enter_email_and_submit("test")
+        self.assertIn("Enter a valid email address",
+                      change_email_page.get_alerts())
+
+        # They enter the address they are already registered with and are
+        # warned
+        change_email_page.enter_email_and_submit("registered@example.com")
+        self.assertIn("This e-mail address is already associated with " +
+                      "this account", change_email_page.get_alerts())
+
+        # They enter the address that another user has used and are warned
+        change_email_page.enter_email_and_submit("another@example.com")
+        self.assertIn("This e-mail address is already associated with " +
+                      "another account", change_email_page.get_alerts())
+
+        # They enter a new address and see it added to the list, unverified
+        change_email_page.enter_email_and_submit("test@example.com")
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+        self.assertIn("Unverified", content)
+
+        # They check their inbox, where they have a confirmation link, which
+        # they follow
+        message = mail.outbox[0]
+        for line in message.body.split('\n'):
+            if 'localhost' in line:
+                url = line.split(' ')[-1][8:]
+        self.browser.get(url)
+        submit_btn = self.browser.find_element_by_id('submit-btn')
+        content = change_email_page.get_page_content()
+        self.assertIn("Please confirm that test@example.com", content)
+        self.home_page.click_through_to_new_page(submit_btn)
+
+        # User goes to their settings page and go back to the email page, where
+        # they see that their new address is verified
+        self.home_page.goto_user_settings()
+        settings_page.click_change_email()
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+        self.assertNotIn("Unverified", content)
+
+        # They select the new email from the list and click remove
+        self.browser.find_element_by_id('email_radio_2').click()
+        self.browser.find_element_by_name('action_remove').click()
+
+        # The are warned, and click cancel
+        alert = self.browser.switch_to.alert
+        self.assertEqual(alert.text,
+                         "Do you really want to remove " +
+                         "the selected e-mail address?")
+        alert.dismiss()
+
+        # The address is still in the list
+        content = change_email_page.get_page_content()
+        self.assertIn("test@example.com", content)
+
+        # They click cancel again
+        self.browser.find_element_by_id('email_radio_2').click()
+        self.browser.find_element_by_name('action_remove').click()
+        alert = self.browser.switch_to.alert
+        alert.accept()
+
+        # The address is no longer in the list
+        content = change_email_page.get_page_content()
+        self.assertNotIn("test@example.com", content)
 
     def test_private_activity(self):
         # Registered user comes in and logs in
