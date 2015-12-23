@@ -30,20 +30,23 @@ class TestHomepageView(unittest.TestCase):
         self.request.user = self.user
         view = HomePageView()
         view.request = self.request
-        view.object = self.user
+        view.object_list = [1, 2, 3]
+        view.paginate_by = 1
+        view.page_kwarg = "1"
+        view.kwargs = {"1": 1}
         self.view = view
 
     @patch('homepage.views.Helper')
-    def test_get_context_data_populates_activities(self, mock_helper):
+    def test_get_queryset_calls_through_to_helper(self, mock_helper):
 
         mock_helper.get_activities = MagicMock()
         mock_helper.get_activities.return_value = sentinel.activity_list
 
-        context = self.view.get_context_data()
+        queryset = self.view.get_queryset()
 
         mock_helper.get_activities.assert_called_once_with(self.user)
 
-        self.assertEqual(context['activities'], sentinel.activity_list)
+        self.assertEqual(queryset, sentinel.activity_list)
 
     @patch('homepage.views.Helper')
     def test_get_context_data_populates_leaders(self, mock_helper):
