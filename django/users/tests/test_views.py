@@ -11,9 +11,8 @@ from users.views import UserListView, UserView
 class TestUserView(unittest.TestCase):
 
     def setUp(self):
-        self.user = UserFactory.stub()
         self.request = RequestFactory()
-        self.request.user = self.user
+        self.request.user = UserFactory.stub()
         view = UserView()
         view.request = self.request
         view.object_list = [1, 2, 3]
@@ -21,6 +20,34 @@ class TestUserView(unittest.TestCase):
         view.page_kwarg = "1"
         view.kwargs = {"1": 1}
         self.view = view
+
+    @patch('users.views.get_user_model')
+    def test_get_adds_user_to_view(self, mock_get_user_model):
+        users_mock = Mock()
+        users_mock.objects.get.return_value = sentinel.user
+        mock_get_user_model.return_value = users_mock
+
+        self.view.get_context_data = Mock()
+        self.view.get_queryset = Mock()
+        self.view.kwargs = dict(username=sentinel.username)
+
+        self.view.get(self.request)
+
+        self.assertEqual(self.view.user, sentinel.user)
+
+        users_mock.objects.get.assert_called_with(username=sentinel.username)
+
+    @patch('users.views.Helper')
+    def test_get_queryset_calls_helper(self, mock_helper):
+        mock_helper.get_users_activities.return_value = sentinel.activities
+        self.view.user = sentinel.user
+        activities = self.view.get_queryset()
+
+        self.assertEqual(activities, sentinel.activities)
+
+        user = self.request.user
+        mock_helper.get_users_activities.assert_called_once_with(sentinel.user,
+                                                                 user)
 
     @patch('users.views.Helper')
     def test_get_context_data_populates_activities(self, mock_helper):
