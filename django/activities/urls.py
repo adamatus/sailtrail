@@ -3,9 +3,10 @@ from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 
 from activities import views
+from homepage.views import HomePageView
 
 urlpatterns = [
-    url(r'^$', views.HomePageView.as_view(), name='activity_list'),
+    url(r'^$', HomePageView.as_view(), name='activity_list'),
     url(r'^upload$', login_required(views.UploadView.as_view()),
         name='upload'),
 

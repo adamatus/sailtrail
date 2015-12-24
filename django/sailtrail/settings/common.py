@@ -68,6 +68,7 @@ INSTALLED_APPS = (
 
     'djangojs',
     'core',
+    'homepage',
     'activities',
     'api',
     'users',

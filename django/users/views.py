@@ -4,26 +4,35 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView, DetailView
 
-from api.models import Helper
+from api.models import Helper, Activity
 from core.views import UploadFormMixin
 
 
-class UserView(UploadFormMixin, DetailView):
+class UserView(UploadFormMixin, ListView):
     """Individual user page view"""
-    model = get_user_model()
-    slug_field = 'username'
+    model = Activity
     template_name = 'user.html'
-    context_object_name = 'view_user'
+    context_object_name = 'activities'
+    paginate_by = 25
+    user = None
+
+    def get(self, request, *args, **kwargs):
+        """Lookup url supplied user, process get request"""
+        users = get_user_model()
+        self.user = users.objects.get(username=self.kwargs.get('username'))
+        return super(UserView, self).get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        """Return the users activities, include private if current user"""
+        return Helper.get_users_activities(self.user,
+                                           self.request.user)
 
     def get_context_data(self, **kwargs):
         """Add additional content to the user page"""
         context = super(UserView, self).get_context_data(**kwargs)
-
-        activities = Helper.get_users_activities(self.object,
-                                                 self.request.user)
-        context['activities'] = activities
-        context['summaries'] = Helper.summarize_by_category(activities)
-
+        context['view_user'] = self.user
+        context['summaries'] = Helper.summarize_by_category(
+            self.get_queryset())
         return context
 
 
