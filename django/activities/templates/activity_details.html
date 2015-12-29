@@ -36,9 +36,11 @@
     <script>
         var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
                 units = {{ units|safe }},
-                json_url = "{% url 'activity_json' activity.id %}";
+                urls = {
+                    json: "{% url 'activity_json' activity.id %}"
+                };
 
-        activity_viewer.init(json_url, max_speed, units,
+        activity_viewer.init(urls, max_speed, units,
                              {do_speed: false, do_polars: false});
     </script>
 {% endblock %}
