@@ -1,6 +1,7 @@
 """Activity view module"""
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic import DetailView, UpdateView, View
 
@@ -101,3 +102,18 @@ class ActivityTrackView(ActivityView):
     model = ActivityTrack
     template_name = 'track.html'
     context_object_name = 'track'
+
+
+class ActivityTrackDownloadView(DetailView):
+    """Activity Track Download view"""
+    model = ActivityTrack
+
+    def get(self, request, *args, **kwargs):
+        track = self.get_object()
+
+        filename = track.original_file.file.name.split('/')[-1]
+        response = HttpResponse(track.original_file.file,
+                                content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response

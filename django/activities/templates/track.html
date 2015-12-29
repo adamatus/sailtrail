@@ -17,6 +17,7 @@
 {% block main_section %}
     <h1><a href="../..">{{ track.activity_id.name }}</a>
         :: {{ track.original_filename }}</h1>
+    <a href="{% url 'download_track_file' track.activity_id.id track.id %}" download>Download original track file</a><br />
     <button type="button" class="btn btn-default" data-toggle="modal"
             data-target="#delete_modal" id="activity_delete_button">Delete Track
     </button>

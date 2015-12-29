@@ -1,4 +1,6 @@
 """Model mapping for activities"""
+import uuid
+
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Count, Max, Sum, Q
@@ -16,6 +18,9 @@ import pytz
 import os.path
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
+
+# Imported for PyCharm type assistance
+from django.core.files.uploadedfile import InMemoryUploadedFile  # noqa pylint: disable=unused-import
 
 SAILING = 'SL'
 WINDSURFING = 'WS'
@@ -220,9 +225,24 @@ class ActivityTrack(models.Model):
         """
         track = ActivityTrack.objects.create(activity_id=activity_id,
                                              original_filename=upfile.name)
+        ActivityTrackFile.objects.create(track=track,
+                                         file=upfile)
+        upfile.seek(0)
         _create_trackpoints(track, upfile)
         track.initialize_stats()
         return track
+
+
+def track_upload_path(instance, filename):  # pylint: disable=unused-argument
+    """Return path with UUID for filename"""
+    return 'originals/{0}/{1}'.format(uuid.uuid4(), filename)
+
+
+class ActivityTrackFile(models.Model):
+    """Activity track file model"""
+    uploaded = models.DateTimeField(auto_now_add=True)
+    track = models.ForeignKey(ActivityTrack, related_name='file', null=False)
+    file = models.FileField(upload_to=track_upload_path)
 
 
 def _create_trackpoints(track, upfile):
@@ -249,9 +269,10 @@ def _create_sbn_trackpoints(track, upfile):
 
     Parameters
     ----------
-    upfile : file
-    track : int
+    track : ActivityTrack
+    upfile : InMemoryUploadedFile
     """
+
     data = Parser()
     data.process(upfile.read())
     # filter out Nones
@@ -277,8 +298,8 @@ def _create_gpx_trackpoints(track, upfile):
 
     Parameters
     ----------
-    track : int
-    upfile : file
+    track : ActivityTrack
+    upfile : InMemoryUploadedFile
     """
     gpx = upfile.read().decode('utf-8')
     gpx = gpxpy.parse(gpx)
