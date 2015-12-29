@@ -1,55 +1,72 @@
 {% extends 'base.html' %}
 {% load js %}
 
-{% block title_text %}{{ track.activity_id.name }} :: {{ track.original_filename }}{% endblock %}
+{% block title_text %}{{ track.activity_id.name }} ::
+    {{ track.original_filename }}{% endblock %}
 
 {% block extra_styles %}
-{% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
-<style>
-  .slider.slider-horizontal {
-		width: 100%;
-	}
-</style>
+    {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+    <style>
+        .slider.slider-horizontal {
+            width: 100%;
+        }
+    </style>
 {% endblock %}
 
 {% load static %}
 {% block main_section %}
-  <h1><a href="../..">{{ track.activity_id.name }}</a> :: {{ track.original_filename }}</h1>
-		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#delete_modal" id="activity_delete_button">Delete Track</button>
-		{% url "delete_track" track.activity_id.id track.id as delete_url %}
-		{% include 'components/delete-modal.html' with target="track" action=delete_url %}
-		<div class="row">
-			<div class="col-md-6" style="padding-top: 1em;">
-        {% include 'components/track-plot.html' %}
-			</div>
-			<div class="col-md-6" style="padding-top: 1em;">
-      {% include 'components/speed-plot.html' %}
-				{% if trimmed %}
-				<a href="{% url 'untrim_track' activity.id track.id %}" class="btn btn-default">Untrim</a>
-				{% else %}
-				<button class="btn btn-default" id="trim-start">Trim Start</button>
-				<button class="btn btn-default" id="trim-end">Trim End</button>
-				<form role="form" action="{% url 'trim_track' activity.id track.id %}" method="POST">
+    <h1><a href="../..">{{ track.activity_id.name }}</a>
+        :: {{ track.original_filename }}</h1>
+    <button type="button" class="btn btn-default" data-toggle="modal"
+            data-target="#delete_modal" id="activity_delete_button">Delete Track
+    </button>
+    {% url "delete_track" track.activity_id.id track.id as delete_url %}
+    {% include 'components/delete-modal.html' with target="track" action=delete_url %}
+    <div class="row">
+        <div class="col-md-6" style="padding-top: 1em;">
+            {% include 'components/track-plot.html' %}
+        </div>
+        <div class="col-md-6" style="padding-top: 1em;">
+            {% include 'components/speed-plot.html' %}
+            {% if track.trimmed %}
+                <a href="{% url 'untrim_track' track.activity_id.id track.id %}"
+                   class="btn btn-default">Untrim</a>
+            {% else %}
+                <button class="btn btn-default" id="trim-start">Trim Start
+                </button>
+                <button class="btn btn-default" id="trim-end">Trim End</button>
+                <form role="form"
+                      action="{% url 'trim_track' track.activity_id.id track.id %}"
+                      method="POST">
 
 
-					<input type="hidden" id="input-trim-start" name="trim-start" value='-1'>
-					<input type="hidden" id="input-trim-end" name="trim-end" value='-1'>
-					{% csrf_token %}
-					<button type="submit" class='btn btn-default' id='trim-activity'>Trim Activity</button>
-				</form>
-				{% endif %}
-			</div>
-		</div>
+                    <input type="hidden" id="input-trim-start" name="trim-start"
+                           value='-1'>
+                    <input type="hidden" id="input-trim-end" name="trim-end"
+                           value='-1'>
+                    {% csrf_token %}
+                    <button type="submit" class='btn btn-default'
+                            id='trim-activity'>Trim Activity
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_bottom_js %}
-	{% js 'activities/activity_viewer.bundle.js' %}
-		<script>
-var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
-    wind_direction = "{{ activity.wind_direction }}" == "None" ? null : +"{{activity.wind_direction}}",
-		units = {{ units|safe }},
-		json_url = "{% url 'track_json' activity.id track.id %}";
+    {% js 'activities/activity_viewer.bundle.js' %}
+    <script>
+        var max_speed = +"{{ track.activity_id.max_speed }}".split(' ')[0],
+                wind_direction = "{{ track.activity_id.wind_direction }}"
+                                 == "None" ? null
+                        : +"{{track.activity_id.wind_direction}}",
+                units = {{ units|safe }},
+                urls = {
+                    json: "{% url 'track_json' track.activity_id.id track.id %}",
+                    winddir: "{% url 'activity_wind_direction' track.activity_id.id %}"
+                };
 
-activity_viewer.init(json_url, max_speed, wind_direction, units);
-		</script>
+        activity_viewer.init(urls, max_speed, wind_direction, units);
+    </script>
 {% endblock %}

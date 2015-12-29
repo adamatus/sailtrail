@@ -1,3 +1,15 @@
+<a name="0.1.11"></a>
+## [0.1.11](https://github.com/adamatus/sailtrail/compare/v0.1.10...v0.1.11) (2015-12-20)
+
+### Features
+
+* Major refactor to split codebase into apps ([387cd1c](https://github.com/adamatus/sailtrail/commit/387cd1c))
+
+### Bug Fixes
+
+* Remove livereload.js in prod ([3b8b1d2](https://github.com/adamatus/sailtrail/commit/3b8b1d2))
+* Fix handling of manual wind direction ([7745ae9](https://github.com/adamatus/sailtrail/commit/7745ae9))
+
 <a name="0.1.10"></a>
 ## [0.1.10](https://github.com/adamatus/sailtrail/compare/v0.1.9...v0.1.10) (2015-12-01)
 

@@ -2,6 +2,7 @@
 
 var activity_viewer = require('./activity_viewer'),
     speed_viewer = require('./speed_viewer'),
+    polar_viewer = require('./polar_viewer'),
     track_viewer = require('./track_viewer');
 
 describe('activity_viewer', function() {
@@ -22,9 +23,15 @@ describe('activity_viewer', function() {
     });
 
     describe('setup', function() {
+
+        before(function() {
+            activity_viewer.urls = {winddir: 'dummy'};
+        });
+
         it('should call track_viewer.draw_map', sinon.test(function() {
             this.stub(track_viewer, 'draw_map');
             this.stub(speed_viewer, 'draw_plot');
+            this.stub(polar_viewer, 'draw_plot');
             activity_viewer.setup(null, pos, units);
             track_viewer.draw_map.should.have.been.called;
         }));

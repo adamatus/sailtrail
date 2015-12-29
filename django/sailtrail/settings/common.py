@@ -65,8 +65,14 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'djangojs',
+    'core',
+    'homepage',
     'activities',
+    'api',
+    'users',
+
     'djangobower',
     'ganalytics',
 

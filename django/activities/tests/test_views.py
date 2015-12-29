@@ -1,68 +1,152 @@
 import os.path
+from unittest.mock import patch, sentinel, MagicMock, Mock
 
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+import pytest
+import unittest
+
+from django.core.exceptions import SuspiciousOperation, PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 
-from activities.models import Activity, ActivityTrack
-
-from activities.forms import (UploadFileForm, ActivityDetailsForm,
-                              ERROR_NO_UPLOAD_FILE_SELECTED,
+from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
-from .factories import (UserFactory, ActivityFactory, ActivityTrackFactory,
-                        ActivityTrackpointFactory)
+from activities.views import UploadView, UploadTrackView, \
+    DetailsView
+from api.models import Activity, ActivityTrack
+from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
+                                 ActivityTrackpointFactory)
+from users.tests.factories import UserFactory
 
-User = get_user_model()
-
-ASSET_PATH = os.path.join(os.path.dirname(__file__),
-                          'assets')
+ASSET_PATH = os.path.join(os.path.dirname(__file__), 'assets')
 
 with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
     SBN_BIN = f.read()
 
 
-class TestHomepageView(TestCase):
+class TestFileUploadView(unittest.TestCase):
 
-    def test_home_page_renders_home_template(self):
-        response = self.client.get('/')
-        self.assertTemplateUsed(response, 'home.html')
+    def setUp(self):
+        self.user = UserFactory.stub()
+        self.request = RequestFactory()
+        self.request.user = self.user
+        self.request.POST = sentinel.POST
+        self.request.FILES = sentinel.FILES
+        self.view = UploadView()
 
-    def test_homepage_uses_upload_form(self):
-        response = self.client.get('/')
-        self.assertIsInstance(response.context['form'],
-                              UploadFileForm)
+    @patch('activities.views.UploadFileForm')
+    def test_post_raises_suspicious_operation_on_bad_form(self,
+                                                          upload_form_mock):
+        form = Mock()
+        form.is_valid.return_value = False
+        upload_form_mock.return_value = form
 
-    def test_home_page_shows_existing_activities(self):
-        a = ActivityFactory.create(
-            name="First snowkite of the season")
-        t = ActivityTrackFactory.create(activity_id=a)
-        ActivityTrackpointFactory.create(track_id=t)
-        t.initialize_stats()
-        a = ActivityFactory.create(
-            name="Snowkite lesson:")
-        t = ActivityTrackFactory.create(activity_id=a)
-        ActivityTrackpointFactory.create(track_id=t)
-        t.initialize_stats()
+        with self.assertRaises(SuspiciousOperation):
+            self.view.post(self.request)
 
-        response = self.client.get('/')
-        self.assertContains(response, 'First snowkite of the season')
-        self.assertContains(response, 'Snowkite lesson:')
+        upload_form_mock.assert_called_with(sentinel.POST, sentinel.FILES)
 
-    def test_home_page_does_not_show_activities_without_details(self):
-        a = Activity.objects.create(user=UserFactory.create())
-        ActivityTrack.create_new(
-            upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
-            activity_id=a
-        )
+    @patch('activities.views.redirect')
+    @patch('activities.views.Activity')
+    @patch('activities.views.UploadFileForm')
+    def test_post_creates_track_for_each_file_and_redirects(self,
+                                                            upload_form_mock,
+                                                            activity_mock,
+                                                            redirect_mock):
+        form = Mock()
+        form.is_valid.return_value = True
+        form.cleaned_data = dict(upfile=[sentinel.file1, sentinel.file2])
+        upload_form_mock.return_value = form
 
-        response = self.client.get('/')
-        self.assertNotContains(response, '></a>')
+        created_mock = MagicMock()
+        created_mock.id = sentinel.id
+        activity_mock.objects.create.return_value = created_mock
+
+        redirect_mock.return_value = sentinel.response
+
+        response = self.view.post(self.request)
+
+        activity_mock.objects.create.assert_called_with(user=self.request.user)
+        created_mock.add_track.assert_any_call(sentinel.file1)
+        created_mock.add_track.assert_any_call(sentinel.file2)
+
+        redirect_mock.assert_called_with('details', sentinel.id)
+
+        self.assertEqual(response, sentinel.response)
 
 
-class TestFileUploadView(TestCase):
+class TestUploadTrackView(unittest.TestCase):
+
+    def setUp(self):
+        self.user = UserFactory.stub()
+        self.request = RequestFactory()
+        self.request.user = self.user
+        self.request.POST = sentinel.POST
+        self.request.FILES = sentinel.FILES
+        self.view = UploadTrackView()
+
+    @patch('activities.views.Activity')
+    def test_post_raises_permission_denied_if_not_owner(self,
+                                                        activity_mock):
+        found_activity = MagicMock()
+        found_activity.user = UserFactory.stub()
+        activity_mock.objects.get.return_value = found_activity
+
+        with self.assertRaises(PermissionDenied):
+            self.view.post(self.request, sentinel.activity_id)
+
+        activity_mock.objects.get.assert_called_with(id=sentinel.activity_id)
+
+    @patch('activities.views.UploadFileForm')
+    @patch('activities.views.Activity')
+    def test_post_raises_suspicious_operation_on_bad_form(self,
+                                                          activity_mock,
+                                                          upload_form_mock):
+        found_activity = MagicMock()
+        found_activity.user = self.user
+        activity_mock.objects.get.return_value = found_activity
+
+        form = Mock()
+        form.is_valid.return_value = False
+        upload_form_mock.return_value = form
+
+        with self.assertRaises(SuspiciousOperation):
+            self.view.post(self.request, sentinel.activity_id)
+
+        upload_form_mock.assert_called_with(sentinel.POST, sentinel.FILES)
+
+    @patch('activities.views.redirect')
+    @patch('activities.views.Activity')
+    @patch('activities.views.UploadFileForm')
+    def test_post_creates_track_for_each_file_and_redirects(self,
+                                                            upload_form_mock,
+                                                            activity_mock,
+                                                            redirect_mock):
+        found_activity = MagicMock()
+        found_activity.user = self.user
+        found_activity.id = sentinel.id
+        activity_mock.objects.get.return_value = found_activity
+
+        form = Mock()
+        form.is_valid.return_value = True
+        form.cleaned_data = dict(upfile=[sentinel.file1, sentinel.file2])
+        upload_form_mock.return_value = form
+
+        redirect_mock.return_value = sentinel.response
+
+        response = self.view.post(self.request, sentinel.activity_id)
+
+        found_activity.add_track.assert_any_call(sentinel.file1)
+        found_activity.add_track.assert_any_call(sentinel.file2)
+
+        redirect_mock.assert_called_with('view_activity', pk=sentinel.id)
+
+        self.assertEqual(response, sentinel.response)
+
+
+@pytest.mark.integration
+class TestFileUploadViewIntegration(TestCase):
 
     def setUp(self):
         self.user = UserFactory.create(username='test')
@@ -90,16 +174,66 @@ class TestFileUploadView(TestCase):
                              reverse('details',
                                      args=[1]))
 
-    def test_GET_request_renders_homepage(self):
-        response = self.client.get(reverse('upload'))
-        self.assertTemplateUsed(response, 'home.html')
 
-    def test_POST_without_file_displays_error(self):
-        response = self.client.post(reverse('upload'))
-        self.assertContains(response, ERROR_NO_UPLOAD_FILE_SELECTED)
+class TestDetailsView(unittest.TestCase):
+
+    def setUp(self):
+        self.user = UserFactory.stub()
+        self.request = RequestFactory()
+        self.request.user = self.user
+        view = DetailsView()
+        view.request = self.request
+        view.object = Mock()
+        view.pk_url_kwarg = 'pk'
+        view.kwargs = dict(pk=1)
+        self.view = view
+
+    def test_get_object_returns_activity_if_current_user(self):
+        mock_queryset = Mock()
+        mock_queryset2 = Mock()
+        mock_activity = Mock()
+        mock_activity.user = self.user
+        mock_queryset.filter.return_value = mock_queryset2
+        mock_queryset2.get.return_value = mock_activity
+
+        activity = self.view.get_object(queryset=mock_queryset)
+
+        self.assertEqual(activity, mock_activity)
+
+    def test_get_object_raises_persmission_error_if_not_current_user(self):
+        mock_queryset = Mock()
+        mock_queryset2 = Mock()
+        mock_activity = Mock()
+        mock_activity.user = UserFactory.stub()
+        mock_queryset.filter.return_value = mock_queryset2
+        mock_queryset2.get.return_value = mock_activity
+
+        with self.assertRaises(PermissionDenied):
+            self.view.get_object(queryset=mock_queryset)
+
+    def test_get_context_adds_delete_cancel_link(self):
+        self.view.object.id = 1
+        self.view.object.name = None
+
+        context = self.view.get_context_data()
+
+        link = reverse('delete_activity', args=[1])
+
+        self.assertEqual(context['cancel_link'], link)
+
+    def test_get_context_adds_view_cancel_link(self):
+        self.view.object.id = 1
+        self.view.object.name = 'Something'
+
+        context = self.view.get_context_data()
+
+        link = reverse('view_activity', args=[1])
+
+        self.assertEqual(context['cancel_link'], link)
 
 
-class TestNewActivityDetailView(TestCase):
+@pytest.mark.integration
+class TestNewActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
@@ -115,7 +249,7 @@ class TestNewActivityDetailView(TestCase):
 
     def test_new_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['detail_form'],
+        self.assertIsInstance(response.context['form'],
                               ActivityDetailsForm)
 
     def test_POST_to_new_view_redirects_to_activity(self):
@@ -157,7 +291,8 @@ class TestNewActivityDetailView(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_CATEGORY_MISSING)
 
 
-class TestActivityDetailView(TestCase):
+@pytest.mark.integration
+class TestActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
         user = UserFactory.create(username="test")
@@ -173,7 +308,7 @@ class TestActivityDetailView(TestCase):
 
     def test_detail_view_uses_new_session_form(self):
         response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['detail_form'],
+        self.assertIsInstance(response.context['form'],
                               ActivityDetailsForm)
 
     def test_detail_view_shows_current_values(self):
@@ -211,7 +346,8 @@ class TestActivityDetailView(TestCase):
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
 
 
-class TestActivityView(TestCase):
+@pytest.mark.integration
+class TestActivityViewIntegration(TestCase):
 
     def setUp(self):
         a = ActivityFactory.create(
@@ -237,68 +373,3 @@ class TestActivityView(TestCase):
         response = self.client.get(reverse('view_activity', args=[1]))
         self.assertContains(response, 'Max Speed')
         self.assertContains(response, 'knots')
-
-
-class TestDeleteActivityView(TestCase):
-
-    def setUp(self):
-        self.user = UserFactory.create(username='test')
-        self.client.login(username='test', password='password')
-        Activity.objects.create(user=self.user)
-
-    def test_delete_redirects_to_homepage(self):
-        response = self.client.get(reverse('delete_activity',
-                                           args=[1]))
-        self.assertRedirects(response, '/')
-
-    def test_delete_removes_item_from_db(self):
-        self.client.get(reverse('delete_activity', args=[1]))
-        self.assertRaises(ObjectDoesNotExist,
-                          lambda: Activity.objects.get(id=1)
-                          )
-
-
-class TestLeaderboardView(TestCase):
-
-    def setUp(self):
-        self.user1 = UserFactory.create(username='test1')
-        self.user2 = UserFactory.create(username='test2')
-
-        self.activity = ActivityFactory.create(model_max_speed=10,
-                                               user=self.user1)
-        ActivityFactory.create(model_max_speed=5, user=self.user1)
-        ActivityFactory.create(model_max_speed=7, user=self.user2)
-
-    def test_leaderboard_renders_correct_template(self):
-        response = self.client.get(reverse('leaderboards'))
-        self.assertTemplateUsed(response, 'leaderboards.html')
-
-    def test_leaderboard_contains_high_speeds(self):
-        response = self.client.get(reverse('leaderboards'))
-        leaders = response.context['leaders']
-        self.assertEqual(1, len(leaders), 'Should contain sailing entry')
-        sailing = leaders[0]
-        self.assertEqual('Sailing', sailing['category'])
-        self.assertEqual(2, len(sailing['leaders']))
-        leader = sailing['leaders'][0]
-        self.assertEqual('test1', leader['user__username'])
-        self.assertEqual(10.0, leader['max_speed'])
-        second = sailing['leaders'][1]
-        self.assertEqual('test2', second['user__username'])
-        self.assertEqual(7.0, second['max_speed'])
-
-    def test_leaderboard_does_not_contain_private_high_speeds(self):
-        self.activity.private = True
-        self.activity.save()
-        response = self.client.get(reverse('leaderboards'))
-        leaders = response.context['leaders']
-        self.assertEqual(1, len(leaders), 'Should contain sailing entry')
-        sailing = leaders[0]
-        self.assertEqual('Sailing', sailing['category'])
-        self.assertEqual(2, len(sailing['leaders']))
-        leader = sailing['leaders'][0]
-        self.assertEqual('test2', leader['user__username'])
-        self.assertEqual(7.0, leader['max_speed'])
-        second = sailing['leaders'][1]
-        self.assertEqual('test1', second['user__username'])
-        self.assertEqual(5.0, second['max_speed'])

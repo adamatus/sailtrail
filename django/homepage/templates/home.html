@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title_text %}Home{% endblock %}
+
+{% block main_section %}
+    {% load unit_conversions %}
+    <h1>SailTrail</h1>
+    <p>The best place to track and analyze windsports activites</p>
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Activity List</h2>
+            {% if is_paginated %}
+            Showing activities {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }} total activities.
+            {% else %}
+                Showing all {{ activities.count }} activities.
+            {% endif %}
+            <hr>
+            {% for activity in activities %}
+                <div class='activity'>
+                    <h3>
+                        <a href="/activities/{{ activity.id }}/">{{ activity.name }}</a>
+                    </h3>
+
+                    <p>Sailed by <a
+                            href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+                        {% if activity.private %}<i>Private</i>{% endif %}</p>
+                    <ul class="list-inline">
+                        <li class="activity-date">{{ activity.date }}</li>
+                        <li class="activity-time">{{ activity.start_time }}</li>
+                        <li class="activity-max-speed">{{ activity.model_max_speed|speed }}
+                            max
+                        </li>
+                        <li class="activity-category">{{ activity.get_category_display }}</li>
+                    </ul>
+                </div>
+                <hr>
+            {% endfor %}
+            {% if is_paginated %}
+                <nav>
+                    <ul class="pager">
+                        {% if page_obj.has_previous %}
+                            <li><a href="{% url 'newhome' %}?page={{ page_obj.previous_page_number }}"><span aria-hidden="true">&larr;</span> Newer</a></li>
+                        {% else %}
+                            <li class="disabled"><a href="#"><span aria-hidden="true">&larr;</span> Newer</a></li>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <li><a href="{% url 'newhome' %}?page={{ page_obj.next_page_number }}">Older <span aria-hidden="true">&rarr;</span></a></li>
+                        {% else %}
+                            <li class="disabled"><a href="#">Older <span aria-hidden="true">&rarr;</span></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            <h2>Leaderboards</h2>
+            {% for category in leaders %}
+                <h3>{{ category.category }}</h3>
+                <table class='table table-striped'>
+                    <tr>
+                        <th>User</th>
+                        <th>Max Speed</th>
+                    </tr>
+                    {% for leader in category.leaders %}
+                        <tr>
+                            <td>
+                                <a href="{% url "user" leader.user__username %}">{{ leader.user__username }}</a>
+                            </td>
+                            <td>{{ leader.max_speed|speed }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

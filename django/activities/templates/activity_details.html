@@ -4,38 +4,43 @@
 {% block title_text %}{{ activity.name }}{% endblock %}
 
 {% block main_section %}
-		<h1>Details about activity</h1>
-		<p>Date: {{ activity.date }}</p>
-		<p>Start Time: {{ activity.start_time }}</p>
-		<p>Duration: {{ activity.duration }}</p>
-		<form role="form" method="POST" action="{% url 'details' activity.id %}" enctype="multipart/form-data">
-			{% include 'components/form-errors.html' with form=detail_form%}
-			<div class="form-group">
-				{{ detail_form.name }}
-			</div>
-			<div class="form-group">
-				{{ detail_form.category }}
-			</div>
-			<div class="form-group">
-				{{ detail_form.description }}
-			</div>
-			<div class="form-group">
-				Private {{ detail_form.private }}
-			</div>
-			{% csrf_token %}
-			<button id="save-details" type="submit" class="btn btn-default">OK</button>
-			<a class="btn btn-default" href="{{ cancel_link }}">Cancel</a>
-			{% include 'components/track-plot.html' %}
-		</form>
+    <h1>Details about activity</h1>
+    <p>Date: {{ activity.date }}</p>
+    <p>Start Time: {{ activity.start_time }}</p>
+    <p>Duration: {{ activity.duration }}</p>
+    <form role="form" method="POST" action="{% url 'details' activity.id %}"
+          enctype="multipart/form-data">
+        {% include 'components/form-errors.html' %}
+        <div class="form-group">
+            {{ form.name }}
+        </div>
+        <div class="form-group">
+            {{ form.category }}
+        </div>
+        <div class="form-group">
+            {{ form.description }}
+        </div>
+        <div class="form-group">
+            Private {{ form.private }}
+        </div>
+        {% csrf_token %}
+        <button id="save-details" type="submit" class="btn btn-default">OK
+        </button>
+        <a class="btn btn-default" href="{{ cancel_link }}">Cancel</a>
+        {% include 'components/track-plot.html' %}
+    </form>
 {% endblock %}
 
 {% block extra_bottom_js %}
-	{% js 'activities/activity_viewer.bundle.js' %}
-		<script>
-var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
-		units = {{ units|safe }},
-		json_url = "{% url 'activity_json' activity.id %}";
+    {% js 'activities/activity_viewer.bundle.js' %}
+    <script>
+        var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+                units = {{ units|safe }},
+                urls = {
+                    json: "{% url 'activity_json' activity.id %}"
+                };
 
-activity_viewer.init(json_url, max_speed, units, {do_speed: false, do_polars: false});
-</script>
+        activity_viewer.init(urls, max_speed, units,
+                             {do_speed: false, do_polars: false});
+    </script>
 {% endblock %}
