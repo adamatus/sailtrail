@@ -1,6 +1,7 @@
 """Model mapping for activities"""
 from datetime import datetime as dt, time, date, timedelta
 import os.path
+from typing import Dict, List
 
 import gpxpy
 import pytz
@@ -314,7 +315,7 @@ class Helper(object):
             total_dist=Sum('model_distance')).order_by('-max_speed')
 
     @staticmethod
-    def get_leaders() -> dict:
+    def get_leaders() -> List[Dict[str, str]]:
         """Build list of leaders for the leaderboard"""
         leader_list = Activity.objects.filter(private=False).values(
             'user__username', 'category').annotate(
