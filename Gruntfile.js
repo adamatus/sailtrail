@@ -60,8 +60,10 @@ module.exports = function(grunt) {
 
             apps: {
                 src: [
+                    'django/activities',
                     'django/api',
                     'django/core',
+                    'django/homepage',
                     'django/leaders',
                     'django/sirf',
                     'django/users',
