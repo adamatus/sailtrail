@@ -2,6 +2,8 @@
 from allauth.account.views import PasswordChangeView
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
+from django.db.models import QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.views.generic import ListView, DetailView
 
 from api.models import Helper, Activity
@@ -16,18 +18,18 @@ class UserView(UploadFormMixin, ListView):
     paginate_by = 25
     user = None
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Lookup url supplied user, process get request"""
         users = get_user_model()
         self.user = users.objects.get(username=self.kwargs.get('username'))
         return super(UserView, self).get(request, *args, **kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         """Return the users activities, include private if current user"""
         return Helper.get_users_activities(self.user,
                                            self.request.user)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(UserView, self).get_context_data(**kwargs)
         context['view_user'] = self.user
@@ -43,7 +45,7 @@ class UserSettingsView(UploadFormMixin, DetailView):
     template_name = 'user_settings.html'
     context_object_name = 'view_user'
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(UserSettingsView, self).get_context_data(**kwargs)
 
@@ -58,7 +60,7 @@ class UserSettingsView(UploadFormMixin, DetailView):
 class ChangePasswordView(PasswordChangeView):
     """Change password view"""
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         """Get a success url, for the current user"""
         self.request.session['notify'] = 'Password successfully updated'
         return reverse('user_settings', args=[self.request.user.username])

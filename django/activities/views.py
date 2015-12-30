@@ -1,6 +1,8 @@
 """Activity view module"""
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
+from django.db.models import QuerySet
+from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views.generic import DetailView, UpdateView, View
 
@@ -19,8 +21,9 @@ ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
 class UploadView(View):
     """Upload view"""
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> HttpResponseRedirect:
         """Handle post request"""
+
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             activity = Activity.objects.create(user=request.user)
@@ -34,7 +37,8 @@ class UploadView(View):
 class UploadTrackView(View):
     """Upload track view"""
 
-    def post(self, request, activity_id):
+    def post(self, request: HttpRequest, activity_id: int) -> \
+            HttpResponseRedirect:
         """Handle post request"""
         activity = Activity.objects.get(id=activity_id)
 
@@ -57,14 +61,14 @@ class DetailsView(UpdateView):
     template_name = 'activity_details.html'
     form_class = ActivityDetailsForm
 
-    def get_object(self, queryset=None):
+    def get_object(self, queryset: QuerySet=None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super(DetailsView, self).get_object(queryset)
         if self.request.user != activity.user:
             raise PermissionDenied
         return activity
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(DetailsView, self).get_context_data(**kwargs)
         if self.object.name is None:
@@ -82,13 +86,13 @@ class ActivityView(UploadFormMixin, DetailView):
     template_name = 'activity.html'
     context_object_name = 'activity'
 
-    def get_object(self, queryset=None):
+    def get_object(self, queryset: QuerySet=None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super().get_object(queryset)
         Helper.verify_private_owner(activity, self.request)
         return activity
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(ActivityView, self).get_context_data(**kwargs)
         context['val_errors'] = ERRORS

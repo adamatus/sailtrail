@@ -5,7 +5,7 @@ import numpy as np
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
@@ -26,7 +26,7 @@ class WindDirection(SingleObjectMixin, View):
     """Wind direction handler"""
     model = Activity
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Save an updated wind direction"""
         activity = self.get_object()
         if request.user != activity.user:
@@ -35,7 +35,7 @@ class WindDirection(SingleObjectMixin, View):
         activity.save()
         return self.get(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Return wind direction as JSON"""
         del args, kwargs  # remove to eliminate unused-warnings
         activity = self.get_object()
@@ -46,7 +46,7 @@ class WindDirection(SingleObjectMixin, View):
             content_type="application/json")
 
 
-def activity_json(request, activity_id):
+def activity_json(request: HttpRequest, activity_id: int) -> HttpResponse:
     """ Activity JSON data endpoint"""
     activity = Activity.objects.get(id=activity_id)
 
@@ -57,7 +57,8 @@ def activity_json(request, activity_id):
     return return_json(pos)
 
 
-def track_json(request, activity_id, track_id):
+def track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
+        HttpResponse:
     """Track data API endpoint handler"""
     del activity_id  # delete activity_id as it is not attached to track
 
@@ -72,7 +73,7 @@ def track_json(request, activity_id, track_id):
     return return_json(pos)
 
 
-def return_json(pos):
+def return_json(pos: list) -> HttpResponse:
     """Helper method to return JSON data"""
 
     stats = Stats(pos)
@@ -103,9 +104,9 @@ def return_json(pos):
 
 
 @login_required
-def delete(request, activity_id):
+def delete(request: HttpRequest, activity_id: int) -> HttpResponseRedirect:
     """Delete activity handler"""
-    activity = Activity.objects.get(id=activity_id)
+    activity = Activity.objects.get(id=activity_id)  # type: Activity
     if request.user != activity.user:
         raise PermissionDenied
     activity.delete()
@@ -113,9 +114,10 @@ def delete(request, activity_id):
 
 
 @login_required
-def delete_track(request, activity_id, track_id):
+def delete_track(request: HttpRequest, activity_id: int, track_id: int) -> \
+        HttpResponseRedirect:
     """Delete track handler"""
-    track = ActivityTrack.objects.get(id=track_id)
+    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.delete()
@@ -126,9 +128,10 @@ def delete_track(request, activity_id, track_id):
 
 
 @login_required
-def trim(request, activity_id, track_id):
+def trim(request: HttpRequest, activity_id: int, track_id: int) -> \
+        HttpResponseRedirect:
     """Trim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)
+    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.trim(request.POST['trim-start'], request.POST['trim-end'])
@@ -136,9 +139,10 @@ def trim(request, activity_id, track_id):
 
 
 @login_required
-def untrim(request, activity_id, track_id):
+def untrim(request: HttpRequest, activity_id: int, track_id: int) -> \
+        HttpResponseRedirect:
     """Untrim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)
+    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
     if request.user != track.activity_id.user:
         raise PermissionDenied
     track.reset_trim()
