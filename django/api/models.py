@@ -1,4 +1,10 @@
 """Model mapping for activities"""
+from datetime import datetime as dt, time, date, timedelta
+import os.path
+
+import gpxpy
+import pytz
+
 from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
@@ -7,17 +13,10 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 
+from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from sirf.stats import Stats
 from sirf import Parser
 
-import gpxpy
-
-from datetime import datetime as dt, time, date, timedelta
-import pytz
-
-import os.path
-
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 
 SAILING = 'SL'
 WINDSURFING = 'WS'
