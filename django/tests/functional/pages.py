@@ -55,7 +55,6 @@ class BasePage(object):
     def is_user_dropdown_present(self, username):
         try:
             link = self.browser.find_element_by_id('nav-user-dropdown-toggle')
-            print(link.text)
             return username == link.text.strip()
         except NoSuchElementException:
             return False
@@ -103,7 +102,6 @@ class BasePage(object):
             'id_upfile'
         )
         upload_box.send_keys(os.path.join(ASSET_PATH, filename))
-        print("About to click upload...")
         self.click_upload()
 
     def upload_without_file(self):

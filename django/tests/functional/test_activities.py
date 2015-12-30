@@ -12,13 +12,14 @@ from selenium import webdriver
 from activities.forms import ERROR_ACTIVITY_NAME_MISSING
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
+from tests.functional.TempMediaMixin import TempMediaMixin
 from .pages import (HomePage, ActivityPage, ActivityDetailsPage,
                     RegistrationPage, LoginPage, ActivityTrackPage,
                     SettingsPage, ChangePasswordPage, ChangeEmailPage)
 
 
 @pytest.mark.functional
-class ActivitiesTest(StaticLiveServerTestCase):
+class ActivitiesTest(TempMediaMixin, StaticLiveServerTestCase):
     fixtures = ['two-users-no-data.json']
 
     def setUp(self):
@@ -774,3 +775,5 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.assertIn("0.27 nmi", content)
         self.assertIn("11.89 knots", content)
         self.assertNotIn("(trimmed)", content)
+
+        self.assertEqual(1, 2)
