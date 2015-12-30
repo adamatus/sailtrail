@@ -10,7 +10,7 @@ django.js==0.8.1
 gpxpy==1.0.0
 gunicorn==19.4.1
 lxml==3.5.0
-numpy==1.10.1
+numpy==1.10.2
 Pint==0.6.0
 python-dateutil==2.4.2
 pytz==2015.7

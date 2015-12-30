@@ -9,7 +9,7 @@ class LeaderboardView(UploadFormMixin, TemplateView):
     """Leaderboard view"""
     template_name = 'leaderboards.html'
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Update the context with leaders"""
         context = super(LeaderboardView, self).get_context_data(**kwargs)
         context['leaders'] = Helper.get_leaders()

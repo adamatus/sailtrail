@@ -17,7 +17,8 @@ class TempMediaMixin(object):
         cls._temp_media = tempfile.mkdtemp()
         settings.MEDIA_ROOT = cls._temp_media
         print("SETTINGS MEDIA ROOT: {}".format(settings.MEDIA_ROOT))
-        settings.DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+        settings.DEFAULT_FILE_STORAGE = \
+            'django.core.files.storage.FileSystemStorage'
 
     @classmethod
     def tearDownClass(cls):

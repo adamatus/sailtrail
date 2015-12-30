@@ -1,12 +1,11 @@
-import pytest
 import time
 
+import pytest
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.core import mail
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
-
-from django.core import mail
-
 from selenium import webdriver
 
 from activities.forms import ERROR_ACTIVITY_NAME_MISSING

@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import Mock, sentinel, patch
+from unittest.mock import Mock, sentinel, patch, MagicMock
 
 import pytest
 
@@ -52,7 +52,7 @@ class TestWindDirection(unittest.TestCase):
 
     @patch('api.views.HttpResponse')
     def test_get_returns_if_private_and_cur_user(self,
-                                                 mock_http):
+                                                 mock_http: MagicMock):
         user = UserFactory.stub()
         wind_dir = "10.0"
 
@@ -75,8 +75,8 @@ class TestWindDirection(unittest.TestCase):
         mock_http.return_value = sentinel.http_response
 
         response = view.get(request)
-        mock_http.assert_called_once()
 
+        self.assertTrue(mock_http.called)
         self.assertEqual(response, sentinel.http_response)
 
     @patch('api.views.HttpResponse')

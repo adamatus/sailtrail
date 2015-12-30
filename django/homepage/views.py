@@ -1,4 +1,5 @@
 """Activity view module"""
+from django.db.models import QuerySet
 from django.views.generic import ListView
 
 from api.models import Helper, Activity
@@ -17,11 +18,13 @@ class HomePageView(UploadFormMixin, ListView):
     context_object_name = 'activities'
     paginate_by = 25
 
-    def get_queryset(self):
-        """Overriden queryset to return activities, including users privatse"""
+    def get_queryset(self) -> QuerySet:
+        """Overridden queryset to return activities
+
+        Includes current users private activities"""
         return Helper.get_activities(self.request.user)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """Update the context with addition homepage data"""
         context = super(HomePageView, self).get_context_data(**kwargs)
         context['leaders'] = Helper.get_leaders()

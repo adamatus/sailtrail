@@ -1,7 +1,7 @@
 """
 Helper module to compute stats on GPS tracks
 """
-
+import datetime
 import numpy as np
 
 from pint import UnitRegistry
@@ -16,47 +16,47 @@ class Stats(object):
         self.units.define('knots = knot')
 
     @property
-    def full_start_time(self):
+    def full_start_time(self) -> datetime.datetime:
         """Get the start date and time of the track"""
         return self.trackpoints[0]['timepoint']
 
     @property
-    def full_end_time(self):
+    def full_end_time(self) -> datetime.datetime:
         """Get the end date and time of the track"""
         return self.trackpoints[-1]['timepoint']
 
     @property
-    def start_time(self):
+    def start_time(self) -> datetime.time:
         """Get the start time of the track"""
         return self.full_start_time.time()
 
     @property
-    def start_date(self):
+    def start_date(self) -> datetime.date:
         """Get the start date of the track"""
         return self.full_start_time.date()
 
     @property
-    def end_time(self):
+    def end_time(self) -> datetime.time:
         """Get the end time of the track"""
         return self.full_end_time.time()
 
     @property
-    def duration(self):
+    def duration(self) -> datetime.timedelta:
         """Get the duration of the track"""
         return self.full_end_time - self.full_start_time
 
     @property
-    def speeds(self):
+    def speeds(self) -> list:
         """Get the speed over ground at each trackpoint"""
         return [x['sog'] * (self.units.m / self.units.s)
                 for x in self.trackpoints]
 
     @property
-    def max_speed(self):
+    def max_speed(self) -> float:
         """Get the max instantaneous speed during the track"""
         return max(self.speeds)
 
-    def distances(self, method='EquirecApprox'):
+    def distances(self, method='EquirecApprox') -> list:
         """Get the trackpoint to trackpoint distances across the track
 
         Parameters
@@ -102,7 +102,7 @@ class Stats(object):
 
         return dist * (self.units.m * 1000)
 
-    def distance(self, method='EquirecApprox'):
+    def distance(self, method: str='EquirecApprox') -> float:
         """Get the total distance covered by the track
 
         Parameters
@@ -114,7 +114,7 @@ class Stats(object):
         dist = self.distances(method)
         return np.sum(dist)
 
-    def bearing(self):
+    def bearing(self) -> list:
         """Calculate the instantaneous bearing at each trackpoint"""
 
         lats = np.deg2rad(np.asarray([x['lat'] for x in self.trackpoints]))
