@@ -1,7 +1,7 @@
 [MASTER]
 extension-pkg-whitelist=numpy
 
-disable=too-many-ancestors,too-few-public-methods
+disable=too-many-ancestors,too-few-public-methods,no-member,unsubscriptable-object
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.

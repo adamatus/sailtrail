@@ -1,21 +1,23 @@
 """Model mapping for activities"""
+from datetime import datetime as dt, time, date, timedelta
+import os.path
+from typing import Dict, List
+
+import gpxpy
+import pytz
+
 from django.core.exceptions import PermissionDenied
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
-from django.db.models import Count, Max, Sum, Q
+from django.db.models import Count, Max, Sum, Q, QuerySet
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.http import HttpRequest
 
+from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from sirf.stats import Stats
 from sirf import Parser
 
-import gpxpy
-
-from datetime import datetime as dt
-import pytz
-
-import os.path
-
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 
 SAILING = 'SL'
 WINDSURFING = 'WS'
@@ -51,33 +53,33 @@ class Activity(models.Model):
     class Meta:
         ordering = ['-datetime']
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         """Get the URL path for this activity"""
         return reverse('view_activity', args=[str(self.id)])
 
     @property
-    def start_time(self):
+    def start_time(self) -> time:
         """Get the start time for the activity"""
         return self.track.first().trim_start.time()
 
     @property
-    def end_time(self):
+    def end_time(self) -> time:
         """Get the ending time for the activity"""
         return self.track.last().trim_end.time()
 
     @property
-    def date(self):
+    def date(self) -> date:
         """Get the start date for the activity"""
         return self.track.first().trim_start.date()
 
     @property
-    def duration(self):
+    def duration(self) -> timedelta:
         """Get the duration for the activity"""
         return (self.track.last().trim_end -
                 self.track.first().trim_start)
 
     @property
-    def max_speed(self):
+    def max_speed(self) -> str:
         """Get the max speed for the activity"""
         if self.model_max_speed is None:
             pos = self.get_trackpoints()
@@ -90,8 +92,8 @@ class Activity(models.Model):
         return '{:~.2f}'.format(speed)
 
     @property
-    def distance(self):
-        """Get the dirance for the activity"""
+    def distance(self) -> str:
+        """Get the distance for the activity"""
         if self.model_distance is None:
             pos = self.get_trackpoints()
             stats = Stats(pos)
@@ -101,7 +103,7 @@ class Activity(models.Model):
         dist = (self.model_distance * UNITS.m).to(UNIT_SETTING['dist'])
         return '{:~.2f}'.format(dist)
 
-    def compute_stats(self):
+    def compute_stats(self) -> None:
         """Compute the activity stats"""
         pos = self.get_trackpoints()
         stats = Stats(pos)
@@ -110,16 +112,11 @@ class Activity(models.Model):
 
         self.save()
 
-    def add_track(self, upfile):
-        """Add a new track to the activity
+    def add_track(self, uploaded_file: InMemoryUploadedFile) -> None:
+        """Add a new track to the activity"""
+        ActivityTrack.create_new(uploaded_file, self)
 
-        Parameters
-        ----------
-        upfile : file
-        """
-        ActivityTrack.create_new(upfile, self)
-
-    def get_trackpoints(self):
+    def get_trackpoints(self) -> list:
         """Helper to return the trackpoints"""
         out = []
         for track in self.track.all().order_by("trim_start"):
@@ -142,7 +139,7 @@ class ActivityTrack(models.Model):
     class Meta:
         ordering = ['trim_start']
 
-    def initialize_stats(self):
+    def initialize_stats(self) -> None:
         """Initialize activity stats"""
 
         self.reset_trim()
@@ -154,7 +151,7 @@ class ActivityTrack(models.Model):
             self.activity_id.datetime = self.trim_start
             self.activity_id.save()
 
-    def trim(self, trim_start=-1, trim_end=-1):
+    def trim(self, trim_start: str='-1', trim_end: str='-1') -> None:
         """Trim the activity to the given time interval
 
         Parameters
@@ -167,7 +164,7 @@ class ActivityTrack(models.Model):
 
         do_save = False
 
-        if trim_start is not -1:
+        if trim_start is not '-1':
             try:
                 self.trim_start = dt.strptime(trim_start, DATETIME_FORMAT_STR)
                 do_save = True
@@ -175,7 +172,7 @@ class ActivityTrack(models.Model):
                 # Silently ignore bad input
                 pass
 
-        if trim_end is not -1:
+        if trim_end is not '-1':
             try:
                 self.trim_end = dt.strptime(trim_end, DATETIME_FORMAT_STR)
                 do_save = True
@@ -184,7 +181,7 @@ class ActivityTrack(models.Model):
                 pass
 
         # Swap the trim points if they are backwards
-        if trim_start is not -1 and trim_end is not -1:
+        if trim_start is not '-1' and trim_end is not '-1':
             if self.trim_start > self.trim_end:
                 self.trim_start, self.trim_end = self.trim_end, self.trim_start
 
@@ -193,7 +190,7 @@ class ActivityTrack(models.Model):
             self.save()
             self.activity_id.compute_stats()
 
-    def reset_trim(self):
+    def reset_trim(self) -> None:
         """Reset the track trim"""
         self.trim_start = self.trackpoint.first().timepoint
         self.trim_end = self.trackpoint.last().timepoint
@@ -201,23 +198,16 @@ class ActivityTrack(models.Model):
         self.save()
         self.activity_id.compute_stats()
 
-    def get_trackpoints(self):
+    def get_trackpoints(self) -> QuerySet:
         """Get sorted trackpoints for an activity"""
         return self.trackpoint.filter(
             timepoint__range=(self.trim_start, self.trim_end)
         ).order_by('timepoint')
 
     @staticmethod
-    def create_new(upfile, activity_id):
-        """Create a new activity
-
-        Parameters
-        ----------
-        upfile : file
-            The file to upload
-        activity_id : int
-            The activity id
-        """
+    def create_new(upfile: InMemoryUploadedFile, activity_id: int) -> \
+            'ActivityTrack':
+        """Create a new activity"""
         track = ActivityTrack.objects.create(activity_id=activity_id,
                                              original_filename=upfile.name)
         _create_trackpoints(track, upfile)
@@ -225,35 +215,24 @@ class ActivityTrack(models.Model):
         return track
 
 
-def _create_trackpoints(track, upfile):
-    """Create trackpoints from file
+def _create_trackpoints(track: ActivityTrack,
+                        uploaded_file: InMemoryUploadedFile):
+    """Create trackpoints from file"""
+    file_type = os.path.splitext(uploaded_file.name)[1][1:].upper()
 
-    Parameters
-    ----------
-    track : int
-    upfile : file
-
-    """
-    filetype = os.path.splitext(upfile.name)[1][1:].upper()
-
-    if filetype == 'SBN':
-        _create_sbn_trackpoints(track, upfile)
-    elif filetype == 'GPX':
-        _create_gpx_trackpoints(track, upfile)
+    if file_type == 'SBN':
+        _create_sbn_trackpoints(track, uploaded_file)
+    elif file_type == 'GPX':
+        _create_gpx_trackpoints(track, uploaded_file)
     else:
-        raise Exception('Unknown filetype')
+        raise Exception('Unknown file type')
 
 
-def _create_sbn_trackpoints(track, upfile):
-    """Parse SBN trackpoints
-
-    Parameters
-    ----------
-    upfile : file
-    track : int
-    """
+def _create_sbn_trackpoints(track: ActivityTrack,
+                            uploaded_file: InMemoryUploadedFile):
+    """Parse SBN trackpoints"""
     data = Parser()
-    data.process(upfile.read())
+    data.process(uploaded_file.read())
     # filter out Nones
     data = [x for x in data.pktq if x is not None and x['fixtype'] != 'none']
 
@@ -272,15 +251,10 @@ def _create_sbn_trackpoints(track, upfile):
     ActivityTrackpoint.objects.bulk_create(insert)
 
 
-def _create_gpx_trackpoints(track, upfile):
-    """Parse GPX trackpoints
-
-    Parameters
-    ----------
-    track : int
-    upfile : file
-    """
-    gpx = upfile.read().decode('utf-8')
+def _create_gpx_trackpoints(track: ActivityTrack,
+                            uploaded_file: InMemoryUploadedFile):
+    """Parse GPX trackpoints"""
+    gpx = uploaded_file.read().decode('utf-8')
     gpx = gpxpy.parse(gpx)
 
     insert = []
@@ -289,8 +263,8 @@ def _create_gpx_trackpoints(track, upfile):
     prev_point = None
     speed = 0
 
-    for gpstrack in gpx.tracks:
-        for segment in gpstrack.segments:
+    for gps_track in gpx.tracks:
+        for segment in gps_track.segments:
             for point in segment.points:
                 if prev_point is not None:
                     speed = point.speed_between(prev_point)
@@ -321,7 +295,7 @@ class Helper(object):
     Methods to perform queries, etc. Easy to mock"""
 
     @staticmethod
-    def get_users_activities(user, cur_user):
+    def get_users_activities(user: User, cur_user: User) -> QuerySet:
         """Get list of activities, including private activities if cur user"""
         activities = Activity.objects.filter(
             user__username=user.username)
@@ -333,7 +307,7 @@ class Helper(object):
         return activities
 
     @staticmethod
-    def summarize_by_category(activities):
+    def summarize_by_category(activities: QuerySet) -> QuerySet:
         """Summarize activities by category"""
         return activities.values('category').annotate(
             count=Count('category'),
@@ -341,7 +315,7 @@ class Helper(object):
             total_dist=Sum('model_distance')).order_by('-max_speed')
 
     @staticmethod
-    def get_leaders():
+    def get_leaders() -> List[Dict[str, str]]:
         """Build list of leaders for the leaderboard"""
         leader_list = Activity.objects.filter(private=False).values(
             'user__username', 'category').annotate(
@@ -357,7 +331,7 @@ class Helper(object):
         return leaders
 
     @staticmethod
-    def get_activities(cur_user):
+    def get_activities(cur_user: User) -> QuerySet:
         """Get activities, include current users private activities"""
         activities = Activity.objects.exclude(name__isnull=True)
 
@@ -366,7 +340,7 @@ class Helper(object):
             ~Q(user__username=cur_user.username), private=True)
 
     @staticmethod
-    def verify_private_owner(activity, request):
+    def verify_private_owner(activity: Activity, request: HttpRequest) -> None:
         """Helper to verify private ownership"""
 
         # Convert track to activity, if necessary
