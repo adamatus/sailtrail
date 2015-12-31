@@ -74,6 +74,7 @@ INSTALLED_APPS = (
     'djangobower',
     'ganalytics',
     'django_cleanup',
+    'storages',
 
     'allauth',
     'allauth.account',
@@ -177,3 +178,9 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
+# S3 Settings
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+AWS_ACCESS_KEY_ID = 'AKIAIU4EZBZQTEJVOXWQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'sailtrail-data'
