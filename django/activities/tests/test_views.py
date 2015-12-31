@@ -15,7 +15,7 @@ from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
                               ERROR_ACTIVITY_CATEGORY_MISSING)
 from activities.views import UploadView, UploadTrackView, \
-    DetailsView
+    DetailsView, ActivityTrackView
 from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
                                  ActivityTrackpointFactory)
@@ -381,3 +381,40 @@ class TestActivityViewIntegration(TestCase):
         response = self.client.get(reverse('view_activity', args=[1]))
         self.assertContains(response, 'Max Speed')
         self.assertContains(response, 'knots')
+
+
+class TesActivityTrackView(unittest.TestCase):
+
+    def setUp(self):
+        self.user = UserFactory.stub()
+        self.request = RequestFactory()
+        self.request.user = self.user
+        view = ActivityTrackView()
+        view.request = self.request
+        view.object = Mock()
+        view.pk_url_kwarg = 'pk'
+        view.kwargs = dict(pk=1)
+        self.view = view
+
+    def test_get_object_returns_track_if_current_user(self):
+        mock_queryset = Mock()
+        mock_queryset2 = Mock()
+        mock_track = Mock()
+        mock_track.activity_id.user = self.user
+        mock_queryset.filter.return_value = mock_queryset2
+        mock_queryset2.get.return_value = mock_track
+
+        activity = self.view.get_object(queryset=mock_queryset)
+
+        self.assertEqual(activity, mock_track)
+
+    def test_get_object_raised_permission_denied_if_not_owner(self):
+        mock_queryset = Mock()
+        mock_queryset2 = Mock()
+        mock_track = Mock()
+        mock_track.activity_id.user = UserFactory.stub()
+        mock_queryset.filter.return_value = mock_queryset2
+        mock_queryset2.get.return_value = mock_track
+
+        with self.assertRaises(PermissionDenied):
+            self.view.get_object(queryset=mock_queryset)

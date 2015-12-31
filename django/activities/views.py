@@ -99,11 +99,26 @@ class ActivityView(UploadFormMixin, DetailView):
         return context
 
 
-class ActivityTrackView(ActivityView):
+class ActivityTrackView(UploadFormMixin, DetailView):
     """Activity Track view"""
     model = ActivityTrack
     template_name = 'track.html'
     context_object_name = 'track'
+
+    def get_object(self, queryset: QuerySet=None) -> ActivityTrack:
+        """Get activity, only allowing owner to see private activities"""
+        track = super().get_object(queryset)
+
+        if self.request.user != track.activity_id.user:
+            raise PermissionDenied
+        return track
+
+    def get_context_data(self, **kwargs) -> dict:
+        """Add additional content to the user page"""
+        context = super(ActivityTrackView, self).get_context_data(**kwargs)
+        context['val_errors'] = ERRORS
+        context['units'] = UNIT_SETTING
+        return context
 
 
 class ActivityTrackDownloadView(DetailView):
@@ -113,6 +128,9 @@ class ActivityTrackDownloadView(DetailView):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Track original file download view"""
         track = self.get_object()  # type: ActivityTrack
+
+        if self.request.user != track.activity_id.user:
+            raise PermissionDenied
 
         filename = track.original_file.file.name.split('/')[-1]
         response = HttpResponse(track.original_file.file,

@@ -11,13 +11,13 @@ urlpatterns = [
         name='upload'),
 
     url(r'(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/$',
-        views.ActivityTrackView.as_view(),
+        login_required(views.ActivityTrackView.as_view()),
         name="view_track"),
     url(r'(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/download$',
-        views.ActivityTrackDownloadView.as_view(),
+        login_required(views.ActivityTrackDownloadView.as_view()),
         name="download_track_file"),
     url(r'(?P<activity_id>\d+)/tracks/upload$',
-        views.UploadTrackView.as_view(),
+        login_required(views.UploadTrackView.as_view()),
         name='upload_track'),
 
     url(r'(?P<pk>\d+)/details/$', login_required(views.DetailsView.as_view()),
