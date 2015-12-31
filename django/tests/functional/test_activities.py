@@ -548,7 +548,7 @@ class ActivitiesTest(StaticLiveServerTestCase):
             # users private activity and tries to visit it.
             self.browser.get(private_url)
             content = self.home_page.get_page_content()
-            self.assertIn("403 Forbidden", content)
+            self.assertIn("Access Denied", content)
 
     def test_edit_activity_details(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):

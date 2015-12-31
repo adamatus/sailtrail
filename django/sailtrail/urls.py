@@ -5,6 +5,8 @@ from django.contrib.sitemaps.views import sitemap
 from django.views.generic.base import TemplateView
 
 from activities.sitemap import ActivitySitemap
+from core.views import NotFoundView, PermissionDeniedView, BadRequestView, \
+    InternalServerErrorView
 from homepage.views import HomePageView
 from leaders.sitemap import LeaderboardSitemap
 from users.sitemap import UsersSitemap
@@ -44,3 +46,8 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^djangojs/', include('djangojs.urls')),
 ]
+
+handler400 = BadRequestView.as_error_view()
+handler404 = NotFoundView.as_error_view()
+handler403 = PermissionDeniedView.as_error_view()
+handler500 = InternalServerErrorView.as_error_view()
