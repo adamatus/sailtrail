@@ -10,6 +10,10 @@
                     want to delete this {{ target }}?</h4>
             </div>
             <div class="modal-body">
+                {% if last_track %}
+                    <p><strong>This is the last track for this activity. Deleting it will
+                       delete the entire activity!</strong></p>
+                {% endif %}
                 <p>This action cannot be undone!</p>
 
                 <p>This {{ target }} and all associated data (e.g., annotations,

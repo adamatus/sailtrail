@@ -118,6 +118,7 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         context = super(ActivityTrackView, self).get_context_data(**kwargs)
         context['val_errors'] = ERRORS
         context['units'] = UNIT_SETTING
+        context['last_track'] = self.object.activity_id.track.count() == 1
         return context
 
 

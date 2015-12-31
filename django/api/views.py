@@ -4,7 +4,7 @@ import json
 import numpy as np
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views.generic import View
@@ -120,6 +120,10 @@ def delete_track(request: HttpRequest, activity_id: int, track_id: int) -> \
     track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
     if request.user != track.activity_id.user:
         raise PermissionDenied
+
+    if track.activity_id.track.count() < 2:
+        raise SuspiciousOperation("Cannot delete final track in activity")
+
     track.delete()
     track.activity_id.model_distance = None
     track.activity_id.model_max_speed = None

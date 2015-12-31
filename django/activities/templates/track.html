@@ -21,8 +21,13 @@
     <button type="button" class="btn btn-default" data-toggle="modal"
             data-target="#delete_modal" id="activity_delete_button">Delete Track
     </button>
-    {% url "delete_track" track.activity_id.id track.id as delete_url %}
-    {% include 'components/delete-modal.html' with target="track" action=delete_url %}
+    {% if not last_track %}
+        {% url "delete_track" track.activity_id.id track.id as delete_url %}
+        {% include 'components/delete-modal.html' with target="track" action=delete_url %}
+    {% else %}
+        {% url "delete_activity" track.activity_id.id as delete_url %}
+        {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
+    {% endif %}
     <div class="row">
         <div class="col-md-6" style="padding-top: 1em;">
             {% include 'components/track-plot.html' %}
