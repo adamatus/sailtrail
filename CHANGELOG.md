@@ -1,3 +1,16 @@
+<a name="0.1.12"></a>
+## [0.1.12](https://github.com/adamatus/sailtrail/compare/v0.1.11...v0.1.12) (2015-12-31)
+
+### Features
+
+* Add pagination for activity lists ([116130a](https://github.com/adamatus/sailtrail/commit/116130a))
+* Add user settings page with email and password changes ([13d8b3d](https://github.com/adamatus/sailtrail/commit/13d8b3d))
+* Use S3 for original file storage ([09382b3](https://github.com/adamatus/sailtrail/commit/09382b3))
+
+### Bug Fixes
+
+* Missing map on details/new activity page restored ([e66852f](https://github.com/adamatus/sailtrail/commit/e66852f))
+
 <a name="0.1.11"></a>
 ## [0.1.11](https://github.com/adamatus/sailtrail/compare/v0.1.10...v0.1.11) (2015-12-20)
 
