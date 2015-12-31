@@ -1,7 +1,9 @@
 """Model mapping for activities"""
+
 from datetime import datetime as dt, time, date, timedelta
 import os.path
 from typing import Dict, List
+import uuid
 
 import gpxpy
 import pytz
@@ -210,9 +212,24 @@ class ActivityTrack(models.Model):
         """Create a new activity"""
         track = ActivityTrack.objects.create(activity_id=activity_id,
                                              original_filename=upfile.name)
+        ActivityTrackFile.objects.create(track=track,
+                                         file=upfile)
+        upfile.seek(0)
         _create_trackpoints(track, upfile)
         track.initialize_stats()
         return track
+
+
+def track_upload_path(instance, filename):  # pylint: disable=unused-argument
+    """Return path with UUID for filename"""
+    return 'originals/{0}/{1}'.format(uuid.uuid4(), filename)
+
+
+class ActivityTrackFile(models.Model):
+    """Activity track file model"""
+    uploaded = models.DateTimeField(auto_now_add=True)
+    track = models.ForeignKey(ActivityTrack, related_name='file', null=False)
+    file = models.FileField(upload_to=track_upload_path)
 
 
 def _create_trackpoints(track: ActivityTrack,

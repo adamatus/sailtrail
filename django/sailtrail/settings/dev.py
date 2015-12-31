@@ -10,6 +10,9 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 from .common import *  # NOQA
 
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+MEDIA_ROOT = os.path.join(BASE_DIR, '../../../uploads')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -26,9 +29,11 @@ INSTALLED_APPS += (
     'debug_toolbar',
 )
 
-MIDDLEWARE_CLASSES += (
+
+MIDDLEWARE_CLASSES.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+MIDDLEWARE_CLASSES += [
     'livereload.middleware.LiveReloadScript',
-)
+]
 
 DATABASES = {
     'default': {

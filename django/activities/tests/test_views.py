@@ -1,4 +1,6 @@
 import os.path
+import shutil
+import tempfile
 from unittest.mock import patch, sentinel, MagicMock, Mock
 
 import pytest
@@ -151,28 +153,34 @@ class TestFileUploadViewIntegration(TestCase):
     def setUp(self):
         self.user = UserFactory.create(username='test')
         self.client.login(username='test', password='password')
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_saving_POST_request(self):
-        test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-        self.client.post(reverse('upload'),
-                         data={'upfile': test_file})
+            self.client.post(reverse('upload'),
+                             data={'upfile': test_file})
 
-        self.assertEqual(ActivityTrack.objects.count(), 1)
-        new_activity = ActivityTrack.objects.first()
-        self.assertEqual(new_activity.original_filename,
-                         'test1.sbn')
+            self.assertEqual(ActivityTrack.objects.count(), 1)
+            new_activity = ActivityTrack.objects.first()
+            self.assertEqual(new_activity.original_filename,
+                             'test1.sbn')
 
     # TODO This test is very slow as it's actually parsing
     # the uploaded SBN!
     def test_POST_request_redirects_to_new_activity_page(self):
-        test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-        response = self.client.post(reverse('upload'),
-                                    data={'upfile': test_file})
-        self.assertRedirects(response,
-                             reverse('details',
-                                     args=[1]))
+            response = self.client.post(reverse('upload'),
+                                        data={'upfile': test_file})
+            self.assertRedirects(response,
+                                 reverse('details',
+                                         args=[1]))
 
 
 class TestDetailsView(unittest.TestCase):

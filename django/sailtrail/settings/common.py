@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '../../.uploads')
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -66,24 +64,25 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'djangojs',
-    'core',
-    'homepage',
     'activities',
     'api',
+    'core',
+    'homepage',
     'users',
 
+    'djangojs',
     'djangobower',
     'ganalytics',
+    'django_cleanup',
+    'storages',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [
     'django.middleware.gzip.GZipMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -91,7 +90,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+]
 
 ROOT_URLCONF = 'sailtrail.urls'
 
@@ -178,3 +177,9 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
+# S3 Settings
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+AWS_ACCESS_KEY_ID = 'AKIAIU4EZBZQTEJVOXWQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'sailtrail-data'

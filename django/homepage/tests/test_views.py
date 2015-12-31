@@ -1,9 +1,11 @@
 import os.path
+import tempfile
 from unittest.mock import patch, sentinel, MagicMock
 
 import pytest
 import unittest
 
+import shutil
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase, RequestFactory
@@ -64,6 +66,12 @@ class TestHomepageView(unittest.TestCase):
 @pytest.mark.integration
 class TestHomepageViewIntegration(TestCase):
 
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
     def test_home_page_renders_home_template(self):
         response = self.client.get(reverse('home'))
         self.assertTemplateUsed(response, 'home.html')
@@ -90,11 +98,12 @@ class TestHomepageViewIntegration(TestCase):
         self.assertContains(response, 'Snowkite lesson:')
 
     def test_home_page_does_not_show_activities_without_details(self):
-        a = Activity.objects.create(user=UserFactory.create())
-        ActivityTrack.create_new(
-            upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
-            activity_id=a
-        )
+        with self.settings(MEDIA_ROOT=self.temp_dir):
+            a = Activity.objects.create(user=UserFactory.create())
+            ActivityTrack.create_new(
+                upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
+                activity_id=a
+            )
 
-        response = self.client.get(reverse('home'))
-        self.assertNotContains(response, '></a>')
+            response = self.client.get(reverse('home'))
+            self.assertNotContains(response, '></a>')
