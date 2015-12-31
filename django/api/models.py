@@ -141,6 +141,9 @@ class ActivityTrack(models.Model):
     class Meta:
         ordering = ['trim_start']
 
+    def __str__(self):
+        return "ActivityTrack ({})".format(self.original_file.file.name)
+
     def initialize_stats(self) -> None:
         """Initialize activity stats"""
 
@@ -228,8 +231,12 @@ def track_upload_path(instance, filename):  # pylint: disable=unused-argument
 class ActivityTrackFile(models.Model):
     """Activity track file model"""
     uploaded = models.DateTimeField(auto_now_add=True)
-    track = models.ForeignKey(ActivityTrack, related_name='file', null=False)
+    track = models.OneToOneField(ActivityTrack, related_name='original_file',
+                                 on_delete=models.CASCADE)
     file = models.FileField(upload_to=track_upload_path)
+
+    def __str__(self):
+        return "ActivityTrackFile ({})".format(self.file)
 
 
 def _create_trackpoints(track: ActivityTrack,
