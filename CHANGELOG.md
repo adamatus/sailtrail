@@ -1,3 +1,16 @@
+<a name="0.1.13"></a>
+## [0.1.13](https://github.com/adamatus/sailtrail/compare/v0.1.12...v0.1.13) (2015-12-31)
+
+### Features
+
+* Nice, theme-matching error pages ([ea36e76](https://github.com/adamatus/sailtrail/commit/ea36e76))
+
+### Bug Fixes
+
+* Deleting of last track for activity no longer breaks everything ([8a9d124](https://github.com/adamatus/sailtrail/commit/8a9d124))
+* Download track file link now working again ([15c2f17](https://github.com/adamatus/sailtrail/commit/15c2f17))
+* Track-related pages are now only visible to their owner ([c8dc404](https://github.com/adamatus/sailtrail/commit/c8dc404))
+
 <a name="0.1.12"></a>
 ## [0.1.12](https://github.com/adamatus/sailtrail/compare/v0.1.11...v0.1.12) (2015-12-31)
 
