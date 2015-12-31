@@ -83,7 +83,7 @@ on the console and an html report will be placed in .cover/python/func/index.htm
 
 ### Live Site Preview
 
-Run a watcher to automatically compile and bundle CSS and JS, and start a 
+Run a watcher to automatically compile and bundle CSS and JS, and start a
 livereload server to monitor changes to any of those files.
 
 
@@ -126,7 +126,7 @@ and push a new tag to indicate what code in is prod:
     git stash
     git pull
     git stash apply
-    git tag prod
+    git tag -f prod
     git push -f origin prod
 
 Were there DB changes?
