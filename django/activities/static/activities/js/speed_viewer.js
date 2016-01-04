@@ -32,7 +32,6 @@ module.exports = {
             w = width - (ml + mr),
             h = height - (mb + mt),
             line = d3.svg.line(),
-            // FIXME Not handling timezones currently...
             time_format = d3.time.format('%Y-%m-%dT%X+0000'),
             svg,
             xAxis,
@@ -121,7 +120,7 @@ module.exports = {
         // Register with slider to update positional marker
         if (time_slider) {
             time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
-                var newdata = d | slideEvnt.value;
+                var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
             });

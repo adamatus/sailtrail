@@ -128,7 +128,6 @@ module.exports = {
             $('#manual-wind-dir').val(this.wind_offset);
         } else {
             this.wind_offset = wind_direction;
-            // $('#manual-wind-dir').val(this.wind_offset);
         }
 
         // Create the scale for the radius of the polar plot,
@@ -268,7 +267,7 @@ module.exports = {
         // Register with slider to update positional marker
         if (time_slider) {
             time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
-                var newdata = d | slideEvnt.value;
+                var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
             });

@@ -87,7 +87,7 @@ module.exports = {
         // Register with slider to update positional marker
         if (time_slider) {
             time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
-                var newdata = d | slideEvnt.value;
+                var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
             });

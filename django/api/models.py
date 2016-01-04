@@ -186,9 +186,9 @@ class ActivityTrack(models.Model):
                 pass
 
         # Swap the trim points if they are backwards
-        if trim_start is not '-1' and trim_end is not '-1':
-            if self.trim_start > self.trim_end:
-                self.trim_start, self.trim_end = self.trim_end, self.trim_start
+        if (trim_start is not '-1' and trim_end is not '-1' and
+                self.trim_start > self.trim_end):
+            self.trim_start, self.trim_end = self.trim_end, self.trim_start
 
         if do_save:
             self.trimmed = True
