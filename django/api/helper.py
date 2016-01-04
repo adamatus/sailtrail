@@ -5,6 +5,7 @@ API layers, this helper can be replaced with services calls
 rather than direct model access"""
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db.models import QuerySet
 from django.http import HttpRequest
 
 from api.models import Activity, ActivityTrack
@@ -18,6 +19,11 @@ def create_new_activity_for_user(user: User) -> Activity:
 def get_activity_by_id(activity_id: int) -> Activity:
     """Helper to return an activity by Id"""
     return Activity.objects.get(id=activity_id)
+
+
+def get_public_activities() -> QuerySet:
+    """Helper to return all public activities"""
+    return Activity.objects.filter(private=False)
 
 
 def verify_private_owner(activity: Activity, request: HttpRequest) -> None:
