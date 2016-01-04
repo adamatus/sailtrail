@@ -23,6 +23,11 @@ def get_activity_by_id(activity_id: int) -> Activity:
     return Activity.objects.get(id=activity_id)
 
 
+def get_active_users() -> QuerySet:
+    """Helper to return all public users"""
+    return User.objects.filter(is_active=True, is_superuser=False)
+
+
 def get_public_activities() -> QuerySet:
     """Helper to return all public activities"""
     return Activity.objects.filter(private=False)

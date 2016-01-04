@@ -1,11 +1,12 @@
 import unittest
-from unittest.mock import patch, sentinel, Mock
+from unittest.mock import patch, sentinel, Mock, MagicMock
 
 from django.test import RequestFactory
 
 from core.views import UploadFormMixin
 from users.tests.factories import UserFactory
-from users.views import UserListView, UserView
+from users.views import UserListView, UserView, UserSettingsView, \
+    ChangePasswordView
 
 
 class TestUserView(unittest.TestCase):
@@ -33,7 +34,7 @@ class TestUserView(unittest.TestCase):
 
         self.view.get(self.request)
 
-        self.assertEqual(self.view.user, sentinel.user)
+        assert self.view.user == sentinel.user
 
         users_mock.objects.get.assert_called_with(username=sentinel.username)
 
@@ -43,7 +44,7 @@ class TestUserView(unittest.TestCase):
         self.view.user = sentinel.user
         activities = self.view.get_queryset()
 
-        self.assertEqual(activities, sentinel.activities)
+        assert activities == sentinel.activities
 
         user = self.request.user
         mock_helper.get_users_activities.assert_called_once_with(sentinel.user,
@@ -62,7 +63,7 @@ class TestUserView(unittest.TestCase):
         mock_helper.summarize_by_category.assert_called_once_with(
             sentinel.activity_query_set)
 
-        self.assertEqual(context['summaries'], sentinel.summary)
+        assert context['summaries'] == sentinel.summary
 
     @patch('users.views.Helper')
     def test_get_context_data_includes_user(self, mock_helper):
@@ -71,13 +72,55 @@ class TestUserView(unittest.TestCase):
 
         context = self.view.get_context_data()
 
-        self.assertEqual(context['view_user'], sentinel.user)
+        assert context['view_user'] == sentinel.user
 
     def test_includes_upload_form_mixin(self):
-        self.assertIsInstance(self.view, UploadFormMixin)
+        assert isinstance(self.view, UploadFormMixin)
 
 
-class TestUserListView(unittest.TestCase):
+class TestUserSettingsView(unittest.TestCase):
+
+    def setUp(self):
+        self.request = RequestFactory()
+        self.request.user = UserFactory.stub()
+        self.request.session = {}
+        self.view = UserSettingsView()
+        self.view.object = Mock()
+        self.view.request = self.request
+
+    def test_get_context_with_no_notify_in_session(self):
+        context = self.view.get_context_data()
+
+        assert 'notify' not in context
+
+    def test_get_context_with_notify_in_session(self):
+        self.request.session = dict(notify=sentinel.notify)
+        context = self.view.get_context_data()
+
+        assert context['notify'] == sentinel.notify
+        assert 'notify' not in self.request.session
+
+
+class TestChangePasswordView:
+
+    @patch('users.views.reverse')
+    def test_get_success_url(self, reverse_mock: MagicMock):
+        view = ChangePasswordView()
+        view.request = RequestFactory()
+        view.request.session = {}
+        user_mock = Mock()
+        user_mock.username = sentinel.username
+        view.request.user = user_mock
+
+        reverse_mock.return_value = sentinel.url
+
+        url = view.get_success_url()
+        assert url == sentinel.url
+        reverse_mock.assert_called_once_with('user_settings',
+                                             args=[sentinel.username])
+
+
+class TestUserListView:
 
     def test_includes_upload_form_mixin(self):
-        self.assertIsInstance(UserListView(), UploadFormMixin)
+        assert isinstance(UserListView(), UploadFormMixin)
