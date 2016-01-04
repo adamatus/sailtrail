@@ -3,6 +3,7 @@ branch = True
 omit =
 	*/migrations/*
     */functional/*
+	**/test_*
     manage.py
     sailtrail/wsgi.py
 
