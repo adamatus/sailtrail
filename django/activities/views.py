@@ -8,7 +8,9 @@ from django.views.generic import DetailView, UpdateView, View
 
 from .forms import ActivityDetailsForm
 from activities import UNIT_SETTING
-from api.models import Activity, ActivityTrack, Helper
+from api.helper import (create_new_activity_for_user, get_activity_by_id,
+                        verify_private_owner)
+from api.models import Activity, ActivityTrack
 from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
                         ERROR_NO_UPLOAD_FILE_SELECTED,
@@ -25,7 +27,7 @@ class UploadView(View):
         """Handle post request"""
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            activity = Activity.objects.create(user=request.user)
+            activity = create_new_activity_for_user(user=request.user)
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
             return redirect('details', activity.id)
@@ -39,7 +41,7 @@ class UploadTrackView(View):
     def post(self, request: HttpRequest, activity_id: int) -> \
             HttpResponseRedirect:
         """Handle post request"""
-        activity = Activity.objects.get(id=activity_id)
+        activity = get_activity_by_id(activity_id)
 
         # Check to see if current user owns this activity, if not 403
         if request.user != activity.user:
@@ -88,7 +90,7 @@ class ActivityView(UploadFormMixin, DetailView):
     def get_object(self, queryset: QuerySet=None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super().get_object(queryset)
-        Helper.verify_private_owner(activity, self.request)
+        verify_private_owner(activity, self.request)
         return activity
 
     def get_context_data(self, **kwargs) -> dict:
@@ -130,7 +132,7 @@ class ActivityTrackDownloadView(DetailView):
         """Track original file download view"""
         track = self.get_object()  # type: ActivityTrack
 
-        if self.request.user != track.activity_id.user:
+        if request.user != track.activity_id.user:
             raise PermissionDenied
 
         filename = track.original_file.file.name.split('/')[-1]

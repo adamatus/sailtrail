@@ -8,13 +8,11 @@ import uuid
 import gpxpy
 import pytz
 
-from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 from django.db.models import Count, Max, Sum, Q, QuerySet
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.http import HttpRequest
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from sirf.stats import Stats
@@ -362,14 +360,3 @@ class Helper(object):
         # Remove private activities for all but the current user
         return activities.exclude(
             ~Q(user__username=cur_user.username), private=True)
-
-    @staticmethod
-    def verify_private_owner(activity: Activity, request: HttpRequest) -> None:
-        """Helper to verify private ownership"""
-
-        # Convert track to activity, if necessary
-        if isinstance(activity, ActivityTrack):
-            activity = activity.activity_id
-
-        if activity.private and request.user != activity.user:
-            raise PermissionDenied

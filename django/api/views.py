@@ -11,7 +11,8 @@ from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from api.models import Activity, ActivityTrack, Helper
+from api.helper import verify_private_owner
+from api.models import Activity, ActivityTrack
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from sirf.stats import Stats
@@ -51,7 +52,7 @@ def activity_json(request: HttpRequest, activity_id: int) -> HttpResponse:
     activity = Activity.objects.get(id=activity_id)
 
     # Check to see if current user can see this, 403 if necessary
-    Helper.verify_private_owner(activity, request)
+    verify_private_owner(activity, request)
 
     pos = activity.get_trackpoints()
     return return_json(pos)
@@ -65,7 +66,7 @@ def track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
     track = ActivityTrack.objects.get(id=track_id)
 
     # Check to see if current user can see this, 403 if necessary
-    Helper.verify_private_owner(track.activity_id, request)
+    verify_private_owner(track.activity_id, request)
 
     pos = list(track.get_trackpoints().values('sog', 'lat',
                                               'lon', 'timepoint'))
