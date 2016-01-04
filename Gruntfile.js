@@ -159,7 +159,7 @@ module.exports = function(grunt) {
                 command: 'py.test -f --lf --color=yes . -m "not functional and not integration"',
             },
             pytest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov . -m "not functional and not integration"',
+                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov-report xml --cov . -m "not functional and not integration"',
             },
         },
     });
