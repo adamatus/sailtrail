@@ -20,6 +20,7 @@ module.exports = {
      * @param {Object} data Object containing arrays with time and speed info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
+     * @param {Element} time_slider The time-slider to use
      */
     draw_plot: function(data, max_speed, units, time_slider) {
         var width = $('#speed-plot').width(),
@@ -49,8 +50,7 @@ module.exports = {
         this.y = d3.scale.linear().range([h, 0]).domain([0, max_speed]);
         yAxis = d3.svg.axis().scale(this.y).ticks(4).orient('left');
 
-        svg = d3.select('#speed-plot')
-                .append('svg:svg')
+        svg = d3.select('#speed-plot').append('svg:svg')
             .attr('id', 'speed-plot-svg')
             .attr('width', width)
             .attr('height', height);
@@ -91,14 +91,14 @@ module.exports = {
             .attr('y1', this.y(0))
             .attr('y2', this.y(this.y.domain()[1]))
             .selectAll('stop')
-                .data([
-                    {offset: '0%', color: '#1a9850'},
-                    {offset: '20%', color: '#91cf60'},
-                    {offset: '40%', color: '#d9ef8b'},
-                    {offset: '60%', color: '#fee08b'},
-                    {offset: '80%', color: '#fc8d59'},
-                    {offset: '100%', color: '#d73027'},
-                ])
+                    .data([
+                        {offset: '0%', color: '#1a9850'},
+                        {offset: '20%', color: '#91cf60'},
+                        {offset: '40%', color: '#d9ef8b'},
+                        {offset: '60%', color: '#fee08b'},
+                        {offset: '80%', color: '#fc8d59'},
+                        {offset: '100%', color: '#d73027'},
+                    ])
                 .enter().append('stop')
                     .attr('offset', function get_offset(d) { return d.offset; })
                     .attr('stop-color', function get_color(d) { return d.color; });

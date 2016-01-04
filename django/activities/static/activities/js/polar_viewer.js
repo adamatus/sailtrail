@@ -32,9 +32,9 @@ module.exports = {
      * Main function to initialize plot
      *
      * @param {Object} data Arrays of track info
-     * @param {Integer} wind_direction
+     * @param {Number} wind_direction
      * @param {Element} time_slider The time_slider element
-     * @param {String} winddir_url The url of this activites wind direction endpoint
+     * @param {String} winddir_url The url of this activities wind direction endpoint
      */
     draw_plot: function(data, wind_direction, time_slider, winddir_url) {
         var width = $('#polar-plot').width(),
@@ -92,7 +92,9 @@ module.exports = {
                     median: d3.median(speeds) || 0,
                     mean: mean,
                     measurements: group.length,
-                    points: _.map(group, function(point) { return _.pick(point, ['bearing', 'speed']); }),
+                    points: _.map(group, function(point) {
+                        return _.pick(point, ['bearing', 'speed']);
+                    }),
                 });
             } else {
                 self.pol_speeds.push(0);
@@ -148,7 +150,7 @@ module.exports = {
 
         svg = d3.select('#polar-plot')
             .append('svg:svg')
-              .attr('id', 'polar-plot-svg')
+                .attr('id', 'polar-plot-svg')
                 .attr('width', width)
                 .attr('height', height);
 
@@ -166,10 +168,10 @@ module.exports = {
             .attr('r', this.r);
 
         gr.append('text')
-                .attr('y', function offset_r_text(d) { return -self.r(d) - 4; })
-                .attr('transform', 'rotate(15)')
-                .style('text-anchor', 'middle')
-                .text(function get_r_text(d) { return d; });
+            .attr('y', function offset_r_text(d) { return -self.r(d) - 4; })
+            .attr('transform', 'rotate(15)')
+            .style('text-anchor', 'middle')
+            .text(function get_r_text(d) { return d; });
 
         self.dir_map = {};
         self.dir_map['0'] = 'N';
@@ -183,21 +185,21 @@ module.exports = {
 
         // Angle axis
         ga = this.plot.append('g')
-                .attr('class', 'a axis')
-                .selectAll('g')
-                    .data(d3.range(0, 360, 45))
-                .enter().append('g')
-                    .attr('transform', function rotate(d) { return 'rotate(' + self.bearing_to_css_rot(d) + ')'; });
+            .attr('class', 'a axis')
+            .selectAll('g')
+                .data(d3.range(0, 360, 45))
+            .enter().append('g')
+                .attr('transform', function rotate(d) { return 'rotate(' + self.bearing_to_css_rot(d) + ')'; });
 
         ga.append('line')
             .attr('x2', radius);
 
         ga.append('text')
             .attr('x', radius + 6)
-                .attr('dy', '.35em')
-                .style('text-anchor', function get_text_anchor(d) { return d > 180 ? 'end' : null; })
-                .attr('transform', function get_text_transform(d) { return d > 180 ? 'rotate(180 ' + (radius + 6) + ',0)' : null; })
-                .text(function get_x_text(d) { return self.dir_map[d.toString()]; });
+            .attr('dy', '.35em')
+            .style('text-anchor', function get_text_anchor(d) { return d > 180 ? 'end' : null; })
+            .attr('transform', function get_text_transform(d) { return d > 180 ? 'rotate(180 ' + (radius + 6) + ',0)' : null; })
+            .text(function get_x_text(d) { return self.dir_map[d.toString()]; });
 
         this.polar_g = this.plot.append('g')
             .on('click', function trigger_toggle() {
@@ -247,7 +249,7 @@ module.exports = {
             .attr('x2', this.r(r_end - (3 * r_scale_step / 4)));
 
         // Only add the event listeners if the input is not disabled
-        // (e.g., the owner is viewing the activity}
+        // e.g., the owner is viewing the activity
         if (!$('#manual-wind-dir').prop('disabled')) {
             $(window).on('keydown', function adjust_estimated_wind_dir(evnt) {
                 if ($.inArray(evnt.keyCode, [38, 40]) >= 0) {
@@ -283,7 +285,6 @@ module.exports = {
         $('#polar-frame-of-ref').change(function() {
             self.toggle_mode();
         });
-
     },
 
     // This needs to quickly be replaced by a data-binding
