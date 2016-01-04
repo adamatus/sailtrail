@@ -83,3 +83,9 @@ class TestStats:
 
     def test_get_distance_equirect_method(self, stats):
         assert 59.125 == my_round(stats.distance(method='Equirect').magnitude)
+
+    def test_get_bearing(self, stats):
+        bearings = stats.bearing()
+        assert 27 == len(bearings)
+        assert 240.084 == my_round(bearings[0])
+        assert 249.443 == my_round(bearings[26])
