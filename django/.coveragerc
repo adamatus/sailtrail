@@ -1,6 +1,6 @@
 [run]
 branch = True
-omit = 
+omit =
 	*/migrations/*
     */functional/*
     manage.py
@@ -8,3 +8,6 @@ omit =
 
 [html]
 directory = ../.cover/python/units
+
+[xml]
+output = ../.cover/python/units/coverage.xml
