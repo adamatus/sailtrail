@@ -2,7 +2,6 @@
 
 from datetime import datetime as dt, time, date, timedelta
 import os.path
-from typing import Dict, List
 import uuid
 
 import gpxpy
@@ -335,22 +334,6 @@ class Helper(object):
             count=Count('category'),
             max_speed=Max('model_max_speed'),
             total_dist=Sum('model_distance')).order_by('-max_speed')
-
-    @staticmethod
-    def get_leaders() -> List[Dict[str, str]]:
-        """Build list of leaders for the leaderboard"""
-        leader_list = Activity.objects.filter(private=False).values(
-            'user__username', 'category').annotate(
-                max_speed=Max('model_max_speed')).order_by('-max_speed')
-
-        leaders = []
-
-        for key, category in ACTIVITY_CHOICES:
-            values = [x for x in leader_list if x['category'] == key]
-            if len(values) > 0:
-                leaders.append({'category': category, 'leaders': values})
-
-        return leaders
 
     @staticmethod
     def get_activities(cur_user: User) -> QuerySet:
