@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import QuerySet, Max
+from django.db.models import QuerySet, Max, Q
 from django.http import HttpRequest
 
 from api.models import Activity, ActivityTrack, ACTIVITY_CHOICES
@@ -21,6 +21,15 @@ def create_new_activity_for_user(user: User) -> Activity:
 def get_activity_by_id(activity_id: int) -> Activity:
     """Helper to return an activity by Id"""
     return Activity.objects.get(id=activity_id)
+
+
+def get_activities_for_user(cur_user: User) -> QuerySet:
+    """Get activities, include current users private activities"""
+    activities = Activity.objects.exclude(name__isnull=True)
+
+    # Remove private activities for all but the current user
+    return activities.exclude(
+        ~Q(user__username=cur_user.username), private=True)
 
 
 def get_active_users() -> QuerySet:

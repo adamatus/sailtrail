@@ -9,7 +9,7 @@ import pytz
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
-from django.db.models import Count, Max, Sum, Q, QuerySet
+from django.db.models import Count, Max, Sum, QuerySet
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
@@ -334,12 +334,3 @@ class Helper(object):
             count=Count('category'),
             max_speed=Max('model_max_speed'),
             total_dist=Sum('model_distance')).order_by('-max_speed')
-
-    @staticmethod
-    def get_activities(cur_user: User) -> QuerySet:
-        """Get activities, include current users private activities"""
-        activities = Activity.objects.exclude(name__isnull=True)
-
-        # Remove private activities for all but the current user
-        return activities.exclude(
-            ~Q(user__username=cur_user.username), private=True)
