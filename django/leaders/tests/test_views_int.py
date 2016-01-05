@@ -26,29 +26,29 @@ class TestLeaderboardViewIntegration(TestCase):
     def test_leaderboard_contains_high_speeds(self):
         response = self.client.get(reverse('leaderboards'))
         leaders = response.context['leaders']
-        self.assertEqual(1, len(leaders), 'Should contain sailing entry')
+        assert 1 == len(leaders)
         sailing = leaders[0]
-        self.assertEqual('Sailing', sailing['category'])
-        self.assertEqual(2, len(sailing['leaders']))
+        assert 'Sailing' == sailing['category']
+        assert 2 == len(sailing['leaders'])
         leader = sailing['leaders'][0]
-        self.assertEqual('test1', leader['user__username'])
-        self.assertEqual(10.0, leader['max_speed'])
+        assert 'test1' == leader['user__username']
+        assert 10.0 == leader['max_speed']
         second = sailing['leaders'][1]
-        self.assertEqual('test2', second['user__username'])
-        self.assertEqual(7.0, second['max_speed'])
+        assert 'test2' == second['user__username']
+        assert 7.0 == second['max_speed']
 
     def test_leaderboard_does_not_contain_private_high_speeds(self):
         self.activity.private = True
         self.activity.save()
         response = self.client.get(reverse('leaderboards'))
         leaders = response.context['leaders']
-        self.assertEqual(1, len(leaders), 'Should contain sailing entry')
+        assert 1 == len(leaders)
         sailing = leaders[0]
-        self.assertEqual('Sailing', sailing['category'])
-        self.assertEqual(2, len(sailing['leaders']))
+        assert 'Sailing' == sailing['category']
+        assert 2 == len(sailing['leaders'])
         leader = sailing['leaders'][0]
-        self.assertEqual('test2', leader['user__username'])
-        self.assertEqual(7.0, leader['max_speed'])
+        assert 'test2' == leader['user__username']
+        assert 7.0 == leader['max_speed']
         second = sailing['leaders'][1]
-        self.assertEqual('test1', second['user__username'])
-        self.assertEqual(5.0, second['max_speed'])
+        assert 'test1' == second['user__username']
+        assert 5.0 == second['max_speed']

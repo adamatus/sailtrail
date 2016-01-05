@@ -23,22 +23,18 @@ class TestHomepageView(unittest.TestCase):
 
     @patch('homepage.views.get_activities_for_user')
     def test_get_queryset_calls_through_to_helper(self, mock_helper):
-
         mock_helper.return_value = sentinel.activity_list
 
         queryset = self.view.get_queryset()
 
         mock_helper.assert_called_once_with(self.user)
-
-        self.assertEqual(queryset, sentinel.activity_list)
+        assert queryset == sentinel.activity_list
 
     @patch('homepage.views.get_leaders')
     def test_get_context_data_populates_leaders(self, mock_helper):
-
         mock_helper.return_value = sentinel.leaders
 
         context = self.view.get_context_data()
 
         mock_helper.assert_called_once_with()
-
-        self.assertEqual(context['leaders'], sentinel.leaders)
+        assert context['leaders'] == sentinel.leaders

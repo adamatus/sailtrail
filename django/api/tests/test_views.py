@@ -48,7 +48,7 @@ class TestWindDirection(unittest.TestCase):
         mock_http.assert_called_once_with(sentinel.json_data,
                                           content_type="application/json")
 
-        self.assertEqual(response, sentinel.http_response)
+        assert response == sentinel.http_response
 
     @patch('api.views.HttpResponse')
     def test_get_returns_if_private_and_cur_user(self,
@@ -76,8 +76,8 @@ class TestWindDirection(unittest.TestCase):
 
         response = view.get(request)
 
-        self.assertTrue(mock_http.called)
-        self.assertEqual(response, sentinel.http_response)
+        assert mock_http.called is True
+        assert response == sentinel.http_response
 
     @patch('api.views.HttpResponse')
     def test_get_raises_permission_denied_if_wrong_user_and_private(self,
@@ -103,7 +103,7 @@ class TestWindDirection(unittest.TestCase):
 
         mock_http.return_value = sentinel.http_response
 
-        with self.assertRaises(PermissionDenied):
+        with pytest.raises(PermissionDenied):
             view.get(request)
 
     def test_post_throws_if_not_current_user(self):
@@ -127,7 +127,7 @@ class TestWindDirection(unittest.TestCase):
         view = MockedWindDirection()
         view.kwargs = dict(pk=1)
 
-        with self.assertRaises(PermissionDenied):
+        with pytest.raises(PermissionDenied):
             view.get(request)
 
     def test_post_saves_wind_dir(self):
@@ -152,7 +152,7 @@ class TestWindDirection(unittest.TestCase):
 
         view.post(request)
 
-        self.assertEqual(activity.wind_direction, "10.0")
+        assert activity.wind_direction == "10.0"
         activity.save.assert_called_once_with()
         view.get.assert_called_once_with(request)
 
@@ -172,6 +172,5 @@ class TestDeleteActivityViewIntegration(TestCase):
 
     def test_delete_removes_item_from_db(self):
         self.client.get(reverse('delete_activity', args=[1]))
-        self.assertRaises(ObjectDoesNotExist,
-                          lambda: Activity.objects.get(id=1)
-                          )
+        with pytest.raises(ObjectDoesNotExist):
+            Activity.objects.get(id=1)

@@ -17,7 +17,7 @@ class TestUploadFormMixing(unittest.TestCase):
         view = self.DummyView()
         context = view.get_context_data()
 
-        self.assertIsInstance(context['upload_form'], UploadFileForm)
+        assert isinstance(context['upload_form'], UploadFileForm)
 
 
 class TestErrorTemplateView:
