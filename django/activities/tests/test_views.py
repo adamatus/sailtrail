@@ -4,10 +4,11 @@ from unittest.mock import patch, sentinel, Mock
 import pytest
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
 from django.core.urlresolvers import reverse
-from django.test import RequestFactory
+from django.http import HttpRequest
 
-from activities.views import UploadView, UploadTrackView, \
-    DetailsView, ActivityTrackView, ActivityView, ActivityTrackDownloadView
+from activities.views import (UploadView, UploadTrackView,
+                              DetailsView, ActivityTrackView, ActivityView,
+                              ActivityTrackDownloadView)
 from users.tests.factories import UserFactory
 
 
@@ -16,10 +17,11 @@ class ViewMockMixin:
     def setUp(self):
         """Stub user and request by that user"""
         self.user = UserFactory.stub()
-        self.request = RequestFactory()
+        self.request = Mock(spec=HttpRequest)  # type: HttpRequest
         self.request.user = self.user
 
-    def get_mock_queryset_that_returns_mock_object(self, mock: Mock) -> Mock:
+    @staticmethod
+    def get_mock_queryset_that_returns_mock_object(mock: Mock) -> Mock:
         """Mocks the steps necessary to get an object in a DetailView
 
         This takes care of the call to super() to get the object from
@@ -357,14 +359,14 @@ class TestActivityTrackDownloadView(unittest.TestCase):
 
         class MockActivityTrackDownloadView(ActivityTrackDownloadView):
             """ Mock view with get_object that returns mock"""
-            def get_object(self):
+            def get_object(self, queryset=None):
                 track = Mock()
                 track.activity_id.user = user
                 track.original_file.file.name = 'Something/file.gpx'
                 return track
 
         self.object = Mock()
-        self.request = RequestFactory
+        self.request = Mock(spec=HttpRequest)  # type: HttpRequest
         self.request.user = self.user
         self.view = MockActivityTrackDownloadView()
 
