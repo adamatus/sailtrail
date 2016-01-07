@@ -6,7 +6,8 @@ from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.views.generic import ListView, DetailView
 
-from api.models import Helper, Activity
+from api.helper import get_users_activities, summarize_by_category
+from api.models import Activity
 from core.views import UploadFormMixin
 
 
@@ -26,14 +27,14 @@ class UserView(UploadFormMixin, ListView):
 
     def get_queryset(self) -> QuerySet:
         """Return the users activities, include private if current user"""
-        return Helper.get_users_activities(self.user,
-                                           self.request.user)
+        return get_users_activities(self.user,
+                                    self.request.user)
 
     def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(UserView, self).get_context_data(**kwargs)
         context['view_user'] = self.user
-        context['summaries'] = Helper.summarize_by_category(
+        context['summaries'] = summarize_by_category(
             self.get_queryset())
         return context
 

@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import QuerySet, Max, Q
+from django.db.models import QuerySet, Max, Q, Count, Sum
 from django.http import HttpRequest
 
 from api.models import Activity, ActivityTrack, ACTIVITY_CHOICES
@@ -30,6 +30,18 @@ def get_activities_for_user(cur_user: User) -> QuerySet:
     # Remove private activities for all but the current user
     return activities.exclude(
         ~Q(user__username=cur_user.username), private=True)
+
+
+def get_users_activities(user: User, cur_user: User) -> QuerySet:
+    """Get list of activities, including private activities if cur user"""
+    activities = Activity.objects.filter(
+        user__username=user.username)
+
+    # Filter out private activities if the user is not viewing themselves
+    if cur_user.username != user.username:
+        activities = activities.filter(private=False)
+
+    return activities
 
 
 def get_active_users() -> QuerySet:
@@ -67,3 +79,11 @@ def get_leaders() -> List[Dict[str, str]]:
             leaders.append({'category': category, 'leaders': values})
 
     return leaders
+
+
+def summarize_by_category(activities: QuerySet) -> QuerySet:
+    """Summarize activities by category"""
+    return activities.values('category').annotate(
+        count=Count('category'),
+        max_speed=Max('model_max_speed'),
+        total_dist=Sum('model_distance')).order_by('-max_speed')

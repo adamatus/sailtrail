@@ -9,7 +9,7 @@ import pytz
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
-from django.db.models import Count, Max, Sum, QuerySet
+from django.db.models import QuerySet
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
@@ -308,29 +308,3 @@ class ActivityTrackpoint(models.Model):
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
     track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
-
-
-class Helper(object):
-    """Helper methods to access model objects
-
-    Methods to perform queries, etc. Easy to mock"""
-
-    @staticmethod
-    def get_users_activities(user: User, cur_user: User) -> QuerySet:
-        """Get list of activities, including private activities if cur user"""
-        activities = Activity.objects.filter(
-            user__username=user.username)
-
-        # Filter out private activities if the user is not viewing themselves
-        if cur_user.username != user.username:
-            activities = activities.filter(private=False)
-
-        return activities
-
-    @staticmethod
-    def summarize_by_category(activities: QuerySet) -> QuerySet:
-        """Summarize activities by category"""
-        return activities.values('category').annotate(
-            count=Count('category'),
-            max_speed=Max('model_max_speed'),
-            total_dist=Sum('model_distance')).order_by('-max_speed')
