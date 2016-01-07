@@ -7,8 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic import View
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import BaseDetailView
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from api.helper import verify_private_owner
@@ -23,7 +22,7 @@ ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
-class WindDirection(SingleObjectMixin, View):
+class WindDirection(BaseDetailView):
     """Wind direction handler"""
     model = Activity
 
@@ -38,7 +37,6 @@ class WindDirection(SingleObjectMixin, View):
 
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Return wind direction as JSON"""
-        del args, kwargs  # remove to eliminate unused-warnings
         activity = self.get_object()
         if request.user != activity.user and activity.private:
             raise PermissionDenied

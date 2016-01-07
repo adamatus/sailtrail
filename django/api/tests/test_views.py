@@ -1,176 +1,123 @@
 import unittest
-from unittest.mock import Mock, sentinel, patch, MagicMock
+from unittest.mock import Mock, sentinel, patch
 
 import pytest
 
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.core.urlresolvers import reverse
-from django.test import TestCase, RequestFactory
+from django.core.exceptions import PermissionDenied
 
-from api.models import Activity
-from api.tests.factories import UserFactory
 from api.views import WindDirection
 
 
 class TestWindDirection(unittest.TestCase):
 
+    def setUp(self):
+        patcher = patch('api.views.HttpResponse')
+        self.mock_http = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self.user = sentinel.user
+        self.request = Mock(user=self.user)
+
+    def build_mock_class(self, activity):
+        """ Helper method to return a class that mocks out the super's
+        get_object to return the provided activity mock
+        """
+        class MockedGetObject(object):
+            def get_object(self):
+                return activity
+
+        class MockedWindDirection(MockedGetObject, WindDirection):
+            pass
+
+        return MockedWindDirection
+
     @patch('api.views.json')
-    @patch('api.views.HttpResponse')
     def test_get_returns_existing_wind_direction(self,
-                                                 mock_http,
                                                  mock_json):
-        user = UserFactory.stub()
-        wind_dir = "10.0"
+        # Given a mock public activity for a different user
+        activity = Mock(user=sentinel.other_user, wind_direction="10.0",
+                        private=False)
 
-        class MockedGetObject(object):
-            def get_object(self):
-                activity = Mock()
-                activity.user = UserFactory.stub()
-                activity.wind_direction = wind_dir
-                activity.private = False
-
-                return activity
-
-        class MockedWindDirection(MockedGetObject, WindDirection):
-            pass
-
-        request = RequestFactory()
-        request.user = user
-        view = MockedWindDirection()
+        # and mocked view who's super returns that activity
+        view = self.build_mock_class(activity)()
         view.kwargs = dict(pk=1)
 
+        # and mocked helpers that return sentinels
         mock_json.dumps.return_value = sentinel.json_data
-        mock_http.return_value = sentinel.http_response
+        self.mock_http.return_value = sentinel.http_response
 
-        response = view.get(request)
+        # When getting the view
+        response = view.get(self.request)
 
+        # Then the sentinel response is returned, after correct helper calls
+        assert response == sentinel.http_response
         mock_json.dumps.assert_called_once_with(dict(wind_direction="10.0"))
-        mock_http.assert_called_once_with(sentinel.json_data,
-                                          content_type="application/json")
+        self.mock_http.assert_called_once_with(sentinel.json_data,
+                                               content_type="application/json")
 
-        assert response == sentinel.http_response
+    def test_get_returns_if_private_and_cur_user(self):
+        # Given a mock activity for the current user
+        activity = Mock(user=self.user, wind_direction="10.0",
+                        private=False)
 
-    @patch('api.views.HttpResponse')
-    def test_get_returns_if_private_and_cur_user(self,
-                                                 mock_http: MagicMock):
-        user = UserFactory.stub()
-        wind_dir = "10.0"
-
-        class MockedGetObject(object):
-            def get_object(self):
-                activity = Mock()
-                activity.user = user
-                activity.wind_direction = wind_dir
-                activity.private = True
-                return activity
-
-        class MockedWindDirection(MockedGetObject, WindDirection):
-            pass
-
-        request = RequestFactory()
-        request.user = user
-        view = MockedWindDirection()
+        # and mocked view who's super returns that activity
+        view = self.build_mock_class(activity)()
         view.kwargs = dict(pk=1)
 
-        mock_http.return_value = sentinel.http_response
+        # and mocked helpers that return sentinels
+        self.mock_http.return_value = sentinel.http_response
 
-        response = view.get(request)
+        # When getting the view
+        response = view.get(self.request)
 
-        assert mock_http.called is True
+        # Then the sentinel response is returned, after correct helper calls
         assert response == sentinel.http_response
+        assert self.mock_http.called is True
 
-    @patch('api.views.HttpResponse')
-    def test_get_raises_permission_denied_if_wrong_user_and_private(self,
-                                                                    mock_http):
-        user = UserFactory.stub()
-        wind_dir = "10.0"
+    def test_get_raises_permission_denied_if_wrong_user_and_private(self):
+        # Given a mock private activity for a different user
+        activity = Mock(user=sentinel.other_user, wind_direction="10.0",
+                        private=True)
 
-        class MockedGetObject(object):
-            def get_object(self):
-                activity = Mock()
-                activity.user = UserFactory.stub()
-                activity.wind_direction = wind_dir
-                activity.private = True
-                return activity
-
-        class MockedWindDirection(MockedGetObject, WindDirection):
-            pass
-
-        request = RequestFactory()
-        request.user = user
-        view = MockedWindDirection()
+        # and mocked view who's super returns that activity
+        view = self.build_mock_class(activity)()
         view.kwargs = dict(pk=1)
 
-        mock_http.return_value = sentinel.http_response
+        # and mocked helper that return a sentinel
+        self.mock_http.return_value = sentinel.http_response
 
+        # When getting the view, Then a permission denied is raised
         with pytest.raises(PermissionDenied):
-            view.get(request)
+            view.get(self.request)
 
     def test_post_throws_if_not_current_user(self):
+        # Given a mock private activity for a different user
+        activity = Mock(user=sentinel.other_user, wind_direction="10.0",
+                        private=True)
 
-        user = UserFactory.stub()
-        wind_dir = "10.0"
-
-        class MockedGetObject(object):
-            def get_object(self):
-                activity = Mock()
-                activity.user = UserFactory.stub()
-                activity.wind_direction = wind_dir
-                activity.private = True
-                return activity
-
-        class MockedWindDirection(MockedGetObject, WindDirection):
-            pass
-
-        request = RequestFactory()
-        request.user = user
-        view = MockedWindDirection()
+        # and mocked view who's super returns that activity
+        view = self.build_mock_class(activity)()
         view.kwargs = dict(pk=1)
 
+        # When posting to the view, Then a permission denied is raised
         with pytest.raises(PermissionDenied):
-            view.get(request)
+            view.post(self.request)
 
     def test_post_saves_wind_dir(self):
+        # Given a mock private activity for the current user
+        activity = Mock(user=self.user, wind_direction="10.0",
+                        private=True)
 
-        user = UserFactory.stub()
-        activity = Mock()
-        activity.user = user
-
-        class MockedGetObject(object):
-            def get_object(self):
-                return activity
-
-        class MockedWindDirection(MockedGetObject, WindDirection):
-            pass
-
-        request = RequestFactory()
-        request.user = user
-        request.POST = dict(wind_direction="10.0")
-        view = MockedWindDirection()
+        # and mocked view who's super returns that activity
+        view = self.build_mock_class(activity)()
         view.kwargs = dict(pk=1)
         view.get = Mock()
 
-        view.post(request)
+        # When posting to the view
+        self.request.POST = dict(wind_direction="20.0")
+        view.post(self.request)
 
-        assert activity.wind_direction == "10.0"
+        # Then the wind_direction is updated, and helpers called correctly
+        assert activity.wind_direction == "20.0"
         activity.save.assert_called_once_with()
-        view.get.assert_called_once_with(request)
-
-
-@pytest.mark.integration
-class TestDeleteActivityViewIntegration(TestCase):
-
-    def setUp(self):
-        self.user = UserFactory.create(username='test')
-        self.client.login(username='test', password='password')
-        Activity.objects.create(user=self.user)
-
-    def test_delete_redirects_to_homepage(self):
-        response = self.client.get(reverse('delete_activity',
-                                           args=[1]))
-        self.assertRedirects(response, reverse('home'))
-
-    def test_delete_removes_item_from_db(self):
-        self.client.get(reverse('delete_activity', args=[1]))
-        with pytest.raises(ObjectDoesNotExist):
-            Activity.objects.get(id=1)
+        view.get.assert_called_once_with(self.request)
