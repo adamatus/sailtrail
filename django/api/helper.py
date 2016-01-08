@@ -44,11 +44,6 @@ def get_users_activities(user: User, cur_user: User) -> QuerySet:
     return activities
 
 
-def get_active_users() -> QuerySet:
-    """Helper to return all public users"""
-    return User.objects.filter(is_active=True, is_superuser=False)
-
-
 def get_public_activities() -> QuerySet:
     """Helper to return all public activities"""
     return Activity.objects.filter(private=False)
@@ -65,11 +60,14 @@ def verify_private_owner(activity: Activity, request: HttpRequest) -> None:
         raise PermissionDenied
 
 
+def get_active_users() -> QuerySet:
+    """Helper to return all public users"""
+    return User.objects.filter(is_active=True, is_superuser=False)
+
+
 def get_leaders() -> List[Dict[str, str]]:
     """Build list of leaders for the leaderboard"""
-    leader_list = Activity.objects.filter(private=False).values(
-        'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
+    leader_list = _get_activity_leaders()
 
     leaders = []
 
@@ -79,6 +77,13 @@ def get_leaders() -> List[Dict[str, str]]:
             leaders.append({'category': category, 'leaders': values})
 
     return leaders
+
+
+def _get_activity_leaders() -> QuerySet:
+    """Get the leaders for activities"""
+    return Activity.objects.filter(private=False).values(
+        'user__username', 'category').annotate(
+            max_speed=Max('model_max_speed')).order_by('-max_speed')
 
 
 def summarize_by_category(activities: QuerySet) -> QuerySet:
