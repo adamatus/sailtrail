@@ -1,6 +1,8 @@
 from datetime import datetime
 from math import floor
 
+from pytz import utc
+
 import factory
 from factory.fuzzy import FuzzyFloat
 
@@ -39,8 +41,8 @@ class ActivityTrackpointFactory(factory.DjangoModelFactory):
 
     timepoint = factory.Sequence(
         lambda n:
-            datetime(2014, 10, 10, floor(n / (60**3)),
-                     floor(n / (60**2)), floor(n / 60)))
+            datetime(2014, 10, 10, floor(n / (60**2)),
+                     floor(n / 60), n % 60, tzinfo=utc))
     lat = FuzzyFloat(-180, 180)
     lon = FuzzyFloat(-180, 180)  # degrees
     sog = FuzzyFloat(0, 20)
