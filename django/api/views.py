@@ -4,7 +4,7 @@ import json
 import numpy as np
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
 from django.views.generic.detail import BaseDetailView
 
@@ -37,49 +37,84 @@ class WindDirection(BaseDetailView):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Return wind direction as JSON"""
         activity = self.get_object()
-        if request.user != activity.user and activity.private:
-            raise PermissionDenied
+        verify_private_owner(activity, request)
         return HttpResponse(
             json.dumps(dict(wind_direction=activity.wind_direction)),
             content_type="application/json")
 
 
-def activity_json(request: HttpRequest, activity_id: int) -> HttpResponse:
-    """ Activity JSON data endpoint"""
-    activity = Activity.objects.get(id=activity_id)
+class JSONResponseMixin(object):
+    """Mixin to render response as JsonResponse"""
+    data_field = None
 
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(activity, request)
+    """
+    A mixin that can be used to render a JSON response.
+    """
+    def render_to_json_response(self, context, **response_kwargs):
+        """Render response as JSON"""
+        return JsonResponse(
+            self.get_data(context),
+            **response_kwargs
+        )
 
-    pos = activity.get_trackpoints()
-    return return_json(pos)
-
-
-def track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponse:
-    """Track data API endpoint handler"""
-    del activity_id  # delete activity_id as it is not attached to track
-
-    track = ActivityTrack.objects.get(id=track_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    verify_private_owner(track.activity_id, request)
-
-    pos = list(track.get_trackpoints().values('sog', 'lat',
-                                              'lon', 'timepoint'))
-
-    return return_json(pos)
+    def get_data(self, context):
+        """Get the data that will be serialized to JSON"""
+        return context[self.data_field]
 
 
-def return_json(pos: list) -> HttpResponse:
+class BaseJSONView(JSONResponseMixin, BaseDetailView):
+    """Base detail JSON view"""
+    data_field = 'json'
+
+    def get_object(self, queryset=None):
+        """Get the object"""
+        the_object = super(BaseJSONView, self).get_object()
+        verify_private_owner(the_object, self.request)
+        return the_object
+
+    def render_to_response(self, context, **response_kwargs):
+        """Render to response"""
+        return self.render_to_json_response(context, **response_kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Get the context data, populating the data_field with data"""
+        context = super(BaseJSONView, self).get_context_data(**kwargs)
+        context[self.data_field] = return_json(self.get_json())
+        return context
+
+
+class ActivityJSONView(BaseJSONView):
+    """Activity trackpoint JSON view"""
+    model = Activity
+    data_field = 'pos'
+
+    def get_json(self):
+        """Get the activity trackpoints"""
+        return self.get_object().get_trackpoints()
+
+
+class TrackJSONView(BaseJSONView):
+    """Track trackpoint JSON view"""
+    model = ActivityTrack
+    data_field = 'pos'
+
+    def get_json(self):
+        """Get the track trackpoints"""
+        return list(self.get_object().get_trackpoints().values('sog',
+                                                               'lat',
+                                                               'lon',
+                                                               'timepoint'))
+
+
+def return_json(pos: list) -> dict:
     """Helper method to return JSON data"""
 
     stats = Stats(pos)
-    distances = stats.distances()
+    # distances = stats.distances()
     bearings = stats.bearing()
 
     # hack to get same size arrays (just repeat final element)
-    distances = np.round(np.append(distances, distances[-1]), 3)
+    # distances = np.round(np.append(distances, distances[-1]), 3)
     bearings = np.round(np.append(bearings, bearings[-1]))
     speed = []
     time = []
@@ -95,10 +130,8 @@ def return_json(pos: list) -> HttpResponse:
             2))
         time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
 
-    out = dict(bearing=bearings.tolist(), time=time,
-               speed=speed, lat=lat, lon=lon)
-
-    return HttpResponse(json.dumps(out), content_type="application/json")
+    return dict(bearing=bearings.tolist(), time=time,
+                speed=speed, lat=lat, lon=lon)
 
 
 class DeleteActivityView(BaseDetailView):
@@ -154,9 +187,7 @@ class TrimView(BaseTrackView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
-        print("Trying to get object...")
         track = self.get_object()
-        print("NEVER GETTING HERE")
         track.trim(self.request.POST.get('trim-start', '-1'),
                    self.request.POST.get('trim-end', '-1'))
         return redirect('view_activity', track.activity_id.id)
