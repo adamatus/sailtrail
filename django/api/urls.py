@@ -5,12 +5,16 @@ from django.contrib.auth.decorators import login_required
 from api import views
 
 urlpatterns = [
-    url(r'activity/(\d+)/tracks/(\d+)/delete$', views.delete_track,
+    url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/delete$',
+        login_required(views.DeleteTrackView.as_view()),
         name='delete_track'),
-    url(r'activity/(\d+)/tracks/(\d+)/trim$', views.trim, name='trim_track'),
+    url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/trim$',
+        login_required(views.TrimView.as_view()),
+        name='trim_track'),
     url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/untrim$',
         login_required(views.UntrimView.as_view()),
         name='untrim_track'),
+
     url(r'activity/(\d+)/tracks/(\d+)/json$', views.track_json,
         name="track_json"),
 

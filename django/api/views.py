@@ -112,48 +112,55 @@ def delete(request: HttpRequest, activity_id: int) -> HttpResponseRedirect:
     return redirect('home')
 
 
-@login_required
-def delete_track(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Delete track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-
-    if track.activity_id.track.count() < 2:
-        raise SuspiciousOperation("Cannot delete final track in activity")
-
-    track.delete()
-    track.activity_id.model_distance = None
-    track.activity_id.model_max_speed = None
-    track.activity_id.compute_stats()
-    return redirect('view_activity', activity_id)
-
-
-@login_required
-def trim(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Trim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.trim(request.POST['trim-start'], request.POST['trim-end'])
-    return redirect('view_activity', activity_id)
-
-
-class UntrimView(BaseDetailView):
-    """Untrim track view"""
+class BaseTrackView(BaseDetailView):
+    """Base detail view for track, only allows access to owner"""
     model = ActivityTrack
 
     def get_object(self, queryset=None) -> ActivityTrack:
-        track = super(UntrimView, self).get_object(queryset=queryset)
+        track = super(BaseTrackView, self).get_object(
+            queryset=queryset)
         if self.request.user != track.activity_id.user:
             raise PermissionDenied
         return track
+
+
+class DeleteTrackView(BaseTrackView):
+    """Delete track view"""
+    model = ActivityTrack
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        track = self.get_object()
+        if track.activity_id.track.count() < 2:
+            raise SuspiciousOperation("Cannot delete final track in activity")
+
+        track.delete()
+        track.activity_id.model_distance = None
+        track.activity_id.model_max_speed = None
+        track.activity_id.compute_stats()
+        return redirect('view_activity', track.activity_id.id)
+
+
+class TrimView(BaseTrackView):
+    """Trim track view"""
+    model = ActivityTrack
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        print("Trying to get object...")
+        track = self.get_object()
+        print("NEVER GETTING HERE")
+        track.trim(self.request.POST.get('trim-start', '-1'),
+                   self.request.POST.get('trim-end', '-1'))
+        return redirect('view_activity', track.activity_id.id)
+
+
+class UntrimView(BaseTrackView):
+    """Untrim track view"""
+    model = ActivityTrack
 
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
         track = self.get_object()
         track.reset_trim()
         return redirect('view_activity', track.activity_id.id)
-

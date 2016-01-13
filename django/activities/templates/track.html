@@ -35,7 +35,7 @@
         <div class="col-md-6" style="padding-top: 1em;">
             {% include 'components/speed-plot.html' %}
             {% if track.trimmed %}
-                <a href="{% url 'untrim_track' track.activity_id.id track.id %}"
+                <a href="{% url 'untrim_track' activity_id=track.activity_id.id pk=track.id %}"
                    class="btn btn-default">Untrim</a>
             {% else %}
                 <button class="btn btn-default" id="trim-start">Trim Start
