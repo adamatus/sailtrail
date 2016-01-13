@@ -141,12 +141,19 @@ def trim(request: HttpRequest, activity_id: int, track_id: int) -> \
     return redirect('view_activity', activity_id)
 
 
-@login_required
-def untrim(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Untrim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.reset_trim()
-    return redirect('view_activity', activity_id)
+class UntrimView(BaseDetailView):
+    """Untrim track view"""
+    model = ActivityTrack
+
+    def get_object(self, queryset=None) -> ActivityTrack:
+        track = super(UntrimView, self).get_object(queryset=queryset)
+        if self.request.user != track.activity_id.user:
+            raise PermissionDenied
+        return track
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        track = self.get_object()
+        track.reset_trim()
+        return redirect('view_activity', track.activity_id.id)
+
