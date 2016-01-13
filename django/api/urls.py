@@ -18,7 +18,10 @@ urlpatterns = [
     url(r'activity/(\d+)/tracks/(\d+)/json$', views.track_json,
         name="track_json"),
 
-    url(r'activity/(\d+)/delete$', views.delete, name='delete_activity'),
+    url(r'activity/(?P<pk>\d+)/delete$',
+        login_required(views.DeleteActivityView.as_view()),
+        name='delete_activity'),
+
     url(r'activity/(\d+)/json$', views.activity_json, name='activity_json'),
     url(r'activities/(?P<pk>\d+)/wind_direction$',
         login_required(views.WindDirection.as_view()),

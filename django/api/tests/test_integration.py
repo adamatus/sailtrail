@@ -16,16 +16,22 @@ class TestDeleteActivityViewIntegration(TestCase):
 
     def setUp(self):
         self.user = UserFactory.create(username='test')
-        self.client.login(username='test', password='password')
         Activity.objects.create(user=self.user)
 
-    def test_delete_redirects_to_homepage(self):
+    def test_delete_with_other_user_403s(self):
+        UserFactory.create(username='other')
+        self.client.login(username='other', password='password')
+        response = self.client.get(reverse('delete_activity',
+                                           args=[1]))
+        assert response.status_code == 403
+        self.assertTemplateUsed('403.html')
+
+    def test_delete_redirects_to_homepage_and_deletes_activity(self):
+        self.client.login(username='test', password='password')
         response = self.client.get(reverse('delete_activity',
                                            args=[1]))
         self.assertRedirects(response, reverse('home'))
 
-    def test_delete_removes_item_from_db(self):
-        self.client.get(reverse('delete_activity', args=[1]))
         with pytest.raises(ObjectDoesNotExist):
             Activity.objects.get(id=1)
 
@@ -212,6 +218,7 @@ class TestTrimTrack(BaseTrackView):
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is False
+
 
 @pytest.mark.integration
 class TestUntrimTrack(BaseTrackView):

@@ -3,9 +3,8 @@ import json
 
 import numpy as np
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import redirect
 from django.views.generic.detail import BaseDetailView
 
@@ -102,14 +101,22 @@ def return_json(pos: list) -> HttpResponse:
     return HttpResponse(json.dumps(out), content_type="application/json")
 
 
-@login_required
-def delete(request: HttpRequest, activity_id: int) -> HttpResponseRedirect:
-    """Delete activity handler"""
-    activity = Activity.objects.get(id=activity_id)  # type: Activity
-    if request.user != activity.user:
-        raise PermissionDenied
-    activity.delete()
-    return redirect('home')
+class DeleteActivityView(BaseDetailView):
+    """Delete activity view"""
+    model = Activity
+
+    def get_object(self, queryset=None) -> Activity:
+        """Get the activity"""
+        activity = super(DeleteActivityView, self).get_object(
+            queryset=queryset)
+        if self.request.user != activity.user:
+            raise PermissionDenied
+        return activity
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Delete the activity"""
+        self.get_object().delete()
+        return redirect('home')
 
 
 class BaseTrackView(BaseDetailView):
