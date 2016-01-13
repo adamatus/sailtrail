@@ -66,6 +66,10 @@ class BaseJSONView(JSONResponseMixin, BaseDetailView):
     """Base detail JSON view"""
     data_field = 'json'
 
+    def return_json(self):
+        """Return the data to be serialized to JSON"""
+        raise NotImplementedError("Sub-classes must implement this method")
+
     def get_object(self, queryset=None):
         """Get the object"""
         the_object = super(BaseJSONView, self).get_object()
@@ -79,59 +83,73 @@ class BaseJSONView(JSONResponseMixin, BaseDetailView):
     def get_context_data(self, **kwargs):
         """Get the context data, populating the data_field with data"""
         context = super(BaseJSONView, self).get_context_data(**kwargs)
-        context[self.data_field] = return_json(self.get_json())
+        context[self.data_field] = self.return_json()
         return context
 
 
-class ActivityJSONView(BaseJSONView):
+class TrackJSONMixin(object):
+    """Mixin to handle the conversion of trackpoint data to desired output"""
+
+    def get_trackpoints(self):
+        """Return the specific trackpoints to include"""
+        raise NotImplementedError("Sub-classes must implement this method")
+
+    def return_json(self) -> dict:
+        """Helper method to return JSON data for trackpoints
+
+        This method takes the list of trackpoints, computes stats for it,
+        then returns the results as an object with a list for each field,
+        rather than as a list of objects.  This was found to be significantly
+        smaller over-the-wire."""
+        pos = self.get_trackpoints()
+
+        stats = Stats(pos)
+        # distances = stats.distances()
+        # distances = np.round(np.append(distances, distances[-1]), 3)
+
+        bearings = stats.bearing()
+        # hack to get same size arrays (just repeat final element)
+        bearings = np.round(np.append(bearings, bearings[-1]))
+
+        speed = []
+        time = []
+        lat = []
+        lon = []
+
+        for position in pos:
+            lat.append(position['lat'])
+            lon.append(position['lon'])
+            speed.append(round(
+                (position['sog'] * UNITS.m / UNITS.s).to(
+                    UNIT_SETTING['speed']).magnitude,
+                2))
+            time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
+
+        return dict(bearing=bearings.tolist(), time=time,
+                    speed=speed, lat=lat, lon=lon)
+
+
+class ActivityJSONView(TrackJSONMixin, BaseJSONView):
     """Activity trackpoint JSON view"""
     model = Activity
     data_field = 'pos'
 
-    def get_json(self):
+    def get_trackpoints(self):
         """Get the activity trackpoints"""
         return self.get_object().get_trackpoints()
 
 
-class TrackJSONView(BaseJSONView):
+class TrackJSONView(TrackJSONMixin, BaseJSONView):
     """Track trackpoint JSON view"""
     model = ActivityTrack
     data_field = 'pos'
 
-    def get_json(self):
+    def get_trackpoints(self):
         """Get the track trackpoints"""
         return list(self.get_object().get_trackpoints().values('sog',
                                                                'lat',
                                                                'lon',
                                                                'timepoint'))
-
-
-def return_json(pos: list) -> dict:
-    """Helper method to return JSON data"""
-
-    stats = Stats(pos)
-    # distances = stats.distances()
-    bearings = stats.bearing()
-
-    # hack to get same size arrays (just repeat final element)
-    # distances = np.round(np.append(distances, distances[-1]), 3)
-    bearings = np.round(np.append(bearings, bearings[-1]))
-    speed = []
-    time = []
-    lat = []
-    lon = []
-
-    for position in pos:
-        lat.append(position['lat'])
-        lon.append(position['lon'])
-        speed.append(round(
-            (position['sog'] * UNITS.m / UNITS.s).to(
-                UNIT_SETTING['speed']).magnitude,
-            2))
-        time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
-
-    return dict(bearing=bearings.tolist(), time=time,
-                speed=speed, lat=lat, lon=lon)
 
 
 class DeleteActivityView(BaseDetailView):
