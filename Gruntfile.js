@@ -61,6 +61,7 @@ module.exports = function(grunt) {
             apps: {
                 src: [
                     'django/activities',
+                    'django/analysis',
                     'django/api',
                     'django/core',
                     'django/homepage',

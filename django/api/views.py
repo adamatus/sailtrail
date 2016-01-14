@@ -1,19 +1,17 @@
 """Activity view module"""
 import json
 
-import numpy as np
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
 from django.views.generic.detail import BaseDetailView
 
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
+from analysis.track_analysis import make_json_from_trackpoints
 from api.helper import verify_private_owner
 from api.models import Activity, ActivityTrack
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
-from sirf.stats import Stats
 
 USER = get_user_model()
 
@@ -72,7 +70,7 @@ class BaseJSONView(JSONResponseMixin, BaseDetailView):
 
     def get_object(self, queryset=None):
         """Get the object"""
-        the_object = super(BaseJSONView, self).get_object()
+        the_object = super(BaseJSONView, self).get_object(queryset=queryset)
         verify_private_owner(the_object, self.request)
         return the_object
 
@@ -95,38 +93,8 @@ class TrackJSONMixin(object):
         raise NotImplementedError("Sub-classes must implement this method")
 
     def return_json(self) -> dict:
-        """Helper method to return JSON data for trackpoints
-
-        This method takes the list of trackpoints, computes stats for it,
-        then returns the results as an object with a list for each field,
-        rather than as a list of objects.  This was found to be significantly
-        smaller over-the-wire."""
-        pos = self.get_trackpoints()
-
-        stats = Stats(pos)
-        # distances = stats.distances()
-        # distances = np.round(np.append(distances, distances[-1]), 3)
-
-        bearings = stats.bearing()
-        # hack to get same size arrays (just repeat final element)
-        bearings = np.round(np.append(bearings, bearings[-1]))
-
-        speed = []
-        time = []
-        lat = []
-        lon = []
-
-        for position in pos:
-            lat.append(position['lat'])
-            lon.append(position['lon'])
-            speed.append(round(
-                (position['sog'] * UNITS.m / UNITS.s).to(
-                    UNIT_SETTING['speed']).magnitude,
-                2))
-            time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
-
-        return dict(bearing=bearings.tolist(), time=time,
-                    speed=speed, lat=lat, lon=lon)
+        """Helper method to return JSON data for trackpoints"""
+        return make_json_from_trackpoints(self.get_trackpoints())
 
 
 class ActivityJSONView(TrackJSONMixin, BaseJSONView):
@@ -206,8 +174,8 @@ class TrimView(BaseTrackView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
         track = self.get_object()
-        track.trim(self.request.POST.get('trim-start', '-1'),
-                   self.request.POST.get('trim-end', '-1'))
+        track.trim(request.POST.get('trim-start', '-1'),
+                   request.POST.get('trim-end', '-1'))
         return redirect('view_activity', track.activity_id.id)
 
 
