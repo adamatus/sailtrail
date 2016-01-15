@@ -1,295 +1,196 @@
-from datetime import datetime, time, date
-import os.path
-import shutil
-import tempfile
+from unittest.mock import MagicMock, patch, sentinel, Mock
 
-import pytest
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
-from pytz import timezone
-
-from api.models import (Activity, ActivityTrack,
-                        ActivityTrackpoint, _create_trackpoints)
-from api.tests.factories import ActivityFactory
-from users.tests.factories import UserFactory
-
-ASSET_PATH = os.path.join(os.path.dirname(__file__),
-                          'assets')
-with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
-    SBN_BIN = f.read()
-    SBN_FILE = SimpleUploadedFile('test1.sbn', SBN_BIN)
-with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
-    GPX_BIN = f.read()
-    GPX_FILE = SimpleUploadedFile('tiny-run.gpx', GPX_BIN)
+from api.models import Activity
 
 
-def my_round(num, places=3):
-    return int(num*10**places)/10**places
+class TestActivityModel:
 
+    @patch('api.models.reverse')
+    def test_get_absolute_url_returns_result_of_reverse(self,
+                                                        rev_mock: MagicMock):
+        # Given a new activity
+        activity = Activity()
+        activity.id = sentinel.id
 
-class FileDeleter:
-    def setUp(self):
-        print('in deleter')
-        self.temp_dir = tempfile.mkdtemp()
+        rev_mock.return_value = sentinel.url
 
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        # When getting the absolute url
+        url = activity.get_absolute_url()
 
+        # Then the sentinel is returned
+        assert url == sentinel.url
+        rev_mock.assert_called_once_with('view_activity',
+                                         args=[str(sentinel.id)])
 
-@pytest.mark.django_db
-@pytest.mark.integration
-class TestActivityModelIntegration(FileDeleter, TestCase):
+    def test_start_time(self):
+        # Given a track mock that return trim_start time from first track
+        track_mock = Mock()
+        track_mock.return_value.first.return_value.trim_start.\
+            time.return_value = sentinel.time
 
-    def setUp(self):
-        super(TestActivityModelIntegration, self).setUp()
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
-                                         upfile=SimpleUploadedFile("test1.SBN",
-                                                                   SBN_BIN))
-        self.activity = a.activity_id  # type: Activity
+        # and and activity with that mock
+        activity = Activity()
+        activity._get_tracks = track_mock
 
-    def test_fields_exist_as_expected(self):
-        a = Activity(user=UserFactory.create())
-        a.save()
-        assert a.modified is not None
-        assert a.created is not None
+        # Then the sentinel time is returned
+        assert activity.start_time == sentinel.time
 
-    def test_start_time_returns_time(self):
-        assert self.activity.start_time == time(22, 37, 54)
+    def test_end_time(self):
+        # Given a track mock that return trim_end time from last track
+        track_mock = Mock()
+        track_mock.return_value.last.return_value.trim_end. \
+            time.return_value = sentinel.time
 
-    def test_end_time_returns_correct_time(self):
-        assert self.activity.end_time == time(22, 37, 57)
+        # and and activity with that mock
+        activity = Activity()
+        activity._get_tracks = track_mock
 
-    def test_date_returns_date(self):
-        assert self.activity.date == date(2014, 7, 15)
+        # Then the sentinel time is returned
+        assert activity.end_time == sentinel.time
 
-    def test_model_max_speed_is_populated_on_call_to_max_speed(self):
-        self.activity.model_max_speed = None
-        self.activity.save()
-        assert self.activity.max_speed == '6.65 knots'
-        assert self.activity.model_max_speed == 3.42
+    def test_date(self):
+        # Given a track mock that return trim_start time from first track
+        track_mock = Mock()
+        track_mock.return_value.first.return_value.trim_start. \
+            date.return_value = sentinel.date
 
-    def test_model_max_speed_is_not_pupulated_if_already_filled(self):
-        self.activity.model_max_speed = 10.5
-        self.activity.save()
-        assert self.activity.max_speed == '20.41 knots'
-        assert self.activity.model_max_speed == 10.5
+        # and and activity with that mock
+        activity = Activity()
+        activity._get_tracks = track_mock
 
-    def test_model_distance_is_populated_on_call_to_distance(self):
-        self.activity.model_distance = None
-        self.activity.save()
-        assert self.activity.distance == '0.01 nmi'
-        assert my_round(self.activity.model_distance) == 9.978
+        # Then the sentinel time is returned
+        assert activity.date == sentinel.date
 
-    def test_model_distance_is_not_populated_if_already_filled(self):
-        self.activity.model_distance = 10.5
-        self.activity.save()
-        assert self.activity.distance == '0.01 nmi'
-        assert my_round(self.activity.model_distance) == 10.5
+    def test_duration(self):
+        # Given a track mock that return trim_start time from first track
+        track_mock = Mock()
+        track_mock.return_value.first.return_value.trim_start = 8
+        track_mock.return_value.last.return_value.trim_end = 10
 
+        # and and activity with that mock
+        activity = Activity()
+        activity._get_tracks = track_mock
 
-@pytest.mark.django_db
-@pytest.mark.integration
-class TestActivityTrackModelIntegration(FileDeleter, TestCase):
+        # Then the sentinel time is returned
+        assert activity.duration == 2
 
-    def setUp(self):
-        super(TestActivityTrackModelIntegration, self).setUp()
+    def test_max_speed_returns_existing_formatted_model_max_speed(self):
+        # Given a new activity with max speed
+        activity = Activity()
+        activity.model_max_speed = 10.0
 
-        def make_track():
-            with self.settings(MEDIA_ROOT=self.temp_dir):
-                self.track = ActivityTrack.create_new(
-                    activity_id=ActivityFactory.create(),
-                    upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
-        self.make_track = make_track
+        # Expect the property to be a formatted speed string
+        assert activity.max_speed == "19.44 knots"
 
-    def test_model_ordering_on_dates_with_most_last_first(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            files = ['test{}.sbn'.format(x) for x in [1, 2, 3]]
-            hours = [11, 10, 12]
-            test_files = []
-            for f, t in zip(files, hours):
-                test_files.append(SimpleUploadedFile(f, SBN_BIN))
-                a = ActivityTrack.create_new(test_files[-1],
-                                             ActivityFactory.create())
+    @patch('api.models.Stats')
+    def test_max_speed_property_computes_and_saves(self,
+                                                   stats_mock: MagicMock):
+        # Given a new activity and some mocks
+        activity = Activity()
+        activity.get_trackpoints = Mock(return_value=sentinel.pos)
+        stats_mock.return_value.max_speed.magnitude = 10
+        activity.save = Mock()
 
-                a.trim_start = datetime(2014, 10, 12, t, 20, 15,
-                                        tzinfo=timezone('UTC'))
-                a.save()
+        # When getting the max speed
+        max_speed = activity.max_speed
 
-            activities = ActivityTrack.objects.all()
-            assert 'test3.sbn' == activities[2].original_filename
-            assert 'test1.sbn' == activities[1].original_filename
-            assert 'test2.sbn' == activities[0].original_filename
+        # Then the property returns a formatted speed string
+        assert max_speed == "19.44 knots"
+        assert activity.max_speed == "19.44 knots"  # get again
 
-    def test_empty_trim_should_do_nothing(self):
-        self.make_track()
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 54,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 57,
-                                               tzinfo=timezone('UTC'))
+        # and mocks were only called once
+        stats_mock.assert_called_once_with(sentinel.pos)
+        activity.get_trackpoints.assert_called_once_with()
+        activity.save.assert_called_once_with()
 
-        self.track.trim()
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 54,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 57,
-                                               tzinfo=timezone('UTC'))
+    def test_distance_returns_existing_formatted_distance(self):
+        # Given a new activity with distance
+        activity = Activity()
+        activity.model_distance = 100.0
 
-    def test_trim_with_only_start_should_trim_start(self):
-        self.make_track()
-        self.track.trim(trim_start="2014-07-15T22:37:55+0000")
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 55,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 57,
-                                               tzinfo=timezone('UTC'))
+        # Expect the property to be a formatted distance string
+        assert activity.distance == "0.05 nmi"
 
-    def test_trim_with_only_end_should_trim_end(self):
-        self.make_track()
-        self.track.trim(trim_end="2014-07-15T22:37:56+0000")
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 54,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 56,
-                                               tzinfo=timezone('UTC'))
+    @patch('api.models.Stats')
+    def test_distance_property_computes_and_saves(self,
+                                                  stats_mock: MagicMock):
+        # Given a new activity and some mocks
+        activity = Activity()
+        activity.get_trackpoints = Mock(return_value=sentinel.pos)
+        stats_mock.return_value.distance.return_value.magnitude = 100
+        activity.save = Mock()
 
-    def test_trim_with_both_should_trim_both(self):
-        self.make_track()
-        self.track.trim(trim_start="2014-07-15T22:37:55+0000",
-                        trim_end="2014-07-15T22:37:56+0000")
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 55,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 56,
-                                               tzinfo=timezone('UTC'))
+        # When getting the max speed
+        distance = activity.distance
 
-    def test_trim_with_end_before_start_should_flip_and_trim(self):
-        self.make_track()
-        self.track.trim(trim_start="2014-07-15T22:37:56+0000",
-                        trim_end="2014-07-15T22:37:55+0000")
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 55,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 56,
-                                               tzinfo=timezone('UTC'))
+        # Then the property returns a formatted speed string
+        assert distance == "0.05 nmi"
+        assert activity.distance == "0.05 nmi"  # get again
 
-    def test_trim_with_bad_input_should_gracefully_ignore(self):
-        self.make_track()
-        self.track.trim(trim_start='aa', trim_end='1995')
-        assert self.track.trim_start == datetime(2014, 7, 15, 22, 37, 54,
-                                                 tzinfo=timezone('UTC'))
-        assert self.track.trim_end == datetime(2014, 7, 15, 22, 37, 57,
-                                               tzinfo=timezone('UTC'))
+        # and mocks were only called once
+        stats_mock.assert_called_once_with(sentinel.pos)
+        activity.get_trackpoints.assert_called_once_with()
+        activity.save.assert_called_once_with()
 
-    def test_create_trackpoints_will_call_sbn_helper(self):
-        bad_file = SimpleUploadedFile('tiny-run.tpx', GPX_BIN)
-        with pytest.raises(Exception):
-            _create_trackpoints(None, bad_file)
+    @patch('api.models.Stats')
+    def test_compute_stats_populates_model_fields(self,
+                                                  stats_mock: MagicMock):
+        # Given a new activity with some mocks
+        activity = Activity()
+        activity.get_trackpoints = Mock(return_value=sentinel.pos)
+        activity.save = Mock()
+        computed_stats = Mock()
+        stats_mock.return_value = computed_stats
+        computed_stats.distance.return_value.magnitude = sentinel.dist
+        computed_stats.max_speed.magnitude = sentinel.max_speed
 
+        # When computing stats
+        activity.compute_stats()
 
-@pytest.mark.django_db
-@pytest.mark.integration
-class TestIntegrationOfActivityModelsIntegration(FileDeleter, TestCase):
+        # Then the values were set as expected, after mock calls
+        assert activity.model_distance == sentinel.dist
+        assert activity.model_max_speed == sentinel.max_speed
+        stats_mock.assert_called_once_with(sentinel.pos)
+        activity.save.assert_called_once_with()
 
-    def setUp(self):
-        super(TestIntegrationOfActivityModelsIntegration, self).setUp()
+    @patch("api.models.ActivityTrack")
+    def test_add_track_creates_new(self, track_mock: MagicMock):
+        # Given a new activity
+        activity = Activity()
 
-        def make_track():
-            with self.settings(MEDIA_ROOT=self.temp_dir):
-                self.track = ActivityTrack.create_new(
-                    activity_id=ActivityFactory.create(),
-                    upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
-        self.make_track = make_track
+        # When adding a track
+        activity.add_track(sentinel.file)
 
-    def test_upload_sbn_creates_trackpoints(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-            assert 0 == len(ActivityTrackpoint.objects.all())
+        # Then mock was called
+        track_mock.create_new.assert_called_once_with(sentinel.file, activity)
 
-            ActivityTrack.create_new(
-                upfile=test_file,
-                activity_id=Activity.objects.create(user=UserFactory.create()))
+    def test_get_trackpoints(self):
+        # Given some track mocks
+        tracks_mock = Mock()
+        track1_mock = Mock()
+        track2_mock = Mock()
+        tracks_mock.return_value.all.return_value.order_by.return_value = [
+            track1_mock, track2_mock
+        ]
+        track1_mock.get_trackpoints.return_value.values.return_value = [1, 2]
+        track2_mock.get_trackpoints.return_value.values.return_value = \
+            [3, 4, 5]
 
-            assert 4 == len(ActivityTrackpoint.objects.all())
+        # and an activity that returns those mocks
+        activity = Activity()
+        activity._get_tracks = tracks_mock
 
-            first = ActivityTrackpoint.objects.first()
-            last = ActivityTrackpoint.objects.last()
+        # When getting the trackpoints
+        trackpoints = activity.get_trackpoints()
 
-            assert my_round(first.lat) == 43.087
-            assert my_round(first.lon) == -89.389
-            assert my_round(first.sog) == 3.11
-            assert first.timepoint.month == 7
-            assert first.timepoint.day == 15
-            assert first.timepoint.hour == 22
-            assert first.timepoint.second == 54
-            assert my_round(last.lat) == 43.087
-            assert my_round(last.lon) == -89.389
-            assert my_round(last.sog) == 3.420
-            assert last.timepoint.month == 7
-            assert last.timepoint.day == 15
-            assert last.timepoint.hour == 22
-            assert last.timepoint.second == 57
+        # Then the track data is returned
+        assert len(trackpoints) == 5
+        assert trackpoints == [1, 2, 3, 4, 5]
 
-    def test_upload_gpx_creates_trackpoints(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.gpx', GPX_BIN)
-            assert len(ActivityTrackpoint.objects.all()) == 0
-
-            ActivityTrack.create_new(
-                upfile=test_file,
-                activity_id=Activity.objects.create(user=UserFactory.create()))
-            assert len(ActivityTrackpoint.objects.all()) == 5
-
-            first = ActivityTrackpoint.objects.first()
-            last = ActivityTrackpoint.objects.last()
-
-            assert my_round(first.lat) == 43.078
-            assert my_round(first.lon) == -89.384
-            assert first.sog == 0.0
-            assert first.timepoint.month == 3
-            assert first.timepoint.day == 16
-            assert first.timepoint.hour == 17
-            assert first.timepoint.second == 56
-
-            assert my_round(last.lat) == 43.074
-            assert my_round(last.lon) == -89.380
-            assert my_round(last.sog) == 2.847
-            assert last.timepoint.month == 3
-            assert last.timepoint.day == 16
-            assert last.timepoint.hour == 17
-            assert last.timepoint.second == 57
-
-    def test_get_trackpoints_returns_points(self):
-        self.make_track()
-        tps = self.track.get_trackpoints()
-        assert len(tps) == 4
-        assert tps[0].id == 1
-        assert tps[3].id == 4
-
-    def test_get_trackpoints_returns_points_with_start_time(self):
-        self.make_track()
-        self.track.trim_start = datetime(2014, 7, 15, 22, 37, 55,
-                                         tzinfo=timezone('UTC'))
-        self.track.save()
-        tps = self.track.get_trackpoints()
-        assert len(tps) == 3
-        assert tps[0].id == 2
-        assert tps[2].id == 4
-
-    def test_get_trackpoints_returns_points_with_end_time(self):
-        self.make_track()
-        self.track.trim_end = datetime(2014, 7, 15, 22, 37, 56,
-                                       tzinfo=timezone('UTC'))
-        self.track.save()
-        tps = self.track.get_trackpoints()
-        assert len(tps) == 3
-        assert tps[0].id == 1
-        assert tps[2].id == 3
-
-    def test_integration_get_trackpoints_returns_points_with_both_time(self):
-        self.make_track()
-        self.track.save()
-        self.track.trim_start = datetime(2014, 7, 15, 22, 37, 55,
-                                         tzinfo=timezone('UTC'))
-        self.track.trim_end = datetime(2014, 7, 15, 22, 37, 56,
-                                       tzinfo=timezone('UTC'))
-        self.track.save()
-        tps = self.track.get_trackpoints()
-        assert len(tps) == 2
-        assert tps[0].id == 2
-        assert tps[1].id == 3
+        # and mocks were called correctly
+        tracks_mock.return_value.all.return_value.order_by.\
+            assert_called_once_with('trim_start')
+        track1_mock.get_trackpoints.return_value.\
+            values.assert_called_once_with('sog', 'lat', 'lon', 'timepoint')
+        track2_mock.get_trackpoints.return_value.\
+            values.assert_called_once_with('sog', 'lat', 'lon', 'timepoint')

@@ -56,26 +56,32 @@ class Activity(models.Model):
         """Get the URL path for this activity"""
         return reverse('view_activity', args=[str(self.id)])
 
+    def _get_tracks(self) -> QuerySet:
+        """Trivial helper to use related object to fetch tracks.
+
+        Added to allow for easy mocking of tracks for unit testing"""
+        return self.track
+
     @property
     def start_time(self) -> time:
         """Get the start time for the activity"""
-        return self.track.first().trim_start.time()
+        return self._get_tracks().first().trim_start.time()
 
     @property
     def end_time(self) -> time:
         """Get the ending time for the activity"""
-        return self.track.last().trim_end.time()
+        return self._get_tracks().last().trim_end.time()
 
     @property
     def date(self) -> date:
         """Get the start date for the activity"""
-        return self.track.first().trim_start.date()
+        return self._get_tracks().first().trim_start.date()
 
     @property
     def duration(self) -> timedelta:
         """Get the duration for the activity"""
-        return (self.track.last().trim_end -
-                self.track.first().trim_start)
+        return (self._get_tracks().last().trim_end -
+                self._get_tracks().first().trim_start)
 
     @property
     def max_speed(self) -> str:
@@ -118,7 +124,7 @@ class Activity(models.Model):
     def get_trackpoints(self) -> list:
         """Helper to return the trackpoints"""
         out = []
-        for track in self.track.all().order_by("trim_start"):
+        for track in self._get_tracks().all().order_by("trim_start"):
             out.extend(
                 track.get_trackpoints().values('sog', 'lat',
                                                'lon', 'timepoint'))
