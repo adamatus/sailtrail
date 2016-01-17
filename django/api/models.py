@@ -6,6 +6,7 @@ import uuid
 
 import gpxpy
 import pytz
+from django.core.exceptions import SuspiciousOperation
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
@@ -145,34 +146,54 @@ class ActivityTrack(models.Model):
         ordering = ['trim_start']
 
     def __str__(self):
-        return "ActivityTrack ({})".format(self.original_file.file.name)
+        """Pretty print the activity track, with original filename included"""
+        return "ActivityTrack ({})".format(
+            self._get_original_file().file.name)
+
+    def _get_activity(self):
+        """Trivial helper to use related object to fetch activity.
+
+        Added to allow for easy mocking of parent activity for unit testing"""
+        return self.activity_id
+
+    def _get_trackpoints(self):
+        """Trivial helper to use related object to fetch trackpoints.
+
+        Added to allow for easy mocking of trackpoints for unit testing"""
+        return self.trackpoint
+
+    def _get_original_file(self):
+        """Trivial helper to use related object to fetch original file
+
+        Added to allow for easy mocking of parent activity for unit testing"""
+        return self.original_file
 
     def initialize_stats(self) -> None:
         """Initialize activity stats"""
-
         self.reset_trim()
 
-        if self.activity_id.datetime is None:
-            self.activity_id.datetime = self.trim_start
-            self.activity_id.save()
-        elif self.activity_id.datetime > self.trim_start:
-            self.activity_id.datetime = self.trim_start
-            self.activity_id.save()
+        activity = self._get_activity()
+        if activity.datetime is None:
+            activity.datetime = self.trim_start
+            activity.save()
+        elif activity.datetime > self.trim_start:
+            activity.datetime = self.trim_start
+            activity.save()
 
-    def trim(self, trim_start: str='-1', trim_end: str='-1') -> None:
+    def trim(self, trim_start=None, trim_end=None) -> None:
         """Trim the activity to the given time interval
 
         Parameters
         ----------
-        trim_start
+        trim_start : str
            The timepoint to start the trim at
-        trim_end
+        trim_end : str
            The timepoint to end the trim at
         """
 
         do_save = False
 
-        if trim_start is not '-1':
+        if trim_start is not None:
             try:
                 self.trim_start = dt.strptime(trim_start, DATETIME_FORMAT_STR)
                 do_save = True
@@ -180,7 +201,7 @@ class ActivityTrack(models.Model):
                 # Silently ignore bad input
                 pass
 
-        if trim_end is not '-1':
+        if trim_end is not None:
             try:
                 self.trim_end = dt.strptime(trim_end, DATETIME_FORMAT_STR)
                 do_save = True
@@ -189,26 +210,42 @@ class ActivityTrack(models.Model):
                 pass
 
         # Swap the trim points if they are backwards
-        if (trim_start is not '-1' and trim_end is not '-1' and
+        if (trim_start is not None and trim_end is not None and
                 self.trim_start > self.trim_end):
             self.trim_start, self.trim_end = self.trim_end, self.trim_start
 
+        # Don't allow start to equal end
+        if self.trim_start == self.trim_end:
+            raise SuspiciousOperation("Start and end cannot be same timepoint")
+
         if do_save:
+            # If something changed, make sure we are within the limits
+            # of the actual track.  If outside, set to first/last value
+            track_start, track_end = self._get_limits()
+            if self.trim_start < track_start:
+                self.trim_start = track_start
+            if self.trim_end > track_end:
+                self.trim_end = track_end
+
             self.trimmed = True
             self.save()
-            self.activity_id.compute_stats()
+            self._get_activity().compute_stats()
 
     def reset_trim(self) -> None:
         """Reset the track trim"""
-        self.trim_start = self.trackpoint.first().timepoint
-        self.trim_end = self.trackpoint.last().timepoint
+        self.trim_start, self.trim_end = self._get_limits()
         self.trimmed = False
         self.save()
-        self.activity_id.compute_stats()
+        self._get_activity().compute_stats()
+
+    def _get_limits(self):
+        """Return the start and end timepoints of the original track"""
+        trackpoint = self._get_trackpoints()
+        return trackpoint.first().timepoint, trackpoint.last().timepoint
 
     def get_trackpoints(self) -> QuerySet:
-        """Get sorted trackpoints for an activity"""
-        return self.trackpoint.filter(
+        """Get sorted, trimmed trackpoints for an activity"""
+        return self._get_trackpoints().filter(
             timepoint__range=(self.trim_start, self.trim_end)
         ).order_by('timepoint')
 
