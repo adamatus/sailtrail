@@ -36,7 +36,11 @@ SUCH DAMAGE.
 """
 
 import struct
+from datetime import datetime
 from functools import reduce
+
+import pytz
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class Parser(object):
@@ -449,3 +453,28 @@ class FrameErrorException(Exception):
 class ChecksumErrorException(FrameErrorException):
     """Data checksum error"""
     pass
+
+
+def create_trackpoints(track,
+                       uploaded_file: InMemoryUploadedFile,
+                       model):
+    """Create list of ActivityTrackpoints for SBN file"""
+    data = Parser()
+    data.process(uploaded_file.read())
+    # filter out Nones
+    data = [x for x in data.pktq
+            if x is not None and x['fixtype'] != 'none']
+
+    insert = []
+    app = insert.append  # cache append method for speed.. maybe?
+    fmt = '%H:%M:%S %Y/%m/%d'
+    for track_point in data:
+        app(model(
+            lat=track_point['latitude'],
+            lon=track_point['longitude'],
+            sog=track_point['sog'],
+            timepoint=datetime.strptime('{} {}'.format(track_point['time'],
+                                                       track_point['date']),
+                                        fmt).replace(tzinfo=pytz.UTC),
+            track_id=track))
+    return insert

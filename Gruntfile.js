@@ -64,9 +64,9 @@ module.exports = function(grunt) {
                     'django/analysis',
                     'django/api',
                     'django/core',
+                    'django/gps',
                     'django/homepage',
                     'django/leaders',
-                    'django/sirf',
                     'django/users',
                 ],
                 options: {

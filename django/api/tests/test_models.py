@@ -6,7 +6,7 @@ import pytz
 from django.core.exceptions import SuspiciousOperation
 
 from api.models import Activity, ActivityTrack, track_upload_path, \
-    ActivityTrackFile
+    ActivityTrackFile, ActivityTrackpoint
 
 
 class TestActivityModel:
@@ -497,3 +497,43 @@ class TestActivityTrackFileModel:
         str_rep = str(track_file)
 
         assert str_rep == 'ActivityTrackFile (filename.txt)'
+
+
+class TestActivityTrackpointModel:
+
+    @patch('api.models.sirf')
+    @patch('api.models.ActivityTrackpoint.objects')
+    def test_creates_sirf_trackpoints_and_saves(self, object_mock, sirf_mock):
+        sirf_mock.create_trackpoints.return_value = sentinel.trackpoints
+
+        up_file = Mock()
+        up_file.name = 'test.Sbn'
+
+        ActivityTrackpoint.create_trackpoints(sentinel.track, up_file)
+
+        sirf_mock.create_trackpoints.assert_called_once_with(
+            sentinel.track, up_file, ActivityTrackpoint
+        )
+        object_mock.bulk_create.assert_called_once_with(sentinel.trackpoints)
+
+    @patch('api.models.gpx')
+    @patch('api.models.ActivityTrackpoint.objects')
+    def test_creates_gpx_trackpoints_and_saves(self, object_mock, gpx_mock):
+        gpx_mock.create_trackpoints.return_value = sentinel.trackpoints
+
+        up_file = Mock()
+        up_file.name = 'test.GPx'
+
+        ActivityTrackpoint.create_trackpoints(sentinel.track, up_file)
+
+        gpx_mock.create_trackpoints.assert_called_once_with(
+            sentinel.track, up_file, ActivityTrackpoint
+        )
+        object_mock.bulk_create.assert_called_once_with(sentinel.trackpoints)
+
+    def test_raises_with_unsupported_filetype(self):
+        up_file = Mock()
+        up_file.name = 'test.txt'
+
+        with pytest.raises(SuspiciousOperation):
+            ActivityTrackpoint.create_trackpoints(sentinel.track, up_file)
