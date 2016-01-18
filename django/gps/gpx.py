@@ -22,8 +22,6 @@ def create_trackpoints(track, uploaded_file: InMemoryUploadedFile, model):
             for point in segment.points:
                 if prev_point is not None:
                     speed = point.speed_between(prev_point)
-                if speed is None:
-                    speed = 0
                 prev_point = point
                 app(model(
                     lat=point.latitude,
