@@ -1,23 +1,21 @@
 """Model mapping for activities"""
 
-from datetime import datetime as dt, time, date, timedelta
 import os.path
 import uuid
+from datetime import datetime as dt, time, date, timedelta
 
 import gpxpy
 import pytz
+from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
-
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import QuerySet
-from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from sirf.stats import Stats
-from sirf import Parser
-
+from analysis.stats import Stats
+from gps.sirf import Parser
 
 SAILING = 'SL'
 WINDSURFING = 'WS'

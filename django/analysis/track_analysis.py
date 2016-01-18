@@ -4,7 +4,7 @@ from typing import Iterable
 import numpy as np
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from sirf.stats import Stats
+from analysis.stats import Stats
 
 
 def make_json_from_trackpoints(pos: Iterable) -> dict:
