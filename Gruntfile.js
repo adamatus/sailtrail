@@ -65,6 +65,7 @@ module.exports = function(grunt) {
                     'django/api',
                     'django/core',
                     'django/gps',
+                    'django/healthcheck',
                     'django/homepage',
                     'django/leaders',
                     'django/users',

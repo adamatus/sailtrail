@@ -70,6 +70,8 @@ INSTALLED_APPS = (
     'homepage',
     'users',
 
+    'healthcheck',
+
     'djangojs',
     'djangobower',
     'ganalytics',
