@@ -1,3 +1,6 @@
+"""
+Simple healthchecks to provide site health to monitoring tools.
+"""
 import traceback
 
 from django.http import HttpResponse, HttpResponseServerError
@@ -21,16 +24,17 @@ class HealthcheckView(View):
         Also checks that the DB is responding.
         """
 
-        ok = True
+        site_ok = True
         status = []
 
         try:
             check_db()
             status.append('DB: OK')
-        except:
-            ok = False
+        except:  # pylint: disable=bare-except
+            # If anything goes wrong, we want to mark the site as unhealthy
+            site_ok = False
             error_msg = 'DB: BAD ({})'.format(traceback.format_exc())
             status.append(error_msg)
 
-        response = HttpResponse if ok else HttpResponseServerError
+        response = HttpResponse if site_ok else HttpResponseServerError
         return response("\n".join(status), content_type="text/plain")
