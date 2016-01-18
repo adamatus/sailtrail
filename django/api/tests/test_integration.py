@@ -63,11 +63,11 @@ class BaseTrackView(TestCase):
         self.activity = Activity.objects.create(user=self.user)
 
         self.track = ActivityTrack.objects.create(activity=self.activity)
-        self.start = ActivityTrackpointFactory.create(track_id=self.track)
-        self.next = ActivityTrackpointFactory.create(track_id=self.track)
+        self.start = ActivityTrackpointFactory.create(track=self.track)
+        self.next = ActivityTrackpointFactory.create(track=self.track)
         self.penultimate = ActivityTrackpointFactory.create(
-            track_id=self.track)
-        self.end = ActivityTrackpointFactory.create(track_id=self.track)
+            track=self.track)
+        self.end = ActivityTrackpointFactory.create(track=self.track)
 
 
 @pytest.mark.integration
@@ -83,9 +83,9 @@ class TestDeleteTrack(BaseTrackView):
         self.track_other = ActivityTrack.objects.create(
             activity=self.activity)
         self.other_start = ActivityTrackpointFactory.create(
-            track_id=self.track_other)
+            track=self.track_other)
         self.other_end = ActivityTrackpointFactory.create(
-            track_id=self.track_other)
+            track=self.track_other)
         self.track_other.initialize_stats()
 
         self.activity.compute_stats()

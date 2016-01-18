@@ -281,7 +281,7 @@ class ActivityTrackpoint(models.Model):
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
-    track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
+    track = models.ForeignKey(ActivityTrack, related_name='trackpoint')
 
     @classmethod
     def create_trackpoints(cls,

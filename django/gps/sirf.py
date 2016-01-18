@@ -476,5 +476,5 @@ def create_trackpoints(track,
             timepoint=datetime.strptime('{} {}'.format(track_point['time'],
                                                        track_point['date']),
                                         fmt).replace(tzinfo=pytz.UTC),
-            track_id=track))
+            track=track))
     return insert

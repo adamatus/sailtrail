@@ -66,14 +66,14 @@ class TestCreateTrackpoints:
             lon=1,
             sog=1,
             timepoint=datetime(2016, 1, 1, tzinfo=pytz.UTC),
-            track_id=sentinel.track
+            track=sentinel.track
         )
         trackpoint_mock.assert_any_call(
             lat=2,
             lon=2,
             sog=2,
             timepoint=datetime(2016, 1, 2, tzinfo=pytz.UTC),
-            track_id=sentinel.track
+            track=sentinel.track
         )
 
         parse_mock.assert_called_once_with()

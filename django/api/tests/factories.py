@@ -46,4 +46,4 @@ class ActivityTrackpointFactory(factory.DjangoModelFactory):
     lat = FuzzyFloat(-180, 180)
     lon = FuzzyFloat(-180, 180)  # degrees
     sog = FuzzyFloat(0, 20)
-    track_id = factory.SubFactory(ActivityTrackFactory)
+    track = factory.SubFactory(ActivityTrackFactory)

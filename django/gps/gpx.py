@@ -28,5 +28,5 @@ def create_trackpoints(track, uploaded_file: InMemoryUploadedFile, model):
                     lon=point.longitude,
                     sog=speed,
                     timepoint=point.time.replace(tzinfo=pytz.UTC),
-                    track_id=track))
+                    track=track))
     return insert

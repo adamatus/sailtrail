@@ -42,14 +42,14 @@ class TestCreateTrackpoints:
             lon=1,
             sog=0,
             timepoint=datetime(2016, 1, 1, tzinfo=pytz.UTC),
-            track_id=sentinel.track
+            track=sentinel.track
         )
         trackpoint_mock.assert_any_call(
             lat=2,
             lon=2,
             sog=1.819738796736955,
             timepoint=datetime(2016, 1, 2, tzinfo=pytz.UTC),
-            track_id=sentinel.track
+            track=sentinel.track
         )
 
         gpxpy_mock.parse.assert_called_once_with(sentinel.gpx_raw)
