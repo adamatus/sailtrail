@@ -322,7 +322,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
 
     def test_get_context_data_returns_correct_context_data(self):
         # Given a mock track with activity with track count of 1
-        self.view.object.activity.track.count.return_value = 1
+        self.view.object.activity.tracks.count.return_value = 1
 
         # When getting the context data
         context = self.view.get_context_data()
@@ -334,7 +334,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
 
     def test_get_context_data_returns_correct_context_data_not_last(self):
         # Given a mock track with activity with track count above 1
-        self.view.object.activity.track.count.return_value = 2
+        self.view.object.activity.tracks.count.return_value = 2
 
         # When getting the context data
         context = self.view.get_context_data()

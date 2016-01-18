@@ -63,7 +63,7 @@
     {% if user == activity.user %}
         <h4>Activity Track Segments</h4>
         <ul>
-            {% for track in activity.track.all %}
+            {% for track in activity.tracks.all %}
                 <li>
                     <a href="tracks/{{ track.id }}/">{{ track.original_filename }}
                         {% if track.trimmed %}(trimmed){% endif %}</a></li>

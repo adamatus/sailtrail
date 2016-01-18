@@ -57,7 +57,7 @@ class Activity(models.Model):
         """Trivial helper to use related object to fetch tracks.
 
         Added to allow for easy mocking of tracks for unit testing"""
-        return self.track  # pragma: unit cover ignore
+        return self.tracks  # pragma: unit cover ignore
 
     @property
     def start_time(self) -> time:
@@ -135,7 +135,7 @@ class ActivityTrack(models.Model):
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
     trimmed = models.BooleanField(null=False, default=False)
-    activity = models.ForeignKey(Activity, related_name='track',
+    activity = models.ForeignKey(Activity, related_name='tracks',
                                  blank=False, null=False)
 
     class Meta:
@@ -156,7 +156,7 @@ class ActivityTrack(models.Model):
         """Trivial helper to use related object to fetch trackpoints.
 
         Added to allow for easy mocking of trackpoints for unit testing"""
-        return self.trackpoint  # pragma: unit cover ignore
+        return self.trackpoints  # pragma: unit cover ignore
 
     def _get_original_file(self):
         """Trivial helper to use related object to fetch original file
@@ -281,7 +281,7 @@ class ActivityTrackpoint(models.Model):
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
-    track = models.ForeignKey(ActivityTrack, related_name='trackpoint')
+    track = models.ForeignKey(ActivityTrack, related_name='trackpoints')
 
     @classmethod
     def create_trackpoints(cls,

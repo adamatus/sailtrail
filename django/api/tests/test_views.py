@@ -372,7 +372,7 @@ class TestDeleteTrackView:
 
     def test_get_raises_if_activity_has_fewer_than_2_tracks(self):
         track = Mock()
-        track.activity.track.count.return_value = 1
+        track.activity.tracks.count.return_value = 1
         view = DeleteTrackView()
         view.get_object = Mock(return_value=track)
 
@@ -384,7 +384,7 @@ class TestDeleteTrackView:
                                                    redir_mock: MagicMock):
         # Given a mock track
         track = Mock()
-        track.activity.track.count.return_value = 2
+        track.activity.tracks.count.return_value = 2
         track.activity.id = sentinel.activity_id
 
         # and a view with mock get_object that returns track

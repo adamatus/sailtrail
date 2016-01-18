@@ -98,7 +98,7 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 403
         self.assertTemplateUsed('403.html')
 
-        assert self.activity.track.count() == 2
+        assert self.activity.tracks.count() == 2
 
     def test_get_with_owner_redirects_to_activity_and_deletes(self):
         self.client.login(username='test', password='password')
@@ -109,8 +109,8 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 302
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
-        assert self.activity.track.count() == 1
-        assert self.activity.track.first().id == 2
+        assert self.activity.tracks.count() == 1
+        assert self.activity.tracks.first().id == 2
         assert self.activity.duration == timedelta(0, 1)
 
     def test_get_with_owner_redirects_to_activity_and_deletes_other(self):
@@ -122,8 +122,8 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 302
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
-        assert self.activity.track.count() == 1
-        assert self.activity.track.first().id == 1
+        assert self.activity.tracks.count() == 1
+        assert self.activity.tracks.first().id == 1
         assert self.activity.duration == timedelta(0, 1)
 
     def test_get_with_owner_raises_400_on_delete_of_last(self):
@@ -140,8 +140,8 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 400
         self.assertTemplateUsed('400.html')
 
-        assert self.activity.track.count() == 1
-        assert self.activity.track.first().id == 1
+        assert self.activity.tracks.count() == 1
+        assert self.activity.tracks.first().id == 1
 
 
 @pytest.mark.integration
