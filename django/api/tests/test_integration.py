@@ -12,8 +12,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from activities import DATETIME_FORMAT_STR
-from api.models import Activity, ActivityTrack, _create_trackpoints, \
-    ActivityTrackpoint
+from api.models import Activity, ActivityTrack, ActivityTrackpoint
 from api.tests.factories import UserFactory, ActivityTrackpointFactory, \
     ActivityFactory
 
@@ -436,7 +435,7 @@ class TestActivityTrackModelIntegration(FileDeleter, TestCase):
     def test_create_trackpoints_will_call_sbn_helper(self):
         bad_file = SimpleUploadedFile('tiny-run.tpx', GPX_BIN)
         with pytest.raises(Exception):
-            _create_trackpoints(None, bad_file)
+            ActivityTrackpoint.create_trackpoints(None, bad_file)
 
 
 @pytest.mark.django_db

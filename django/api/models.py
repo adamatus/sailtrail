@@ -258,7 +258,7 @@ class ActivityTrack(models.Model):
         ActivityTrackFile.objects.create(track=track,
                                          file=upfile)
         upfile.seek(0)
-        _create_trackpoints(track, upfile)
+        ActivityTrackpoint.create_trackpoints(track, upfile)
         track.initialize_stats()
         return track
 
@@ -279,71 +279,6 @@ class ActivityTrackFile(models.Model):
         return "ActivityTrackFile ({})".format(self.file)
 
 
-def _create_trackpoints(track: ActivityTrack,
-                        uploaded_file: InMemoryUploadedFile):
-    """Create trackpoints from file"""
-    file_type = os.path.splitext(uploaded_file.name)[1][1:].upper()
-
-    if file_type == 'SBN':
-        _create_sbn_trackpoints(track, uploaded_file)
-    elif file_type == 'GPX':
-        _create_gpx_trackpoints(track, uploaded_file)
-    else:
-        raise Exception('Unknown file type')
-
-
-def _create_sbn_trackpoints(track: ActivityTrack,
-                            uploaded_file: InMemoryUploadedFile):
-    """Parse SBN trackpoints"""
-    data = Parser()
-    data.process(uploaded_file.read())
-    # filter out Nones
-    data = [x for x in data.pktq if x is not None and x['fixtype'] != 'none']
-
-    insert = []
-    app = insert.append  # cache append method for speed.. maybe?
-    fmt = '%H:%M:%S %Y/%m/%d'
-    for track_point in data:
-        app(ActivityTrackpoint(
-            lat=track_point['latitude'],
-            lon=track_point['longitude'],
-            sog=track_point['sog'],
-            timepoint=dt.strptime('{} {}'.format(track_point['time'],
-                                                 track_point['date']),
-                                  fmt).replace(tzinfo=pytz.UTC),
-            track_id=track))
-    ActivityTrackpoint.objects.bulk_create(insert)
-
-
-def _create_gpx_trackpoints(track: ActivityTrack,
-                            uploaded_file: InMemoryUploadedFile):
-    """Parse GPX trackpoints"""
-    gpx = uploaded_file.read().decode('utf-8')
-    gpx = gpxpy.parse(gpx)
-
-    insert = []
-    app = insert.append  # cache append method for speed.. maybe?
-
-    prev_point = None
-    speed = 0
-
-    for gps_track in gpx.tracks:
-        for segment in gps_track.segments:
-            for point in segment.points:
-                if prev_point is not None:
-                    speed = point.speed_between(prev_point)
-                if speed is None:
-                    speed = 0
-                prev_point = point
-                app(ActivityTrackpoint(
-                    lat=point.latitude,
-                    lon=point.longitude,
-                    sog=speed,
-                    timepoint=point.time.replace(tzinfo=pytz.UTC),
-                    track_id=track))
-    ActivityTrackpoint.objects.bulk_create(insert)
-
-
 class ActivityTrackpoint(models.Model):
     """Individual activity trackpoint"""
     timepoint = models.DateTimeField()
@@ -351,3 +286,77 @@ class ActivityTrackpoint(models.Model):
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
     track_id = models.ForeignKey(ActivityTrack, related_name='trackpoint')
+
+    @staticmethod
+    def create_trackpoints(track: ActivityTrack,
+                           uploaded_file: InMemoryUploadedFile):
+        """Create trackpoints from file"""
+        file_type = os.path.splitext(uploaded_file.name)[1][1:].upper()
+
+        if file_type == 'SBN':
+            trackpoints = ActivityTrackpoint._create_sbn_trackpoints(
+                track,
+                uploaded_file
+            )
+        elif file_type == 'GPX':
+            trackpoints = ActivityTrackpoint._create_gpx_trackpoints(
+                track,
+                uploaded_file
+            )
+        else:
+            raise Exception('Unknown file type')
+
+        ActivityTrackpoint.objects.bulk_create(trackpoints)
+
+    @staticmethod
+    def _create_sbn_trackpoints(track: ActivityTrack,
+                                uploaded_file: InMemoryUploadedFile):
+        """Parse SBN trackpoints"""
+        data = Parser()
+        data.process(uploaded_file.read())
+        # filter out Nones
+        data = [x for x in data.pktq
+                if x is not None and x['fixtype'] != 'none']
+
+        insert = []
+        app = insert.append  # cache append method for speed.. maybe?
+        fmt = '%H:%M:%S %Y/%m/%d'
+        for track_point in data:
+            app(ActivityTrackpoint(
+                lat=track_point['latitude'],
+                lon=track_point['longitude'],
+                sog=track_point['sog'],
+                timepoint=dt.strptime('{} {}'.format(track_point['time'],
+                                                     track_point['date']),
+                                      fmt).replace(tzinfo=pytz.UTC),
+                track_id=track))
+        return insert
+
+    @staticmethod
+    def _create_gpx_trackpoints(track: ActivityTrack,
+                                uploaded_file: InMemoryUploadedFile):
+        """Parse GPX trackpoints"""
+        gpx = uploaded_file.read().decode('utf-8')
+        gpx = gpxpy.parse(gpx)
+
+        insert = []
+        app = insert.append  # cache append method for speed.. maybe?
+
+        prev_point = None
+        speed = 0
+
+        for gps_track in gpx.tracks:
+            for segment in gps_track.segments:
+                for point in segment.points:
+                    if prev_point is not None:
+                        speed = point.speed_between(prev_point)
+                    if speed is None:
+                        speed = 0
+                    prev_point = point
+                    app(ActivityTrackpoint(
+                        lat=point.latitude,
+                        lon=point.longitude,
+                        sog=speed,
+                        timepoint=point.time.replace(tzinfo=pytz.UTC),
+                        track_id=track))
+        return insert

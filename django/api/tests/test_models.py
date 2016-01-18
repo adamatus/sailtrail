@@ -5,7 +5,8 @@ import pytest
 import pytz
 from django.core.exceptions import SuspiciousOperation
 
-from api.models import Activity, ActivityTrack
+from api.models import Activity, ActivityTrack, track_upload_path, \
+    ActivityTrackFile
 
 
 class TestActivityModel:
@@ -449,13 +450,13 @@ class TestActivityTrackModel:
             'timepoint'
         )
 
-    @patch('api.models._create_trackpoints')
+    @patch('api.models.ActivityTrackpoint')
     @patch('api.models.ActivityTrack.objects')
     @patch('api.models.ActivityTrackFile')
     def test_create_new_creates_new_track_and_file(self,
                                                    track_file_mock,
                                                    obj_mock,
-                                                   create_tps_mock):
+                                                   tps_mock):
         new_track = Mock()
         obj_mock.create.return_value = new_track
 
@@ -474,5 +475,25 @@ class TestActivityTrackModel:
             file=upfile
         )
         upfile.seek.assert_called_once_with(0)
-        create_tps_mock.assert_called_once_with(new_track, upfile)
+        tps_mock.create_trackpoints.assert_called_once_with(new_track, upfile)
         new_track.initialize_stats.assert_called_once_with()
+
+
+class TestActivityTrackFileModel:
+
+    @patch('api.models.uuid')
+    def test_track_upload_path_creates_path_with_uuid(self, uuid_mock):
+
+        uuid_mock.uuid4.return_value = '12345'
+
+        path = track_upload_path(None, 'file.ext')
+
+        assert path == 'originals/12345/file.ext'
+
+    def test_str_makes_pretty_string(self):
+        track_file = ActivityTrackFile()
+        track_file.file = 'filename.txt'
+
+        str_rep = str(track_file)
+
+        assert str_rep == 'ActivityTrackFile (filename.txt)'
