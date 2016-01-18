@@ -145,7 +145,7 @@ class BaseTrackView(BaseDetailView):
     def get_object(self, queryset=None) -> ActivityTrack:
         track = super(BaseTrackView, self).get_object(
             queryset=queryset)
-        if self.request.user != track.activity_id.user:
+        if self.request.user != track.activity.user:
             raise PermissionDenied
         return track
 
@@ -157,14 +157,14 @@ class DeleteTrackView(BaseTrackView):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
         track = self.get_object()
-        if track.activity_id.track.count() < 2:
+        if track.activity.track.count() < 2:
             raise SuspiciousOperation("Cannot delete final track in activity")
 
         track.delete()
-        track.activity_id.model_distance = None
-        track.activity_id.model_max_speed = None
-        track.activity_id.compute_stats()
-        return redirect('view_activity', track.activity_id.id)
+        track.activity.model_distance = None
+        track.activity.model_max_speed = None
+        track.activity.compute_stats()
+        return redirect('view_activity', track.activity.id)
 
 
 class TrimView(BaseTrackView):
@@ -176,7 +176,7 @@ class TrimView(BaseTrackView):
         track = self.get_object()
         track.trim(request.POST.get('trim-start', '-1'),
                    request.POST.get('trim-end', '-1'))
-        return redirect('view_activity', track.activity_id.id)
+        return redirect('view_activity', track.activity.id)
 
 
 class UntrimView(BaseTrackView):
@@ -187,4 +187,4 @@ class UntrimView(BaseTrackView):
         """Reset the track to be untrimmed"""
         track = self.get_object()
         track.reset_trim()
-        return redirect('view_activity', track.activity_id.id)
+        return redirect('view_activity', track.activity.id)

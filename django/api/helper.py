@@ -54,7 +54,7 @@ def verify_private_owner(activity: Activity, request: HttpRequest) -> None:
 
     # Convert track to activity, if necessary
     if isinstance(activity, ActivityTrack):
-        activity = activity.activity_id
+        activity = activity.activity
 
     if activity.private and request.user != activity.user:
         raise PermissionDenied

@@ -299,7 +299,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
     def test_get_object_returns_track_if_current_user(self):
         # Given a mock parent that returns a mock track for current user
         mock_track = Mock()
-        mock_track.activity_id.user = self.user
+        mock_track.activity.user = self.user
         mock_queryset = self.get_mock_queryset_that_returns_mock_object(
             mock_track)
 
@@ -312,7 +312,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
     def test_get_object_raised_permission_denied_if_not_owner(self):
         # Given a mock parent that returns a mock track for another user
         mock_track = Mock()
-        mock_track.activity_id.user = UserFactory.stub()
+        mock_track.activity.user = UserFactory.stub()
         mock_queryset = self.get_mock_queryset_that_returns_mock_object(
             mock_track)
 
@@ -322,7 +322,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
 
     def test_get_context_data_returns_correct_context_data(self):
         # Given a mock track with activity with track count of 1
-        self.view.object.activity_id.track.count.return_value = 1
+        self.view.object.activity.track.count.return_value = 1
 
         # When getting the context data
         context = self.view.get_context_data()
@@ -334,7 +334,7 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
 
     def test_get_context_data_returns_correct_context_data_not_last(self):
         # Given a mock track with activity with track count above 1
-        self.view.object.activity_id.track.count.return_value = 2
+        self.view.object.activity.track.count.return_value = 2
 
         # When getting the context data
         context = self.view.get_context_data()
@@ -361,7 +361,7 @@ class TestActivityTrackDownloadView(unittest.TestCase):
             """ Mock view with get_object that returns mock"""
             def get_object(self, queryset=None):
                 track = Mock()
-                track.activity_id.user = user
+                track.activity.user = user
                 track.original_file.file.name = 'Something/file.gpx'
                 return track
 

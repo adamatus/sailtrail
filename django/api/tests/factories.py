@@ -31,7 +31,7 @@ class ActivityTrackFactory(factory.DjangoModelFactory):
 
     original_filename = factory.Sequence(lambda n: 'testuser%s.sbn' % n)
     trimmed = False
-    activity_id = factory.SubFactory(ActivityFactory)
+    activity = factory.SubFactory(ActivityFactory)
 
 
 class ActivityTrackpointFactory(factory.DjangoModelFactory):

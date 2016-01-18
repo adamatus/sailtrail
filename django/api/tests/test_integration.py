@@ -62,7 +62,7 @@ class BaseTrackView(TestCase):
         self.user = UserFactory.create(username='test')
         self.activity = Activity.objects.create(user=self.user)
 
-        self.track = ActivityTrack.objects.create(activity_id=self.activity)
+        self.track = ActivityTrack.objects.create(activity=self.activity)
         self.start = ActivityTrackpointFactory.create(track_id=self.track)
         self.next = ActivityTrackpointFactory.create(track_id=self.track)
         self.penultimate = ActivityTrackpointFactory.create(
@@ -81,7 +81,7 @@ class TestDeleteTrack(BaseTrackView):
         self.track.save()
 
         self.track_other = ActivityTrack.objects.create(
-            activity_id=self.activity)
+            activity=self.activity)
         self.other_start = ActivityTrackpointFactory.create(
             track_id=self.track_other)
         self.other_end = ActivityTrackpointFactory.create(
@@ -299,10 +299,10 @@ class TestActivityModelIntegration(FileDeleter, TestCase):
     def setUp(self):
         super(TestActivityModelIntegration, self).setUp()
         with self.settings(MEDIA_ROOT=self.temp_dir):
-            a = ActivityTrack.create_new(activity_id=ActivityFactory.create(),
+            a = ActivityTrack.create_new(activity=ActivityFactory.create(),
                                          upfile=SimpleUploadedFile("test1.SBN",
                                                                    SBN_BIN))
-        self.activity = a.activity_id  # type: Activity
+        self.activity = a.activity  # type: Activity
 
     def test_fields_exist_as_expected(self):
         a = Activity(user=UserFactory.create())
@@ -354,7 +354,7 @@ class TestActivityTrackModelIntegration(FileDeleter, TestCase):
         def make_track():
             with self.settings(MEDIA_ROOT=self.temp_dir):
                 self.track = ActivityTrack.create_new(
-                    activity_id=ActivityFactory.create(),
+                    activity=ActivityFactory.create(),
                     upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
         self.make_track = make_track
 
@@ -448,7 +448,7 @@ class TestIntegrationOfActivityModelsIntegration(FileDeleter, TestCase):
         def make_track():
             with self.settings(MEDIA_ROOT=self.temp_dir):
                 self.track = ActivityTrack.create_new(
-                    activity_id=ActivityFactory.create(),
+                    activity=ActivityFactory.create(),
                     upfile=SimpleUploadedFile("test1.SBN", SBN_BIN))
         self.make_track = make_track
 
@@ -459,7 +459,7 @@ class TestIntegrationOfActivityModelsIntegration(FileDeleter, TestCase):
 
             ActivityTrack.create_new(
                 upfile=test_file,
-                activity_id=Activity.objects.create(user=UserFactory.create()))
+                activity=Activity.objects.create(user=UserFactory.create()))
 
             assert 4 == len(ActivityTrackpoint.objects.all())
 
@@ -488,7 +488,7 @@ class TestIntegrationOfActivityModelsIntegration(FileDeleter, TestCase):
 
             ActivityTrack.create_new(
                 upfile=test_file,
-                activity_id=Activity.objects.create(user=UserFactory.create()))
+                activity=Activity.objects.create(user=UserFactory.create()))
             assert len(ActivityTrackpoint.objects.all()) == 5
 
             first = ActivityTrackpoint.objects.first()

@@ -83,7 +83,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
     def setUp(self):
         user = UserFactory.create(username="test")
         a = ActivityFactory(user=user)
-        t = ActivityTrackFactory.create(activity_id=a)
+        t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
         self.client.login(username='test', password='password')
@@ -141,7 +141,7 @@ class TestActivityDetailViewIntegration(TestCase):
     def setUp(self):
         user = UserFactory.create(username="test")
         a = ActivityFactory(user=user)
-        t = ActivityTrackFactory.create(activity_id=a)
+        t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
         self.client.login(username='test', password='password')
@@ -196,7 +196,7 @@ class TestActivityViewIntegration(TestCase):
         a = ActivityFactory.create(
             name="First snowkite of the season",
             description="Hooray ice!")
-        t = ActivityTrackFactory.create(activity_id=a)
+        t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
 

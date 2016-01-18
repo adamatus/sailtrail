@@ -467,7 +467,7 @@ class TestActivityTrackModel:
 
         assert track == new_track
         obj_mock.create.assert_called_once_with(
-            activity_id=sentinel.id,
+            activity=sentinel.id,
             original_filename=sentinel.name
         )
         track_file_mock.objects.create.assert_called_once_with(

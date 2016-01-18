@@ -163,7 +163,7 @@ class TestHelper(unittest.TestCase):
     def test_verify_private_owner_with_private_track_other_user(self):
         # Given a private track and activity mock for another user
         activity = Mock(private=True, user=sentinel.other, spec=Activity)
-        track = Mock(spec=ActivityTrack, activity_id=activity)
+        track = Mock(spec=ActivityTrack, activity=activity)
 
         # and a request mock
         request = Mock(user=sentinel.user)

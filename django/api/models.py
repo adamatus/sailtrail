@@ -135,8 +135,8 @@ class ActivityTrack(models.Model):
     trim_start = models.DateTimeField(null=True, default=None)
     trim_end = models.DateTimeField(null=True, default=None)
     trimmed = models.BooleanField(null=False, default=False)
-    activity_id = models.ForeignKey(Activity, related_name='track',
-                                    blank=False, null=False)
+    activity = models.ForeignKey(Activity, related_name='track',
+                                 blank=False, null=False)
 
     class Meta:
         ordering = ['trim_start']
@@ -150,7 +150,7 @@ class ActivityTrack(models.Model):
         """Trivial helper to use related object to fetch activity.
 
         Added to allow for easy mocking of parent activity for unit testing"""
-        return self.activity_id  # pragma: unit cover ignore
+        return self.activity  # pragma: unit cover ignore
 
     def _get_trackpoints(self):
         """Trivial helper to use related object to fetch trackpoints.
@@ -246,10 +246,10 @@ class ActivityTrack(models.Model):
         ).order_by('timepoint')
 
     @staticmethod
-    def create_new(upfile: InMemoryUploadedFile, activity_id: int) -> \
+    def create_new(upfile: InMemoryUploadedFile, activity: Activity) -> \
             'ActivityTrack':
         """Create a new activity"""
-        track = ActivityTrack.objects.create(activity_id=activity_id,
+        track = ActivityTrack.objects.create(activity=activity,
                                              original_filename=upfile.name)
         ActivityTrackFile.objects.create(track=track,
                                          file=upfile)

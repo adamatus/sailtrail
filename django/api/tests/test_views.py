@@ -345,7 +345,7 @@ class TestBaseTrackView:
 
         # and a mock queryset that will return mock with sentinel
         track_mock = Mock()
-        track_mock.activity_id.user = sentinel.other_user
+        track_mock.activity.user = sentinel.other_user
         queryset_mock = Mock()
         queryset_mock.filter.return_value.get.return_value = track_mock
 
@@ -359,7 +359,7 @@ class TestBaseTrackView:
 
         # and a mock queryset that will return mock with sentinel
         track_mock = Mock()
-        track_mock.activity_id.user = sentinel.user
+        track_mock.activity.user = sentinel.user
         queryset_mock = Mock()
         queryset_mock.filter.return_value.get.return_value = track_mock
 
@@ -372,7 +372,7 @@ class TestDeleteTrackView:
 
     def test_get_raises_if_activity_has_fewer_than_2_tracks(self):
         track = Mock()
-        track.activity_id.track.count.return_value = 1
+        track.activity.track.count.return_value = 1
         view = DeleteTrackView()
         view.get_object = Mock(return_value=track)
 
@@ -384,8 +384,8 @@ class TestDeleteTrackView:
                                                    redir_mock: MagicMock):
         # Given a mock track
         track = Mock()
-        track.activity_id.track.count.return_value = 2
-        track.activity_id.id = sentinel.activity_id
+        track.activity.track.count.return_value = 2
+        track.activity.id = sentinel.activity_id
 
         # and a view with mock get_object that returns track
         view = DeleteTrackView()
@@ -404,9 +404,9 @@ class TestDeleteTrackView:
 
         # and the track is reset properly
         track.delete.assert_called_once_with()
-        assert track.activity_id.model_distance is None
-        assert track.activity_id.model_max_speed is None
-        track.activity_id.compute_stats.assert_called_once_with()
+        assert track.activity.model_distance is None
+        assert track.activity.model_max_speed is None
+        track.activity.compute_stats.assert_called_once_with()
 
 
 class TestTrimView(unittest.TestCase):
@@ -414,7 +414,7 @@ class TestTrimView(unittest.TestCase):
     def setUp(self):
         # Given a mock track
         self.track_mock = Mock()
-        self.track_mock.activity_id.id = sentinel.id
+        self.track_mock.activity.id = sentinel.id
 
         # and a view with a mock get_object that returns track
         self.view = TrimView()
@@ -477,7 +477,7 @@ class TestUntrimView:
     def test_get_untrims_object(self, redir_mock: MagicMock):
         # Given a mock track
         track = Mock()
-        track.activity_id.id = sentinel.activity_id
+        track.activity.id = sentinel.activity_id
 
         # and a view with mock get_object that returns track
         view = UntrimView()

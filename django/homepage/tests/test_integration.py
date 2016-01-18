@@ -42,12 +42,12 @@ class TestHomepageViewIntegration(TestCase):
     def test_home_page_shows_existing_activities(self):
         a = ActivityFactory.create(
             name="First snowkite of the season")
-        t = ActivityTrackFactory.create(activity_id=a)
+        t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
         a = ActivityFactory.create(
             name="Snowkite lesson:")
-        t = ActivityTrackFactory.create(activity_id=a)
+        t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track_id=t)
         t.initialize_stats()
 
@@ -60,7 +60,7 @@ class TestHomepageViewIntegration(TestCase):
             a = Activity.objects.create(user=UserFactory.create())
             ActivityTrack.create_new(
                 upfile=SimpleUploadedFile('test1.sbn', SBN_BIN),
-                activity_id=a
+                activity=a
             )
 
             response = self.client.get(reverse('home'))

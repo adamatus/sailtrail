@@ -111,7 +111,7 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         """Get activity, only allowing owner to see private activities"""
         track = super().get_object(queryset)
 
-        if self.request.user != track.activity_id.user:
+        if self.request.user != track.activity.user:
             raise PermissionDenied
         return track
 
@@ -120,7 +120,7 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         context = super(ActivityTrackView, self).get_context_data(**kwargs)
         context['val_errors'] = ERRORS
         context['units'] = UNIT_SETTING
-        context['last_track'] = self.object.activity_id.track.count() == 1
+        context['last_track'] = self.object.activity.track.count() == 1
         return context
 
 
@@ -132,7 +132,7 @@ class ActivityTrackDownloadView(DetailView):
         """Track original file download view"""
         track = self.get_object()  # type: ActivityTrack
 
-        if request.user != track.activity_id.user:
+        if request.user != track.activity.user:
             raise PermissionDenied
 
         filename = track.original_file.file.name.split('/')[-1]

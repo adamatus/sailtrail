@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load js %}
 
-{% block title_text %}{{ track.activity_id.name }} ::
+{% block title_text %}{{ track.activity.name }} ::
     {{ track.original_filename }}{% endblock %}
 
 {% block extra_styles %}
@@ -15,17 +15,17 @@
 
 {% load static %}
 {% block main_section %}
-    <h1><a href="../..">{{ track.activity_id.name }}</a>
+    <h1><a href="../..">{{ track.activity.name }}</a>
         :: {{ track.original_filename }}</h1>
-    <a href="{% url 'download_track_file' track.activity_id.id track.id %}" download>Download original track file</a><br />
+    <a href="{% url 'download_track_file' track.activity.id track.id %}" download>Download original track file</a><br />
     <button type="button" class="btn btn-default" data-toggle="modal"
             data-target="#delete_modal" id="activity_delete_button">Delete Track
     </button>
     {% if not last_track %}
-        {% url "delete_track" track.activity_id.id track.id as delete_url %}
+        {% url "delete_track" track.activity.id track.id as delete_url %}
         {% include 'components/delete-modal.html' with target="track" action=delete_url %}
     {% else %}
-        {% url "delete_activity" track.activity_id.id as delete_url %}
+        {% url "delete_activity" track.activity.id as delete_url %}
         {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
     {% endif %}
     <div class="row">
@@ -35,14 +35,14 @@
         <div class="col-md-6" style="padding-top: 1em;">
             {% include 'components/speed-plot.html' %}
             {% if track.trimmed %}
-                <a href="{% url 'untrim_track' activity_id=track.activity_id.id pk=track.id %}"
+                <a href="{% url 'untrim_track' activity_id=track.activity.id pk=track.id %}"
                    class="btn btn-default">Untrim</a>
             {% else %}
                 <button class="btn btn-default" id="trim-start">Trim Start
                 </button>
                 <button class="btn btn-default" id="trim-end">Trim End</button>
                 <form role="form"
-                      action="{% url 'trim_track' track.activity_id.id track.id %}"
+                      action="{% url 'trim_track' track.activity.id track.id %}"
                       method="POST">
 
 
@@ -63,14 +63,14 @@
 {% block extra_bottom_js %}
     {% js 'activities/activity_viewer.bundle.js' %}
     <script>
-        var max_speed = +"{{ track.activity_id.max_speed }}".split(' ')[0],
-                wind_direction = "{{ track.activity_id.wind_direction }}"
+        var max_speed = +"{{ track.activity.max_speed }}".split(' ')[0],
+                wind_direction = "{{ track.activity.wind_direction }}"
                                  == "None" ? null
-                        : +"{{track.activity_id.wind_direction}}",
+                        : +"{{track.activity.wind_direction}}",
                 units = {{ units|safe }},
                 urls = {
-                    json: "{% url 'track_json' track.activity_id.id track.id %}",
-                    winddir: "{% url 'activity_wind_direction' track.activity_id.id %}"
+                    json: "{% url 'track_json' track.activity.id track.id %}",
+                    winddir: "{% url 'activity_wind_direction' track.activity.id %}"
                 };
 
         activity_viewer.init(urls, max_speed, wind_direction, units);
