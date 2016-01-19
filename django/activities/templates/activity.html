@@ -15,10 +15,11 @@
 
 {% load static %}
 {% block main_section %}
+    {% with activity_user=activity.user %}
     {% load unit_conversions %}
     <h1>{{ activity.name }}</h1>
     <p>{{ activity.get_category_display }} by <a
-            href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+            href="{% url "user" activity_user.username %}">{{ activity_user.username }}</a>
         at {{ activity.start_time }} on {{ activity.date }}</p>
     <div class="row">
         <div class="col-md-4">
@@ -44,7 +45,7 @@
     {% if activity.private %}
         <p><i>This activity is currently private</i></p>
     {% endif %}
-    {% if user == activity.user %}
+    {% if user == activity_user %}
         <a class="btn btn-default"
            href="{% url 'details' activity.id %}">Edit</a>
         <button type="button" class="btn btn-default" data-toggle="modal"
@@ -60,7 +61,7 @@
     {% endif %}
     {% include 'components/track-map-and-plot.html' %}
 
-    {% if user == activity.user %}
+    {% if user == activity_user %}
         <h4>Activity Track Segments</h4>
         <ul>
             {% for track in activity.tracks.all %}
@@ -70,6 +71,7 @@
             {% endfor %}
         </ul>
     {% endif %}
+    {% endwith %}
 {% endblock %}
 
 {% block extra_bottom_js %}

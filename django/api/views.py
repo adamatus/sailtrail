@@ -157,6 +157,9 @@ class DeleteTrackView(BaseTrackView):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
         track = self.get_object()
+
+        # TODO Move this logic into model delete()
+
         if track.activity.tracks.count() < 2:
             raise SuspiciousOperation("Cannot delete final track in activity")
 

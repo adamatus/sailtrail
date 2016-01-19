@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import QuerySet
+from django.utils.functional import cached_property
 
 from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
 from analysis.stats import Stats
@@ -59,26 +60,34 @@ class Activity(models.Model):
         Added to allow for easy mocking of tracks for unit testing"""
         return self.tracks  # pragma: unit cover ignore
 
+    @cached_property
+    def _first_track(self):
+        return self._get_tracks().first()
+
+    @cached_property
+    def _last_track(self):
+        return self._get_tracks().last()
+
     @property
     def start_time(self) -> time:
         """Get the start time for the activity"""
-        return self._get_tracks().first().trim_start.time()
+        return self._first_track.trim_start.time()
 
     @property
     def end_time(self) -> time:
         """Get the ending time for the activity"""
-        return self._get_tracks().last().trim_end.time()
+        return self._last_track.trim_end.time()
 
     @property
     def date(self) -> date:
         """Get the start date for the activity"""
-        return self._get_tracks().first().trim_start.date()
+        return self._first_track.trim_start.date()
 
     @property
     def duration(self) -> timedelta:
         """Get the duration for the activity"""
-        return (self._get_tracks().last().trim_end -
-                self._get_tracks().first().trim_start)
+        return (self._last_track.trim_end -
+                self._first_track.trim_start)
 
     @property
     def max_speed(self) -> str:
@@ -88,6 +97,8 @@ class Activity(models.Model):
             stats = Stats(pos)
             self.model_max_speed = stats.max_speed.magnitude
             self.save()
+
+        # TODO Move conversion into view layer
 
         speed = (self.model_max_speed * UNITS.m / UNITS.s).to(
             UNIT_SETTING['speed'])
@@ -101,6 +112,8 @@ class Activity(models.Model):
             stats = Stats(pos)
             self.model_distance = stats.distance().magnitude
             self.save()
+
+        # TODO Move conversion into view layer
 
         dist = (self.model_distance * UNITS.m).to(UNIT_SETTING['dist'])
         return '{:~.2f}'.format(dist)
