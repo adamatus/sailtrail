@@ -1,7 +1,8 @@
 'use strict';
 
 var L = require('leaflet'),
-    d3 = require('d3');
+    d3 = require('d3'),
+    $ = require('jquery');
 
 module.exports = {
     latlng: [],
@@ -37,19 +38,37 @@ module.exports = {
      */
     draw_map: function(data, max_speed, time_slider) {
         var i,
-            len,
-            color_scale,
             trkpnt,
             self = this;
 
         this.max_speed = max_speed;
 
+        this.geo_json = [];
         this.latlng = [];
         for (i = 0; i < data.lat.length; i++) {
             trkpnt = new L.latLng(data.lat[i], data.lon[i]);
 
             trkpnt.speed = data.speed[i];
             this.latlng.push(trkpnt);
+
+            // Create a temporary geo_json formatted array to use for leaflet
+            // The activity JSON endpoint should be updated to return geoJSON
+            if (i < (data.lat.length - 1)) {
+                this.geo_json.push({
+                    type: 'Feature',
+                    properties: {
+                        id: i,
+                        speed: data.speed[i],
+                    },
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                            [data.lon[i], data.lat[i]],
+                            [data.lon[i + 1], data.lat[i + 1]],
+                        ],
+                    },
+                });
+            }
         }
 
         this.map = L.map('map', {scrollWheelZoom: false});
@@ -59,9 +78,7 @@ module.exports = {
             maxZoom: 18,
         }).addTo(this.map);
 
-        this.trackgroup = L.layerGroup().addTo(this.map);
-
-        color_scale = d3.scale.linear()
+        this.color_scale = d3.scale.linear()
             .domain([
                 0,
                 0.2 * this.max_speed,
@@ -72,14 +89,14 @@ module.exports = {
             ])
             .range(['#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027']);
 
-        for (i = 0, len = this.latlng.length; i < (len - 1); i++) {
-            this.trackgroup.addLayer(L.polyline(this.latlng.slice(i, i + 2), {
-                color: color_scale(this.latlng[i + 1].speed),
-                lineCap: 'butt',
-                lineJoin: 'round',
-                opacity: 1,
-            }));
-        }
+        this.tracks = L.geoJson(this.geo_json, {
+            style: function(pnt) {
+                return {
+                    color: self.color_scale(pnt.properties.speed),
+                    lineCap: 'square',
+                };
+            },
+        }).addTo(this.map);
 
         this.marker = L.circleMarker(this.latlng[this.marker_pos], {
             radius: 6,
@@ -97,6 +114,56 @@ module.exports = {
                 self.move_marker(newdata);
             });
         }
+
+        // Register with track-only-last-minute checkbox to optionally filter track
+        this.filter_track = false;
+        this.filter_state_changed = false;
+        $('#track-only-last-minute').on('change', function(e) {
+            self.filter_track = !!e.target.checked;
+            self.filter_state_changed = true;
+            self.update_track();
+        });
+
+    },
+
+    /**
+     * Filter recently timepoints, by changing opacity of other points to 0.
+     * @param data The individual timepoint to possibly filter
+     * @returns {{color: *, opacity: *}}
+     */
+    filter_recent_timepoints: function(data) {
+        var opacity;
+
+        if ((data.properties.id <= this.marker_pos) && (data.properties.id > (this.marker_pos - 60))) {
+            opacity = 1;
+        } else {
+            opacity = 0;
+        }
+
+        return {
+            color: this.color_scale(data.properties.speed),
+            opacity: opacity,
+        };
+    },
+
+    /**
+     * Apply recently filtering, if necessary.
+     */
+    update_track: function() {
+        var self = this;
+
+        if (this.filter_track) {
+            this.tracks.setStyle(this.filter_recent_timepoints.bind(this));
+        } else if (this.filter_state_changed) {
+            // Only reset back to unfiltered once, not on every call
+            this.tracks.setStyle(function(data) {
+                return {
+                    color: self.color_scale(data.properties.speed),
+                    opacity: 1,
+                };
+            });
+            this.filter_state_changed = false;
+        }
     },
 
     /**
@@ -107,5 +174,6 @@ module.exports = {
     move_marker: function(i) {
         this.marker_pos = (i < 0) ? 0 : (i >= this.latlng.length) ? this.latlng.length - 1 : i;
         this.marker.setLatLng(this.latlng[this.marker_pos]);
+        this.update_track();
     },
 };
