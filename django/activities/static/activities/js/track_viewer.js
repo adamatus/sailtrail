@@ -89,14 +89,16 @@ module.exports = {
             ])
             .range(['#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027']);
 
-        this.tracks = L.geoJson(this.geo_json, {
-            style: function(pnt) {
-                return {
-                    color: self.color_scale(pnt.properties.speed),
-                    lineCap: 'square',
-                };
-            },
-        }).addTo(this.map);
+        this.base_track = L.polyline(this.latlng, {
+            color: 'grey',
+            weight: 2,
+            opacity: 0.5,
+        });
+
+        this.full_track = this.create_geo_json_layer(this.geo_json).addTo(this.map);
+
+        this.filtered_track = this.create_geo_json_layer(
+            this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
 
         this.marker = L.circleMarker(this.latlng[this.marker_pos], {
             radius: 6,
@@ -129,40 +131,64 @@ module.exports = {
     /**
      * Filter recently timepoints, by changing opacity of other points to 0.
      * @param data The individual timepoint to possibly filter
-     * @returns {{color: *, opacity: *}}
+     * @returns boolean
      */
     filter_recent_timepoints: function(data) {
-        var opacity;
-
-        if ((data.properties.id <= this.marker_pos) && (data.properties.id > (this.marker_pos - 60))) {
-            opacity = 1;
-        } else {
-            opacity = 0;
-        }
-
-        return {
-            color: this.color_scale(data.properties.speed),
-            opacity: opacity,
-        };
+        return (data.properties.id <= this.marker_pos) && (data.properties.id > (this.marker_pos - 60));
     },
 
     /**
-     * Apply recently filtering, if necessary.
+     * Create a new geoJson leaflet layer, with speed-based coloring
+     * @param geo_json The geoJSON to create the layer from
      */
-    update_track: function() {
+    create_geo_json_layer: function(geo_json) {
         var self = this;
 
+        return L.geoJson(geo_json, {
+            style: function(pnt) {
+                return {
+                    color: self.color_scale(pnt.properties.speed),
+                    lineCap: 'square',
+                };
+            },
+        });
+    },
+
+    /**
+     * Apply recency filtering, if necessary.
+     */
+    update_track: function() {
         if (this.filter_track) {
-            this.tracks.setStyle(this.filter_recent_timepoints.bind(this));
+            if (this.filter_state_changed) {
+                // On initial change to filtered, remove full layer, add base
+                this.map.removeLayer(this.full_track);
+                this.map.addLayer(this.base_track);
+                this.filter_state_changed = false;
+            }
+
+            // Remove old layers
+            this.map.removeLayer(this.marker);
+            this.map.removeLayer(this.filtered_track);
+
+            // Create new filtered layer
+            this.filtered_track = this.create_geo_json_layer(
+                this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
+
+            // Add filtered track and layers
+            this.map.addLayer(this.filtered_track);
+            this.map.addLayer(this.marker);
         } else if (this.filter_state_changed) {
             // Only reset back to unfiltered once, not on every call
-            this.tracks.setStyle(function(data) {
-                return {
-                    color: self.color_scale(data.properties.speed),
-                    opacity: 1,
-                };
-            });
             this.filter_state_changed = false;
+
+            // Remove old layers
+            this.map.removeLayer(this.base_track);
+            this.map.removeLayer(this.filtered_track);
+            this.map.removeLayer(this.marker);
+
+            // Add full track and marker
+            this.map.addLayer(this.full_track);
+            this.map.addLayer(this.marker);
         }
     },
 
