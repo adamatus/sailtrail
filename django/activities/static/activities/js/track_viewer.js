@@ -129,8 +129,8 @@ module.exports = {
     },
 
     /**
-     * Filter recently timepoints, by changing opacity of other points to 0.
-     * @param data The individual timepoint to possibly filter
+     * Filter recent timepoints, based on current marker position
+     * @param data The individual timepoint to filter
      * @returns boolean
      */
     filter_recent_timepoints: function(data) {
