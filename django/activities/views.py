@@ -107,6 +107,10 @@ class ActivityTrackView(UploadFormMixin, DetailView):
     template_name = 'track.html'
     context_object_name = 'track'
 
+    def get_queryset(self):
+        queryset = super(ActivityTrackView, self).get_queryset()
+        return queryset.select_related('activity')
+
     def get_object(self, queryset: QuerySet=None) -> ActivityTrack:
         """Get activity, only allowing owner to see private activities"""
         track = super().get_object(queryset)

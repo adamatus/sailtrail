@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load js %}
+{% load static %}
+{% load unit_conversions %}
 
 {% block title_text %}{{ activity.name }}{% endblock %}
 
@@ -13,10 +15,8 @@
     </style>
 {% endblock %}
 
-{% load static %}
 {% block main_section %}
     {% with activity_user=activity.user %}
-    {% load unit_conversions %}
     <h1>{{ activity.name }}</h1>
     <p>{{ activity.get_category_display }} by <a
             href="{% url "user" activity_user.username %}">{{ activity_user.username }}</a>
