@@ -32,7 +32,6 @@ module.exports = {
             mr = margins[3],
             w = width - (ml + mr),
             h = height - (mb + mt),
-            line = d3.svg.line(),
             time_format = d3.time.format('%Y-%m-%dT%X+0000'),
             svg,
             xAxis,
@@ -40,6 +39,8 @@ module.exports = {
             self = this;
 
         this.units = units;
+
+        this.line_factory = d3.svg.line();
 
         this.speeds = data.speed;
         this.times = data.time.map(function get_parsed_time(d) { return time_format.parse(d); });
@@ -80,8 +81,8 @@ module.exports = {
             .attr('transform', 'translate(-32,' + (h / 2) + ') rotate(-90)')
             .text('Speed (' + units.speed + ')');
 
-        line.x(function get_x_time(d) { return self.x(d[0]); })
-            .y(function get_y_speed(d) { return self.y(d[1]); });
+        this.line_factory.x(function get_x_time(d) { return self.x(d[0]); })
+                         .y(function get_y_speed(d) { return self.y(d[1]); });
 
         this.plot.append('linearGradient')
             .attr('id', 'speed-gradient')
@@ -103,11 +104,19 @@ module.exports = {
                     .attr('offset', function get_offset(d) { return d.offset; })
                     .attr('stop-color', function get_color(d) { return d.color; });
 
-        this.plot.append('svg:path')
-            .attr('d', line(_.zip(this.times, this.speeds)))
+        this.base_line = this.plot.append('svg:path')
+            .attr('id', 'speed-plot-base-line')
+            .attr('d', this.line_factory(_.zip(this.times, this.speeds)))
+            .style('stroke', '#BBB')
+            .style('fill', 'none')
+            .style('stroke-width', 1);
+
+        this.colored_line = this.plot.append('svg:path')
+            .attr('id', 'speed-plot-colored-line')
+            .attr('d', this.line_factory(_.zip(this.times, this.speeds)))
             .style('stroke', 'url(#speed-gradient)')
             .style('fill', 'none')
-            .style('stroke-width', 2);
+            .style('stroke-width', 3);
 
         this.marker = this.plot.append('svg:circle')
             .attr('r', 5)
@@ -125,6 +134,15 @@ module.exports = {
                 self.move_marker(newdata);
             });
         }
+
+        // Register with track-only-last-minute checkbox to optionally filter track
+        this.filter_track = false;
+        this.filter_state_changed = false;
+        $('#track-only-last-minute').on('change', function(e) {
+            self.filter_track = !!e.target.checked;
+            self.filter_state_changed = true;
+            self.update_plot();
+        });
     },
 
     /**
@@ -137,5 +155,26 @@ module.exports = {
         this.marker
             .attr('cx', this.x(this.times[this.marker_pos]))
             .attr('cy', this.y(this.speeds[this.marker_pos]));
+        this.update_plot();
+    },
+
+    /**
+     * Filter plot, based on current marker position
+     */
+    update_plot: function() {
+        var self = this,
+            data;
+
+        if (this.filter_track) {
+            data = _.zip(this.times, this.speeds);
+            data = data.filter(function(d, i) {
+                return (i <= self.marker_pos) && (i > (self.marker_pos - 60));
+            });
+
+            this.colored_line.attr('d', this.line_factory(data));
+        } else if (this.filter_state_changed) {
+            this.colored_line.attr('d', this.line_factory(_.zip(this.times, this.speeds)));
+            this.filter_state_changed = false;
+        }
     },
 };

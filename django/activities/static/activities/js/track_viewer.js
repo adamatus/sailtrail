@@ -1,7 +1,8 @@
 'use strict';
 
 var L = require('leaflet'),
-    d3 = require('d3');
+    d3 = require('d3'),
+    $ = require('jquery');
 
 module.exports = {
     latlng: [],
@@ -37,19 +38,37 @@ module.exports = {
      */
     draw_map: function(data, max_speed, time_slider) {
         var i,
-            len,
-            color_scale,
             trkpnt,
             self = this;
 
         this.max_speed = max_speed;
 
+        this.geo_json = [];
         this.latlng = [];
         for (i = 0; i < data.lat.length; i++) {
             trkpnt = new L.latLng(data.lat[i], data.lon[i]);
 
             trkpnt.speed = data.speed[i];
             this.latlng.push(trkpnt);
+
+            // Create a temporary geo_json formatted array to use for leaflet
+            // The activity JSON endpoint should be updated to return geoJSON
+            if (i < (data.lat.length - 1)) {
+                this.geo_json.push({
+                    type: 'Feature',
+                    properties: {
+                        id: i,
+                        speed: data.speed[i],
+                    },
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                            [data.lon[i], data.lat[i]],
+                            [data.lon[i + 1], data.lat[i + 1]],
+                        ],
+                    },
+                });
+            }
         }
 
         this.map = L.map('map', {scrollWheelZoom: false});
@@ -59,9 +78,7 @@ module.exports = {
             maxZoom: 18,
         }).addTo(this.map);
 
-        this.trackgroup = L.layerGroup().addTo(this.map);
-
-        color_scale = d3.scale.linear()
+        this.color_scale = d3.scale.linear()
             .domain([
                 0,
                 0.2 * this.max_speed,
@@ -72,14 +89,16 @@ module.exports = {
             ])
             .range(['#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027']);
 
-        for (i = 0, len = this.latlng.length; i < (len - 1); i++) {
-            this.trackgroup.addLayer(L.polyline(this.latlng.slice(i, i + 2), {
-                color: color_scale(this.latlng[i + 1].speed),
-                lineCap: 'butt',
-                lineJoin: 'round',
-                opacity: 1,
-            }));
-        }
+        this.base_track = L.polyline(this.latlng, {
+            color: 'grey',
+            weight: 2,
+            opacity: 0.5,
+        });
+
+        this.full_track = this.create_geo_json_layer(this.geo_json).addTo(this.map);
+
+        this.filtered_track = this.create_geo_json_layer(
+            this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
 
         this.marker = L.circleMarker(this.latlng[this.marker_pos], {
             radius: 6,
@@ -97,6 +116,80 @@ module.exports = {
                 self.move_marker(newdata);
             });
         }
+
+        // Register with track-only-last-minute checkbox to optionally filter track
+        this.filter_track = false;
+        this.filter_state_changed = false;
+        $('#track-only-last-minute').on('change', function(e) {
+            self.filter_track = !!e.target.checked;
+            self.filter_state_changed = true;
+            self.update_track();
+        });
+
+    },
+
+    /**
+     * Filter recent timepoints, based on current marker position
+     * @param data The individual timepoint to filter
+     * @returns boolean
+     */
+    filter_recent_timepoints: function(data) {
+        return (data.properties.id <= this.marker_pos) && (data.properties.id > (this.marker_pos - 60));
+    },
+
+    /**
+     * Create a new geoJson leaflet layer, with speed-based coloring
+     * @param geo_json The geoJSON to create the layer from
+     */
+    create_geo_json_layer: function(geo_json) {
+        var self = this;
+
+        return L.geoJson(geo_json, {
+            style: function(pnt) {
+                return {
+                    color: self.color_scale(pnt.properties.speed),
+                    lineCap: 'square',
+                };
+            },
+        });
+    },
+
+    /**
+     * Apply recency filtering, if necessary.
+     */
+    update_track: function() {
+        if (this.filter_track) {
+            if (this.filter_state_changed) {
+                // On initial change to filtered, remove full layer, add base
+                this.map.removeLayer(this.full_track);
+                this.map.addLayer(this.base_track);
+                this.filter_state_changed = false;
+            }
+
+            // Remove old layers
+            this.map.removeLayer(this.marker);
+            this.map.removeLayer(this.filtered_track);
+
+            // Create new filtered layer
+            this.filtered_track = this.create_geo_json_layer(
+                this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
+
+            // Add filtered track and layers
+            this.map.addLayer(this.filtered_track);
+            this.map.addLayer(this.marker);
+        } else if (this.filter_state_changed) {
+            // Only reset back to unfiltered once, not on every call
+            this.filter_state_changed = false;
+
+            // Remove old layers
+            this.map.removeLayer(this.base_track);
+            this.map.removeLayer(this.filtered_track);
+            this.map.removeLayer(this.marker);
+
+            // Add full track and marker
+            this.map.addLayer(this.full_track);
+            this.map.addLayer(this.marker);
+        }
     },
 
     /**
@@ -107,5 +200,6 @@ module.exports = {
     move_marker: function(i) {
         this.marker_pos = (i < 0) ? 0 : (i >= this.latlng.length) ? this.latlng.length - 1 : i;
         this.marker.setLatLng(this.latlng[this.marker_pos]);
+        this.update_track();
     },
 };
