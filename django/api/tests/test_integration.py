@@ -75,11 +75,13 @@ class TestDeleteTrack(BaseTrackView):
 
     def setUp(self):
         super(TestDeleteTrack, self).setUp()
+        # Trim the first track to the middle two timepoints
         self.track.trim_start = self.next.timepoint
         self.track.trim_end = self.penultimate.timepoint
         self.track.trimmed = True
         self.track.save()
 
+        # Add another track with two timepoints
         self.track_other = ActivityTrack.objects.create(
             activity=self.activity)
         self.other_start = ActivityTrackpointFactory.create(
@@ -112,6 +114,8 @@ class TestDeleteTrack(BaseTrackView):
         assert self.activity.tracks.count() == 1
         assert self.activity.tracks.first().id == 2
         assert self.activity.duration == timedelta(0, 1)
+        assert self.activity.start_time == self.other_start.timepoint.time()
+        assert self.activity.end_time == self.other_end.timepoint.time()
 
     def test_get_with_owner_redirects_to_activity_and_deletes_other(self):
         self.client.login(username='test', password='password')
@@ -125,6 +129,8 @@ class TestDeleteTrack(BaseTrackView):
         assert self.activity.tracks.count() == 1
         assert self.activity.tracks.first().id == 1
         assert self.activity.duration == timedelta(0, 1)
+        assert self.activity.start_time == self.next.timepoint.time()
+        assert self.activity.end_time == self.penultimate.timepoint.time()
 
     def test_get_with_owner_raises_400_on_delete_of_last(self):
         self.client.login(username='test', password='password')
