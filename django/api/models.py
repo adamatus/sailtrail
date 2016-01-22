@@ -174,6 +174,14 @@ class ActivityTrack(models.Model):
         Added to allow for easy mocking of parent activity for unit testing"""
         return self.original_file  # pragma: unit cover ignore
 
+    def delete(self, using=None):
+        """Delete track and have activity update stats"""
+        if self.activity.tracks.count() < 2:
+            raise SuspiciousOperation("Cannot delete final track in activity")
+
+        super(ActivityTrack, self).delete(using=using)
+        self._get_activity().compute_stats()
+
     def trim(self, trim_start=None, trim_end=None) -> None:
         """Trim the activity to the given time interval
 

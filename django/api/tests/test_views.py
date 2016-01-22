@@ -3,7 +3,7 @@ from unittest.mock import Mock, sentinel, patch, MagicMock
 
 import pytest
 
-from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.exceptions import PermissionDenied
 
 from api.views import WindDirection, JSONResponseMixin, BaseJSONView, \
     ActivityJSONView, TrackJSONView, DeleteActivityView, BaseTrackView, \
@@ -370,22 +370,11 @@ class TestBaseTrackView:
 
 class TestDeleteTrackView:
 
-    def test_get_raises_if_activity_has_fewer_than_2_tracks(self):
-        track = Mock()
-        track.activity.tracks.count.return_value = 1
-        view = DeleteTrackView()
-        view.get_object = Mock(return_value=track)
-
-        with pytest.raises(SuspiciousOperation):
-            view.get(Mock())
-
     @patch('api.views.redirect')
-    def test_get_deletes_and_resets_if_more_than_2(self,
-                                                   redir_mock: MagicMock):
+    def test_get_deletes_track(self, redir_mock: MagicMock):
         # Given a mock track
         track = Mock()
-        track.activity.tracks.count.return_value = 2
-        track.activity.id = sentinel.activity_id
+        track.activity_id = sentinel.activity_id
 
         # and a view with mock get_object that returns track
         view = DeleteTrackView()
@@ -404,7 +393,6 @@ class TestDeleteTrackView:
 
         # and the track is reset properly
         track.delete.assert_called_once_with()
-        track.activity.compute_stats.assert_called_once_with()
 
 
 class TestTrimView(unittest.TestCase):
@@ -412,7 +400,7 @@ class TestTrimView(unittest.TestCase):
     def setUp(self):
         # Given a mock track
         self.track_mock = Mock()
-        self.track_mock.activity.id = sentinel.id
+        self.track_mock.activity_id = sentinel.id
 
         # and a view with a mock get_object that returns track
         self.view = TrimView()
@@ -475,7 +463,7 @@ class TestUntrimView:
     def test_get_untrims_object(self, redir_mock: MagicMock):
         # Given a mock track
         track = Mock()
-        track.activity.id = sentinel.activity_id
+        track.activity_id = sentinel.activity_id
 
         # and a view with mock get_object that returns track
         view = UntrimView()

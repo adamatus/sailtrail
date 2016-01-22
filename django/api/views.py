@@ -2,7 +2,7 @@
 import json
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
 from django.views.generic.detail import BaseDetailView
@@ -157,14 +157,8 @@ class DeleteTrackView(BaseTrackView):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Reset the track to be untrimmed"""
         track = self.get_object()
-
-        if track.activity.tracks.count() < 2:
-            raise SuspiciousOperation("Cannot delete final track in activity")
-
-        activity = track.activity
         track.delete()
-        activity.compute_stats()
-        return redirect('view_activity', activity.id)
+        return redirect('view_activity', track.activity_id)
 
 
 class TrimView(BaseTrackView):
@@ -176,7 +170,7 @@ class TrimView(BaseTrackView):
         track = self.get_object()
         track.trim(request.POST.get('trim-start', '-1'),
                    request.POST.get('trim-end', '-1'))
-        return redirect('view_activity', track.activity.id)
+        return redirect('view_activity', track.activity_id)
 
 
 class UntrimView(BaseTrackView):
@@ -187,4 +181,4 @@ class UntrimView(BaseTrackView):
         """Reset the track to be untrimmed"""
         track = self.get_object()
         track.reset_trim()
-        return redirect('view_activity', track.activity.id)
+        return redirect('view_activity', track.activity_id)
