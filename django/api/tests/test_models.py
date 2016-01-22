@@ -29,53 +29,43 @@ class TestActivityModel:
                                          args=[str(sentinel.id)])
 
     def test_start_time(self):
-        # Given a track mock that return trim_start time from first track
-        track_mock = Mock()
-        track_mock.return_value.first.return_value.trim_start.\
-            time.return_value = sentinel.time
+        # Given a mock with a time that returns a sentinel
+        mock = Mock()
+        mock.time.return_value = sentinel.time
 
         # and and activity with that mock
-        activity = Activity()
-        activity._get_tracks = track_mock
+        activity = Activity(start=mock)
 
         # Then the sentinel time is returned
         assert activity.start_time == sentinel.time
 
     def test_end_time(self):
-        # Given a track mock that return trim_end time from last track
-        track_mock = Mock()
-        track_mock.return_value.last.return_value.trim_end. \
-            time.return_value = sentinel.time
+        # Given a mock with a time that returns a sentinel
+        mock = Mock()
+        mock.time.return_value = sentinel.time
 
         # and and activity with that mock
-        activity = Activity()
-        activity._get_tracks = track_mock
+        activity = Activity(end=mock)
 
         # Then the sentinel time is returned
         assert activity.end_time == sentinel.time
 
     def test_date(self):
-        # Given a track mock that return trim_start time from first track
-        track_mock = Mock()
-        track_mock.return_value.first.return_value.trim_start. \
-            date.return_value = sentinel.date
+        # Given a mock with a time that returns a sentinel
+        mock = Mock()
+        mock.date.return_value = sentinel.date
 
         # and and activity with that mock
-        activity = Activity()
-        activity._get_tracks = track_mock
+        activity = Activity(start=mock)
 
         # Then the sentinel time is returned
         assert activity.date == sentinel.date
 
     def test_duration(self):
-        # Given a track mock that return trim_start time from first track
-        track_mock = Mock()
-        track_mock.return_value.first.return_value.trim_start = 8
-        track_mock.return_value.last.return_value.trim_end = 10
-
-        # and and activity with that mock
+        # Given an activity when some fake start and end values
         activity = Activity()
-        activity._get_tracks = track_mock
+        activity.start = 8
+        activity.end = 10
 
         # Then the sentinel time is returned
         assert activity.duration == 2
@@ -141,9 +131,11 @@ class TestActivityModel:
     @patch('api.models.Stats')
     def test_compute_stats_populates_model_fields(self,
                                                   stats_mock: MagicMock):
-        # Given a new activity with some mocks
+
+        # Given a new activity with some mocks and fake positions
+        pos = [{"timepoint": 1}, {"timepoint": 2}]
         activity = Activity()
-        activity.get_trackpoints = Mock(return_value=sentinel.pos)
+        activity.get_trackpoints = Mock(return_value=pos)
         activity.save = Mock()
         computed_stats = Mock()
         stats_mock.return_value = computed_stats
@@ -156,7 +148,9 @@ class TestActivityModel:
         # Then the values were set as expected, after mock calls
         assert activity.model_distance == sentinel.dist
         assert activity.model_max_speed == sentinel.max_speed
-        stats_mock.assert_called_once_with(sentinel.pos)
+        assert activity.start == 1
+        assert activity.end == 2
+        stats_mock.assert_called_once_with(pos)
         activity.save.assert_called_once_with()
 
     @patch("api.models.ActivityTrack")
@@ -213,57 +207,6 @@ class TestActivityTrackModel:
         str_rep = track.__str__()
 
         assert str_rep == "ActivityTrack (TestFile.sbn)"
-
-    def test_initialize_stats_sets_datetime(self):
-        track = ActivityTrack()
-        activity = Mock()
-        activity.datetime = None
-
-        track.trim_start = sentinel.trim_start
-        track.reset_trim = Mock()
-        track._get_activity = Mock(return_value=activity)
-
-        # When initializing stats
-        track.initialize_stats()
-
-        # Then mocks were called correctly
-        track.reset_trim.assert_called_once_with()
-        assert activity.datetime == sentinel.trim_start
-        activity.save.assert_called_once_with()
-
-    def test_initialize_stats_resets_datetime(self):
-        track = ActivityTrack()
-        activity = Mock()
-        activity.datetime = datetime(2015, 2, 1)
-
-        track.trim_start = datetime(2015, 1, 1)
-        track.reset_trim = Mock()
-        track._get_activity = Mock(return_value=activity)
-
-        # When initializing stats
-        track.initialize_stats()
-
-        # Then mocks were called correctly
-        track.reset_trim.assert_called_once_with()
-        assert activity.datetime == datetime(2015, 1, 1)
-        activity.save.assert_called_once_with()
-
-    def test_initialize_stats_does_nothing_with_earlier_activity(self):
-        track = ActivityTrack()
-        activity = Mock()
-        activity.datetime = datetime(2015, 1, 1)
-
-        track.trim_start = datetime(2015, 2, 1)
-        track.reset_trim = Mock()
-        track._get_activity = Mock(return_value=activity)
-
-        # When initializing stats
-        track.initialize_stats()
-
-        # Then mocks were called correctly
-        track.reset_trim.assert_called_once_with()
-        assert activity.datetime == datetime(2015, 1, 1)
-        activity.save.assert_not_called()
 
     def test_trim_does_nothing_with_no_input(self):
         track = ActivityTrack()
@@ -476,7 +419,7 @@ class TestActivityTrackModel:
         )
         upfile.seek.assert_called_once_with(0)
         tps_mock.create_trackpoints.assert_called_once_with(new_track, upfile)
-        new_track.initialize_stats.assert_called_once_with()
+        new_track.reset_trim.assert_called_once_with()
 
 
 class TestActivityTrackFileModel:

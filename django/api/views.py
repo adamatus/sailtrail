@@ -161,11 +161,10 @@ class DeleteTrackView(BaseTrackView):
         if track.activity.tracks.count() < 2:
             raise SuspiciousOperation("Cannot delete final track in activity")
 
+        activity = track.activity
         track.delete()
-        track.activity.model_distance = None
-        track.activity.model_max_speed = None
-        track.activity.compute_stats()
-        return redirect('view_activity', track.activity.id)
+        activity.compute_stats()
+        return redirect('view_activity', activity.id)
 
 
 class TrimView(BaseTrackView):

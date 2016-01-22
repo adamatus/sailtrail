@@ -85,7 +85,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
         a = ActivityFactory(user=user)
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
-        t.initialize_stats()
+        t.reset_trim()
         self.client.login(username='test', password='password')
 
     def test_new_view_uses_activity_details_template(self):
@@ -143,7 +143,7 @@ class TestActivityDetailViewIntegration(TestCase):
         a = ActivityFactory(user=user)
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
-        t.initialize_stats()
+        t.reset_trim()
         self.client.login(username='test', password='password')
 
     def test_detail_view_uses_activity_details_template(self):
@@ -198,7 +198,7 @@ class TestActivityViewIntegration(TestCase):
             description="Hooray ice!")
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
-        t.initialize_stats()
+        t.reset_trim()
 
     def test_uses_activity_template(self):
         response = self.client.get(reverse('view_activity', args=[1]))

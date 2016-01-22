@@ -404,8 +404,6 @@ class TestDeleteTrackView:
 
         # and the track is reset properly
         track.delete.assert_called_once_with()
-        assert track.activity.model_distance is None
-        assert track.activity.model_max_speed is None
         track.activity.compute_stats.assert_called_once_with()
 
 

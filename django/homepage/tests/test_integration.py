@@ -44,12 +44,12 @@ class TestHomepageViewIntegration(TestCase):
             name="First snowkite of the season")
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
-        t.initialize_stats()
+        t.reset_trim()
         a = ActivityFactory.create(
             name="Snowkite lesson:")
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
-        t.initialize_stats()
+        t.reset_trim()
 
         response = self.client.get(reverse('home'))
         self.assertContains(response, 'First snowkite of the season')

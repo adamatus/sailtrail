@@ -88,7 +88,7 @@ class TestDeleteTrack(BaseTrackView):
             track=self.track_other)
         self.other_end = ActivityTrackpointFactory.create(
             track=self.track_other)
-        self.track_other.initialize_stats()
+        self.track_other.reset_trim()
 
         self.activity.compute_stats()
 
@@ -111,11 +111,12 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 302
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
-        assert self.activity.tracks.count() == 1
-        assert self.activity.tracks.first().id == 2
-        assert self.activity.duration == timedelta(0, 1)
-        assert self.activity.start_time == self.other_start.timepoint.time()
-        assert self.activity.end_time == self.other_end.timepoint.time()
+        activity = Activity.objects.get(id=1)
+        assert activity.tracks.count() == 1
+        assert activity.tracks.first().id == 2
+        assert activity.duration == timedelta(0, 1)
+        assert activity.start_time == self.other_start.timepoint.time()
+        assert activity.end_time == self.other_end.timepoint.time()
 
     def test_get_with_owner_redirects_to_activity_and_deletes_other(self):
         self.client.login(username='test', password='password')
@@ -126,11 +127,12 @@ class TestDeleteTrack(BaseTrackView):
         assert response.status_code == 302
         self.assertRedirects(response, reverse('view_activity', args=[1]))
 
-        assert self.activity.tracks.count() == 1
-        assert self.activity.tracks.first().id == 1
-        assert self.activity.duration == timedelta(0, 1)
-        assert self.activity.start_time == self.next.timepoint.time()
-        assert self.activity.end_time == self.penultimate.timepoint.time()
+        activity = Activity.objects.get(id=1)
+        assert activity.tracks.count() == 1
+        assert activity.tracks.first().id == 1
+        assert activity.duration == timedelta(0, 1)
+        assert activity.start_time == self.next.timepoint.time()
+        assert activity.end_time == self.penultimate.timepoint.time()
 
     def test_get_with_owner_raises_400_on_delete_of_last(self):
         self.client.login(username='test', password='password')
@@ -155,7 +157,7 @@ class TestTrimTrack(BaseTrackView):
 
     def setUp(self):
         super(TestTrimTrack, self).setUp()
-        self.track.initialize_stats()
+        self.track.reset_trim()
         assert self.track.trimmed is False
 
     # Something is wrong with this test... It fails with an
@@ -287,7 +289,6 @@ class TestUntrimTrack(BaseTrackView):
 
 class FileDeleter:
     def setUp(self):
-        print('in deleter')
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
@@ -309,6 +310,7 @@ class TestActivityModelIntegration(FileDeleter, TestCase):
                                          upfile=SimpleUploadedFile("test1.SBN",
                                                                    SBN_BIN))
         self.activity = a.activity  # type: Activity
+        self.activity.compute_stats()
 
     def test_fields_exist_as_expected(self):
         a = Activity(user=UserFactory.create())

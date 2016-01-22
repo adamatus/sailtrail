@@ -33,7 +33,8 @@ class Activity(models.Model):
     """Activity model"""
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    datetime = models.DateTimeField(null=True)
+    start = models.DateTimeField(null=True)
+    end = models.DateTimeField(null=True)
     user = models.ForeignKey(User, related_name='activity', null=False)
     model_distance = models.FloatField(null=True)  # m
     model_max_speed = models.FloatField(null=True)  # m/s
@@ -47,7 +48,7 @@ class Activity(models.Model):
                                 default=SAILING)
 
     class Meta:
-        ordering = ['-datetime']
+        ordering = ['-start']
 
     def get_absolute_url(self) -> str:
         """Get the URL path for this activity"""
@@ -62,23 +63,22 @@ class Activity(models.Model):
     @property
     def start_time(self) -> time:
         """Get the start time for the activity"""
-        return self._get_tracks().first().trim_start.time()
+        return self.start.time()
 
     @property
     def end_time(self) -> time:
         """Get the ending time for the activity"""
-        return self._get_tracks().last().trim_end.time()
+        return self.end.time()
 
     @property
     def date(self) -> date:
         """Get the start date for the activity"""
-        return self._get_tracks().first().trim_start.date()
+        return self.start.date()
 
     @property
     def duration(self) -> timedelta:
         """Get the duration for the activity"""
-        return (self._get_tracks().last().trim_end -
-                self._get_tracks().first().trim_start)
+        return self.end - self.start
 
     @property
     def max_speed(self) -> str:
@@ -108,16 +108,25 @@ class Activity(models.Model):
     def compute_stats(self) -> None:
         """Compute the activity stats"""
         pos = self.get_trackpoints()
-        print(pos)
         stats = Stats(pos)
         self.model_distance = stats.distance().magnitude
         self.model_max_speed = stats.max_speed.magnitude
-
+        self.start = pos[0]['timepoint']
+        self.end = pos[-1]['timepoint']
         self.save()
 
     def add_track(self, uploaded_file: InMemoryUploadedFile) -> None:
         """Add a new track to the activity"""
-        ActivityTrack.create_new(uploaded_file, self)
+        track = ActivityTrack.create_new(uploaded_file, self)
+        do_save = False
+        if self.start is None or self.start > track.trim_start:
+            self.start = track.trim_start
+            do_save = True
+        if self.end is None or self.end < track.trim_end:
+            self.end = track.time_end
+            do_save = False
+        if do_save:
+            self.save()
 
     def get_trackpoints(self) -> list:
         """Helper to return the trackpoints"""
@@ -164,18 +173,6 @@ class ActivityTrack(models.Model):
 
         Added to allow for easy mocking of parent activity for unit testing"""
         return self.original_file  # pragma: unit cover ignore
-
-    def initialize_stats(self) -> None:
-        """Initialize activity stats"""
-        self.reset_trim()
-
-        activity = self._get_activity()
-        if activity.datetime is None:
-            activity.datetime = self.trim_start
-            activity.save()
-        elif activity.datetime > self.trim_start:
-            activity.datetime = self.trim_start
-            activity.save()
 
     def trim(self, trim_start=None, trim_end=None) -> None:
         """Trim the activity to the given time interval
@@ -256,7 +253,7 @@ class ActivityTrack(models.Model):
                                          file=upfile)
         upfile.seek(0)
         ActivityTrackpoint.create_trackpoints(track, upfile)
-        track.initialize_stats()
+        track.reset_trim()
         return track
 
 
