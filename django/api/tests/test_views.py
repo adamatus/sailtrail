@@ -168,23 +168,28 @@ class TestBaseJSONView(unittest.TestCase):
         with pytest.raises(NotImplementedError):
             view.return_json()
 
+    @patch('api.views.BaseDetailView.get_object')
     @patch('api.views.verify_private_owner')
-    def test_get_object_returns_the_object_after_verifying(self, verify_mock):
+    def test_get_object_returns_the_object_after_verifying(
+        self,
+        verify_mock,
+        get_obj_mock,
+    ):
         # Given an implementation with an object to return
         class TestBaseJSONView(BaseJSONView):
-            kwargs = dict(pk=1)  # Needed for call to super
-            request = Mock()
+            pass
         view = TestBaseJSONView()
+        view.request = sentinel.req
 
-        # and a mock queryset
-        queryset = Mock()
-        queryset.filter.return_value.get.return_value = sentinel.object
+        # And a mocked super call
+        get_obj_mock.return_value = sentinel.object
 
         # When getting the object
-        data = view.get_object(queryset=queryset)
+        data = view.get_object()
 
-        # Then
+        # Then the super value is returned and verified
         assert data == sentinel.object
+        verify_mock.assert_called_once_with(sentinel.object, sentinel.req)
 
     def test_render_to_response_returns_result_of_render_to_json(self):
         # Given an implementation with a control render_to_json
@@ -200,15 +205,17 @@ class TestBaseJSONView(unittest.TestCase):
         # Then the sentinel is returned
         assert response == sentinel.json
 
-    def test_get_context_data_returns_results_of_return_json(self):
+    @patch('api.views.BaseDetailView.get_context_data')
+    def test_get_context_data_returns_results_of_return_json(self, mock):
         # Given an implementation with a control return_json
-
         class TestBaseJSONView(BaseJSONView):
             data_field = 'test'
-            object = None  # required for super call
 
             def return_json(self):
                 return sentinel.json
+
+        # And a mock super
+        mock.return_value = dict(super=sentinel.super)
 
         view = TestBaseJSONView()
 
@@ -217,6 +224,7 @@ class TestBaseJSONView(unittest.TestCase):
 
         # Then the sentinel is returned
         assert context['test'] == sentinel.json
+        assert context['super'] == sentinel.super
 
 
 class TestTrackJSONMixin:
@@ -287,31 +295,27 @@ class TestTrackJSONView:
 
 class TestDeleteActivityView:
 
-    def test_get_object_throws_if_not_request_user(self):
+    @patch('api.views.BaseDetailView.get_object')
+    def test_get_object_throws_if_not_request_user(self, get_obj_mock):
+        get_obj_mock.return_value = Mock(user=sentinel.other)
         view = DeleteActivityView()
-        view.queryset = Mock()
-        view.kwargs = dict(pk=1)
         view.request = Mock(user=sentinel.user)
 
         with pytest.raises(PermissionDenied):
-            view.get_object(queryset=Mock())
+            view.get_object()
 
-    def test_get_object_returns_activity_if_users(self):
+    @patch('api.views.BaseDetailView.get_object')
+    def test_get_object_returns_activity_if_users(self, get_obj_mock):
+        get_obj_mock.return_value = Mock(user=sentinel.user)
         # Given a view with fakes to get super call to work
         view = DeleteActivityView()
-        view.kwargs = dict(pk=1)
         view.request = Mock(user=sentinel.user)
 
-        # and a mock queryset that will return mock with sentinel
-        activity_mock = Mock(user=sentinel.user)
-        queryset_mock = Mock()
-        queryset_mock.filter.return_value.get.return_value = activity_mock
-
         # When getting the object
-        activity = view.get_object(queryset=queryset_mock)
+        activity = view.get_object()
 
         # Then the activity is returned
-        assert activity == activity_mock
+        assert activity == get_obj_mock.return_value
 
     @patch('api.views.redirect')
     def test_get_deletes_object_and_redirects(self, redirect_mock: MagicMock):
@@ -337,32 +341,30 @@ class TestDeleteActivityView:
 
 class TestBaseTrackView:
 
-    def test_get_object_raises_if_not_correct_user(self):
+    @patch('api.views.BaseDetailView.get_object')
+    def test_get_object_raises_if_not_correct_user(self, get_mock):
         view = BaseTrackView()
-        view.kwargs = dict(pk=1)
         view.request = Mock(user=sentinel.user)
 
-        # and a mock queryset that will return mock with sentinel
+        # and a mock super that will return mock with sentinel
         track_mock = Mock()
         track_mock.activity.user = sentinel.other_user
-        queryset_mock = Mock()
-        queryset_mock.filter.return_value.get.return_value = track_mock
+        get_mock.return_value = track_mock
 
         with pytest.raises(PermissionDenied):
-            view.get_object(queryset=queryset_mock)
+            view.get_object()
 
-    def test_get_object_returns_track_if_cur_user(self):
+    @patch('api.views.BaseDetailView.get_object')
+    def test_get_object_returns_track_if_cur_user(self, get_mock):
         view = BaseTrackView()
-        view.kwargs = dict(pk=1)
         view.request = Mock(user=sentinel.user)
 
         # and a mock queryset that will return mock with sentinel
         track_mock = Mock()
         track_mock.activity.user = sentinel.user
-        queryset_mock = Mock()
-        queryset_mock.filter.return_value.get.return_value = track_mock
+        get_mock.return_value = track_mock
 
-        track = view.get_object(queryset=queryset_mock)
+        track = view.get_object()
 
         assert track == track_mock
 
