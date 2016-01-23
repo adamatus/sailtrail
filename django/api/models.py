@@ -11,8 +11,8 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import QuerySet
 
-from activities import DATETIME_FORMAT_STR
 from analysis.stats import Stats
+from core import DATETIME_FORMAT_STR
 from gps import gpx, sirf
 
 SAILING = 'SL'

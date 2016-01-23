@@ -1,6 +1,7 @@
-from activities import UNIT_SETTING, UNITS
-from api.models import ACTIVITY_CHOICES
 from django import template
+
+from api.models import ACTIVITY_CHOICES
+from core import UNIT_SETTING, UNITS
 
 register = template.Library()
 

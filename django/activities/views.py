@@ -7,10 +7,10 @@ from django.shortcuts import redirect
 from django.views.generic import DetailView, UpdateView, View
 
 from .forms import ActivityDetailsForm
-from activities import UNIT_SETTING
 from api.helper import (create_new_activity_for_user, get_activity_by_id,
                         verify_private_owner)
 from api.models import Activity, ActivityTrack
+from core import UNIT_SETTING
 from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
                         ERROR_NO_UPLOAD_FILE_SELECTED,

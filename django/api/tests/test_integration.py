@@ -11,10 +11,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from activities import DATETIME_FORMAT_STR
 from api.models import Activity, ActivityTrack, ActivityTrackpoint
 from api.tests.factories import UserFactory, ActivityTrackpointFactory, \
     ActivityFactory
+from core import DATETIME_FORMAT_STR
 
 ASSET_PATH = os.path.join(os.path.dirname(__file__),
                           'assets')
