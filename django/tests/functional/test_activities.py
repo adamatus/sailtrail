@@ -1,5 +1,3 @@
-import shutil
-import tempfile
 import time
 
 import pytest
@@ -17,16 +15,17 @@ from tests.functional.pages import (
     LoginPage, ActivityTrackPage, SettingsPage, ChangePasswordPage,
     ChangeEmailPage
 )
+from tests.utils import FileDeleter
 
 
 @pytest.mark.functional
-class ActivitiesTest(StaticLiveServerTestCase):
+class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
     fixtures = ['two-users-no-data.json']
 
     def setUp(self):
+        super(ActivitiesTest, self).setUp()
         self.browser = webdriver.Chrome()
         self.browser.implicitly_wait(2)
-        self.temp_dir = tempfile.mkdtemp()
 
         # Initialize page-specific helpers
         self.home_page = HomePage(self)
@@ -38,8 +37,8 @@ class ActivitiesTest(StaticLiveServerTestCase):
         self.settings_page = SettingsPage(self)
 
     def tearDown(self):
+        super(ActivitiesTest, self).tearDown()
         self.browser.quit()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_basic_look_and_feel(self):
         # Visitor comes to homepage and notices title is SailTrail

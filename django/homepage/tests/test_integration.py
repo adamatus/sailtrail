@@ -1,6 +1,3 @@
-import shutil
-import tempfile
-
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
@@ -11,19 +8,14 @@ from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
                                  ActivityTrackpointFactory)
 from core.forms import UploadFileForm
 from tests.assets import get_test_file_data
+from tests.utils import FileDeleter
 from users.tests.factories import UserFactory
 
 SBN_BIN = get_test_file_data('tiny.SBN')
 
 
 @pytest.mark.integration
-class TestHomepageViewIntegration(TestCase):
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+class TestHomepageViewIntegration(FileDeleter, TestCase):
 
     def test_home_page_renders_home_template(self):
         response = self.client.get(reverse('home'))

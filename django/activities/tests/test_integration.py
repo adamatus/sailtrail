@@ -1,6 +1,3 @@
-import shutil
-import tempfile
-
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
@@ -13,6 +10,7 @@ from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
                                  ActivityTrackpointFactory)
 from tests.assets import get_test_file_data
+from tests.utils import FileDeleter
 from users.tests.factories import UserFactory
 
 SBN_BIN = get_test_file_data('tiny.SBN')
@@ -39,15 +37,12 @@ class TestActivityDetailsFormIntegration:
 
 
 @pytest.mark.integration
-class TestFileUploadViewIntegration(TestCase):
+class TestFileUploadViewIntegration(FileDeleter, TestCase):
 
     def setUp(self):
+        super(TestFileUploadViewIntegration, self).setUp()
         self.user = UserFactory.create(username='test')
         self.client.login(username='test', password='password')
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_saving_POST_request(self):
         with self.settings(MEDIA_ROOT=self.temp_dir):

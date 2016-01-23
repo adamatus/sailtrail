@@ -8,6 +8,8 @@ from gps import sirf
 from tests.assets import get_test_file_path
 
 # Read in the points for the testfile
+from tests.utils import my_round
+
 d = sirf.read_sbn(get_test_file_path('test-small.sbn'))
 d = [x for x in d.pktq if x is not None]  # filter out Nones
 
@@ -25,10 +27,6 @@ for tp in d:
 @pytest.fixture(scope="module")
 def stats():
     return Stats(trackpoints)
-
-
-def my_round(number):
-    return int(number*1000)/1000
 
 
 class TestStats:

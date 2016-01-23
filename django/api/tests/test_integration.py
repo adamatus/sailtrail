@@ -1,5 +1,3 @@
-import shutil
-import tempfile
 from datetime import timedelta, time, date, datetime
 
 import pytest
@@ -14,6 +12,7 @@ from api.tests.factories import UserFactory, ActivityTrackpointFactory, \
     ActivityFactory
 from core import DATETIME_FORMAT_STR
 from tests.assets import get_test_file_data
+from tests.utils import FileDeleter, my_round
 
 SBN_BIN = get_test_file_data('tiny.SBN')
 GPX_BIN = get_test_file_data('tiny-run.gpx')
@@ -278,18 +277,6 @@ class TestUntrimTrack(BaseTrackView):
         new_url = "%s?next=%s" % (reverse('account_login'),
                                   reverse('untrim_track', args=[1, 1]))
         self.assertRedirects(response, new_url)
-
-
-class FileDeleter:
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-
-def my_round(num, places=3):
-    return int(num*10**places)/10**places
 
 
 @pytest.mark.django_db
