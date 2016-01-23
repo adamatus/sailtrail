@@ -327,30 +327,6 @@ class TestActivityModelIntegration(FileDeleter, TestCase):
     def test_date_returns_date(self):
         assert self.activity.date == date(2014, 7, 15)
 
-    def test_model_max_speed_is_populated_on_call_to_max_speed(self):
-        self.activity.model_max_speed = None
-        self.activity.save()
-        assert self.activity.max_speed == '6.65 knots'
-        assert self.activity.model_max_speed == 3.42
-
-    def test_model_max_speed_is_not_pupulated_if_already_filled(self):
-        self.activity.model_max_speed = 10.5
-        self.activity.save()
-        assert self.activity.max_speed == '20.41 knots'
-        assert self.activity.model_max_speed == 10.5
-
-    def test_model_distance_is_populated_on_call_to_distance(self):
-        self.activity.model_distance = None
-        self.activity.save()
-        assert self.activity.distance == '0.01 nmi'
-        assert my_round(self.activity.model_distance) == 9.978
-
-    def test_model_distance_is_not_populated_if_already_filled(self):
-        self.activity.model_distance = 10.5
-        self.activity.save()
-        assert self.activity.distance == '0.01 nmi'
-        assert my_round(self.activity.model_distance) == 10.5
-
 
 @pytest.mark.django_db
 @pytest.mark.integration

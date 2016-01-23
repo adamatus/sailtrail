@@ -227,7 +227,7 @@ class TestHelper(unittest.TestCase):
         filter.assert_called_with(private=False)
         values.assert_called_with('user__username', 'category')
         annotate.assert_called_with(max_speed=sentinel.max)
-        max_mock.assert_called_with('model_max_speed')
+        max_mock.assert_called_with('max_speed')
         order_by.assert_called_with('-max_speed')
 
     @patch('api.helper.Count')
@@ -248,8 +248,8 @@ class TestHelper(unittest.TestCase):
         # Then the sentinel queryset is returned, and mocks called as expected
         assert queryset == sentinel.queryset
         activities.values.assert_called_with('category')
-        mock_sum.assert_called_with('model_distance')
-        mock_max.assert_called_with('model_max_speed')
+        mock_sum.assert_called_with('distance')
+        mock_max.assert_called_with('max_speed')
         mock_count.assert_called_with('category')
         activities.values.return_value.annotate.assert_called_with(
             count=sentinel.count,

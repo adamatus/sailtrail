@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load js %}
+{% load static %}
+{% load unit_conversions %}
 
 {% block title_text %}{{ track.activity.name }} ::
     {{ track.original_filename }}{% endblock %}
@@ -13,7 +15,6 @@
     </style>
 {% endblock %}
 
-{% load static %}
 {% block main_section %}
     <h1><a href="../..">{{ track.activity.name }}</a>
         :: {{ track.original_filename }}</h1>
@@ -63,7 +64,7 @@
 {% block extra_bottom_js %}
     {% js 'activities/activity_viewer.bundle.js' %}
     <script>
-        var max_speed = +"{{ track.activity.max_speed }}".split(' ')[0],
+        var max_speed = +"{{ track.activity.max_speed|speed }}".split(' ')[0],
                 wind_direction = "{{ track.activity.wind_direction }}"
                                  == "None" ? null
                         : +"{{track.activity.wind_direction}}",

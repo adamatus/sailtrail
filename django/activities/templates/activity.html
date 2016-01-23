@@ -34,8 +34,8 @@
                 <tbody>
                 <tr>
                     <td>{{ activity.duration }}</td>
-                    <td>{{ activity.model_distance|distance }}</td>
-                    <td>{{ activity.model_max_speed|speed }}</td>
+                    <td>{{ activity.distance|distance }}</td>
+                    <td>{{ activity.max_speed|speed }}</td>
                 </tr>
                 </tbody>
             </table>
@@ -78,7 +78,7 @@
     {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
     {% js 'activities/activity_viewer.bundle.js' %}
     <script>
-        var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+        var max_speed = +"{{ activity.max_speed|speed }}".split(' ')[0],
                 wind_direction = "{{ activity.wind_direction }}" == "None"
                         ? null : +"{{activity.wind_direction}}",
                 units = {{ units|safe }},

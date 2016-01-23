@@ -17,8 +17,8 @@ class ActivityFactory(factory.DjangoModelFactory):
         model = Activity
 
     user = factory.SubFactory(UserFactory)
-    model_distance = None
-    model_max_speed = None
+    distance = None
+    max_speed = None
     name = None
     description = None
     category = 'SL'

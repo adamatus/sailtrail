@@ -14,10 +14,10 @@ class TestLeaderboardViewIntegration(TestCase):
         self.user1 = UserFactory.create(username='test1')
         self.user2 = UserFactory.create(username='test2')
 
-        self.activity = ActivityFactory.create(model_max_speed=10,
+        self.activity = ActivityFactory.create(max_speed=10,
                                                user=self.user1)
-        ActivityFactory.create(model_max_speed=5, user=self.user1)
-        ActivityFactory.create(model_max_speed=7, user=self.user2)
+        ActivityFactory.create(max_speed=5, user=self.user1)
+        ActivityFactory.create(max_speed=7, user=self.user2)
 
     def test_leaderboard_renders_correct_template(self):
         response = self.client.get(reverse('leaderboards'))

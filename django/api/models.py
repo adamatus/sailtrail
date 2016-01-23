@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import QuerySet
 
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
+from activities import DATETIME_FORMAT_STR
 from analysis.stats import Stats
 from gps import gpx, sirf
 
@@ -36,8 +36,8 @@ class Activity(models.Model):
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
     user = models.ForeignKey(User, related_name='activity', null=False)
-    model_distance = models.FloatField(null=True)  # m
-    model_max_speed = models.FloatField(null=True)  # m/s
+    distance = models.FloatField(null=True)  # m
+    max_speed = models.FloatField(null=True)  # m/s
     name = models.CharField(max_length=255, null=True)
     description = models.TextField(null=True, blank=True)
     private = models.BooleanField(default=False)
@@ -80,37 +80,12 @@ class Activity(models.Model):
         """Get the duration for the activity"""
         return self.end - self.start
 
-    @property
-    def max_speed(self) -> str:
-        """Get the max speed for the activity"""
-        if self.model_max_speed is None:
-            pos = self.get_trackpoints()
-            stats = Stats(pos)
-            self.model_max_speed = stats.max_speed.magnitude
-            self.save()
-
-        speed = (self.model_max_speed * UNITS.m / UNITS.s).to(
-            UNIT_SETTING['speed'])
-        return '{:~.2f}'.format(speed)
-
-    @property
-    def distance(self) -> str:
-        """Get the distance for the activity"""
-        if self.model_distance is None:
-            pos = self.get_trackpoints()
-            stats = Stats(pos)
-            self.model_distance = stats.distance().magnitude
-            self.save()
-
-        dist = (self.model_distance * UNITS.m).to(UNIT_SETTING['dist'])
-        return '{:~.2f}'.format(dist)
-
     def compute_stats(self) -> None:
         """Compute the activity stats"""
         pos = self.get_trackpoints()
         stats = Stats(pos)
-        self.model_distance = stats.distance().magnitude
-        self.model_max_speed = stats.max_speed.magnitude
+        self.distance = stats.distance().magnitude
+        self.max_speed = stats.max_speed.magnitude
         self.start = pos[0]['timepoint']
         self.end = pos[-1]['timepoint']
         self.save()
@@ -156,7 +131,7 @@ class ActivityTrack(models.Model):
         return "ActivityTrack ({})".format(
             self._get_original_file().file.name)
 
-    def _get_activity(self):
+    def _get_activity(self) -> Activity:
         """Trivial helper to use related object to fetch activity.
 
         Added to allow for easy mocking of parent activity for unit testing"""

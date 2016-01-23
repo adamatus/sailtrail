@@ -83,12 +83,12 @@ def _get_activity_leaders() -> QuerySet:
     """Get the leaders for activities"""
     return Activity.objects.filter(private=False).values(
         'user__username', 'category').annotate(
-            max_speed=Max('model_max_speed')).order_by('-max_speed')
+            max_speed=Max('max_speed')).order_by('-max_speed')
 
 
 def summarize_by_category(activities: QuerySet) -> QuerySet:
     """Summarize activities by category"""
     return activities.values('category').annotate(
         count=Count('category'),
-        max_speed=Max('model_max_speed'),
-        total_dist=Sum('model_distance')).order_by('-max_speed')
+        max_speed=Max('max_speed'),
+        total_dist=Sum('distance')).order_by('-max_speed')

@@ -70,64 +70,6 @@ class TestActivityModel:
         # Then the sentinel time is returned
         assert activity.duration == 2
 
-    def test_max_speed_returns_existing_formatted_model_max_speed(self):
-        # Given a new activity with max speed
-        activity = Activity()
-        activity.model_max_speed = 10.0
-
-        # Expect the property to be a formatted speed string
-        assert activity.max_speed == "19.44 knots"
-
-    @patch('api.models.Stats')
-    def test_max_speed_property_computes_and_saves(self,
-                                                   stats_mock: MagicMock):
-        # Given a new activity and some mocks
-        activity = Activity()
-        activity.get_trackpoints = Mock(return_value=sentinel.pos)
-        stats_mock.return_value.max_speed.magnitude = 10
-        activity.save = Mock()
-
-        # When getting the max speed
-        max_speed = activity.max_speed
-
-        # Then the property returns a formatted speed string
-        assert max_speed == "19.44 knots"
-        assert activity.max_speed == "19.44 knots"  # get again
-
-        # and mocks were only called once
-        stats_mock.assert_called_once_with(sentinel.pos)
-        activity.get_trackpoints.assert_called_once_with()
-        activity.save.assert_called_once_with()
-
-    def test_distance_returns_existing_formatted_distance(self):
-        # Given a new activity with distance
-        activity = Activity()
-        activity.model_distance = 100.0
-
-        # Expect the property to be a formatted distance string
-        assert activity.distance == "0.05 nmi"
-
-    @patch('api.models.Stats')
-    def test_distance_property_computes_and_saves(self,
-                                                  stats_mock: MagicMock):
-        # Given a new activity and some mocks
-        activity = Activity()
-        activity.get_trackpoints = Mock(return_value=sentinel.pos)
-        stats_mock.return_value.distance.return_value.magnitude = 100
-        activity.save = Mock()
-
-        # When getting the max speed
-        distance = activity.distance
-
-        # Then the property returns a formatted speed string
-        assert distance == "0.05 nmi"
-        assert activity.distance == "0.05 nmi"  # get again
-
-        # and mocks were only called once
-        stats_mock.assert_called_once_with(sentinel.pos)
-        activity.get_trackpoints.assert_called_once_with()
-        activity.save.assert_called_once_with()
-
     @patch('api.models.Stats')
     def test_compute_stats_populates_model_fields(self,
                                                   stats_mock: MagicMock):
@@ -146,8 +88,8 @@ class TestActivityModel:
         activity.compute_stats()
 
         # Then the values were set as expected, after mock calls
-        assert activity.model_distance == sentinel.dist
-        assert activity.model_max_speed == sentinel.max_speed
+        assert activity.distance == sentinel.dist
+        assert activity.max_speed == sentinel.max_speed
         assert activity.start == 1
         assert activity.end == 2
         stats_mock.assert_called_once_with(pos)

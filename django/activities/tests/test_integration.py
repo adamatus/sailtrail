@@ -85,6 +85,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
         a = ActivityFactory(user=user)
         t = ActivityTrackFactory.create(activity=a)
         ActivityTrackpointFactory.create(track=t)
+        ActivityTrackpointFactory.create(track=t)
         t.reset_trim()
         self.client.login(username='test', password='password')
 

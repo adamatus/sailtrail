@@ -29,8 +29,10 @@ INSTALLED_APPS += (
     'debug_toolbar',
 )
 
-
-MIDDLEWARE_CLASSES.insert(1, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+MIDDLEWARE_CLASSES.insert(
+    1,
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
+)
 MIDDLEWARE_CLASSES += [
     'livereload.middleware.LiveReloadScript',
     'qinspect.middleware.QueryInspectMiddleware',
