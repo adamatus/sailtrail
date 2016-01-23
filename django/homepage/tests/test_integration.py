@@ -1,9 +1,9 @@
 import os.path
+import shutil
 import tempfile
 
-import pytest
 
-import shutil
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase

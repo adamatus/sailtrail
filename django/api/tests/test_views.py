@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import Mock, sentinel, patch, MagicMock
 
 import pytest
-
 from django.core.exceptions import PermissionDenied
 
 from api.views import WindDirection, JSONResponseMixin, BaseJSONView, \

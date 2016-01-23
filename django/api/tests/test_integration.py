@@ -1,15 +1,14 @@
 import os
+import shutil
 import tempfile
 from datetime import timedelta, time, date, datetime
 
 import pytest
-import shutil
-from pytz import timezone
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from pytz import timezone
 
 from api.models import Activity, ActivityTrack, ActivityTrackpoint
 from api.tests.factories import UserFactory, ActivityTrackpointFactory, \

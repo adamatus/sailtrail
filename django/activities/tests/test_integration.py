@@ -3,7 +3,6 @@ import shutil
 import tempfile
 
 import pytest
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase

@@ -6,7 +6,7 @@ from django.http import HttpRequest, HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect
 from django.views.generic import DetailView, UpdateView, View
 
-from .forms import ActivityDetailsForm
+from activities.forms import ActivityDetailsForm
 from api.helper import (create_new_activity_for_user, get_activity_by_id,
                         verify_private_owner)
 from api.models import Activity, ActivityTrack

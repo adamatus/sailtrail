@@ -1,10 +1,9 @@
 from datetime import datetime
 from math import floor
 
-from pytz import utc
-
 import factory
 from factory.fuzzy import FuzzyFloat
+from pytz import utc
 
 from api.models import (Activity, ActivityTrack,
                         ActivityTrackpoint)

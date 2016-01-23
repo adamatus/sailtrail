@@ -1,7 +1,6 @@
 """Activity view module"""
 import json
 
-from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
@@ -12,8 +11,6 @@ from api.helper import verify_private_owner
 from api.models import Activity, ActivityTrack
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
-
-USER = get_user_model()
 
 ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)

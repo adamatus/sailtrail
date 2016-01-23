@@ -2,8 +2,8 @@
 Helper module to compute stats on GPS tracks
 """
 import datetime
-import numpy as np
 
+import numpy as np
 from pint import UnitRegistry
 
 

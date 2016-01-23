@@ -5,7 +5,6 @@ from unittest.mock import Mock, sentinel, patch
 import pytz
 
 from gps import sirf
-from gps.sirf import create_trackpoints
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          '../../tests/assets')
@@ -57,7 +56,7 @@ class TestCreateTrackpoints:
         up_file.read.return_value = sentinel.sirf_raw
 
         # When creating trackpoints
-        tps = create_trackpoints(sentinel.track, up_file, trackpoint_mock)
+        tps = sirf.create_trackpoints(sentinel.track, up_file, trackpoint_mock)
 
         # Then the correct stuff happens
         assert len(tps) == 2

@@ -1,5 +1,4 @@
 """Model mapping for activities"""
-
 import os.path
 import uuid
 from datetime import datetime as dt, time, date, timedelta
