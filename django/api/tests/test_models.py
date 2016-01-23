@@ -96,15 +96,77 @@ class TestActivityModel:
         activity.save.assert_called_once_with()
 
     @patch("api.models.ActivityTrack")
-    def test_add_track_creates_new(self, track_mock: MagicMock):
+    def test_add_track_creates_new_and_populates_start_and_end_if_none(
+        self,
+        track_mock: MagicMock
+    ):
         # Given a new activity
         activity = Activity()
+        activity.save = Mock()
+
+        mock_track = Mock()
+        mock_track.trim_start = sentinel.start
+        mock_track.trim_end = sentinel.end
+        track_mock.create_new.return_value = mock_track
 
         # When adding a track
         activity.add_track(sentinel.file)
 
         # Then mock was called
         track_mock.create_new.assert_called_once_with(sentinel.file, activity)
+        assert activity.start == sentinel.start
+        assert activity.end == sentinel.end
+        activity.save.assert_called_once_with()
+
+    @patch("api.models.ActivityTrack")
+    def test_add_track_creates_new_and_populates_start_and_end_if_chance(
+        self,
+        track_mock: MagicMock
+    ):
+        # Given a new activity
+        activity = Activity()
+        activity.start = datetime(2016, 1, 1)
+        activity.end = datetime(2016, 1, 2)
+        activity.save = Mock()
+
+        mock_track = Mock()
+        mock_track.trim_start = datetime(2015, 1, 1)
+        mock_track.trim_end = datetime(2017, 1, 1)
+        track_mock.create_new.return_value = mock_track
+
+        # When adding a track
+        activity.add_track(sentinel.file)
+
+        # Then mock was called
+        track_mock.create_new.assert_called_once_with(sentinel.file, activity)
+        assert activity.start == datetime(2015, 1, 1)
+        assert activity.end == datetime(2017, 1, 1)
+        activity.save.assert_called_once_with()
+
+    @patch("api.models.ActivityTrack")
+    def test_add_track_creates_new_and_skips_save_if_times_inside_existing(
+        self,
+        track_mock: MagicMock
+    ):
+        # Given a new activity
+        activity = Activity()
+        activity.start = datetime(2015, 1, 1)
+        activity.end = datetime(2017, 1, 2)
+        activity.save = Mock()
+
+        mock_track = Mock()
+        mock_track.trim_start = datetime(2016, 1, 1)
+        mock_track.trim_end = datetime(2016, 1, 2)
+        track_mock.create_new.return_value = mock_track
+
+        # When adding a track
+        activity.add_track(sentinel.file)
+
+        # Then mock was called
+        track_mock.create_new.assert_called_once_with(sentinel.file, activity)
+        assert activity.start == datetime(2015, 1, 1)
+        assert activity.end == datetime(2017, 1, 2)
+        activity.save.assert_not_called()
 
     def test_get_trackpoints(self):
         # Given some track mocks
@@ -149,6 +211,30 @@ class TestActivityTrackModel:
         str_rep = track.__str__()
 
         assert str_rep == "ActivityTrack (TestFile.sbn)"
+
+    def test_delete_throws_if_only_track(self):
+        activity = Mock()
+        activity.tracks.count.return_value = 1
+        track = ActivityTrack()
+        track._get_activity = Mock(return_value=activity)
+
+        with pytest.raises(SuspiciousOperation):
+            track.delete()
+
+    @patch('api.models.models.Model.delete')
+    def test_calls_super_delete_and_recomputes_stats_for_activity(
+        self,
+        delete_mock
+    ):
+        activity = Mock()
+        activity.tracks.count.return_value = 2
+        track = ActivityTrack()
+        track._get_activity = Mock(return_value=activity)
+
+        track.delete(using=sentinel.using)
+
+        delete_mock.assert_called_once_with(using=sentinel.using)
+        activity.compute_stats.assert_called_once_with()
 
     def test_trim_does_nothing_with_no_input(self):
         track = ActivityTrack()

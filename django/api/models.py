@@ -97,8 +97,8 @@ class Activity(models.Model):
             self.start = track.trim_start
             do_save = True
         if self.end is None or self.end < track.trim_end:
-            self.end = track.time_end
-            do_save = False
+            self.end = track.trim_end
+            do_save = True
         if do_save:
             self.save()
 
@@ -150,7 +150,7 @@ class ActivityTrack(models.Model):
 
     def delete(self, using=None):
         """Delete track and have activity update stats"""
-        if self.activity.tracks.count() < 2:
+        if self._get_activity().tracks.count() < 2:
             raise SuspiciousOperation("Cannot delete final track in activity")
 
         super(ActivityTrack, self).delete(using=using)

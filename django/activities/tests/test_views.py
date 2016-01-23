@@ -296,6 +296,19 @@ class TestActivityTrackView(ViewMockMixin, unittest.TestCase):
 
         self.view = self.setup_view(ActivityTrackView)
 
+    @patch('activities.views.DetailView.get_queryset')
+    def test_get_queryset_calls_parent_and_selects_related(self, detail_mock):
+        queryset = Mock()
+        queryset.select_related.return_value = sentinel.queryset
+
+        detail_mock.return_value = queryset
+
+        view = ActivityTrackView()
+
+        result = view.get_queryset()
+        assert result == sentinel.queryset
+        queryset.select_related.assert_called_once_with('activity')
+
     def test_get_object_returns_track_if_current_user(self):
         # Given a mock parent that returns a mock track for current user
         mock_track = Mock()
