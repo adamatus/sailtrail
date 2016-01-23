@@ -1,4 +1,3 @@
-import os.path
 import shutil
 import tempfile
 
@@ -13,12 +12,10 @@ from activities.forms import (ActivityDetailsForm,
 from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
                                  ActivityTrackpointFactory)
+from tests.assets import get_test_file_data
 from users.tests.factories import UserFactory
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__), 'assets')
-
-with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
-    SBN_BIN = f.read()
+SBN_BIN = get_test_file_data('tiny.SBN')
 
 
 @pytest.mark.django_db

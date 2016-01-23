@@ -1,4 +1,3 @@
-import os
 from datetime import date, time, timedelta, datetime
 
 import pytest
@@ -6,13 +5,10 @@ import pytz
 
 from analysis.stats import Stats
 from gps import sirf
-
-ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         '../../tests/assets')
-TEST_FILE = os.path.join(ASSET_DIR, 'test-small.sbn')
+from tests.assets import get_test_file_path
 
 # Read in the points for the testfile
-d = sirf.read_sbn(TEST_FILE)
+d = sirf.read_sbn(get_test_file_path('test-small.sbn'))
 d = [x for x in d.pktq if x is not None]  # filter out Nones
 
 trackpoints = []

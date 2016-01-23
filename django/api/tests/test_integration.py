@@ -1,4 +1,3 @@
-import os
 import shutil
 import tempfile
 from datetime import timedelta, time, date, datetime
@@ -14,15 +13,10 @@ from api.models import Activity, ActivityTrack, ActivityTrackpoint
 from api.tests.factories import UserFactory, ActivityTrackpointFactory, \
     ActivityFactory
 from core import DATETIME_FORMAT_STR
+from tests.assets import get_test_file_data
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__),
-                          'assets')
-with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
-    SBN_BIN = f.read()
-    SBN_FILE = SimpleUploadedFile('test1.sbn', SBN_BIN)
-with open(os.path.join(ASSET_PATH, 'tiny-run.gpx'), 'rb') as f:
-    GPX_BIN = f.read()
-    GPX_FILE = SimpleUploadedFile('tiny-run.gpx', GPX_BIN)
+SBN_BIN = get_test_file_data('tiny.SBN')
+GPX_BIN = get_test_file_data('tiny-run.gpx')
 
 
 @pytest.mark.integration

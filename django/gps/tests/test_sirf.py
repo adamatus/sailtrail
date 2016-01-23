@@ -1,20 +1,16 @@
-import os
 from datetime import datetime
 from unittest.mock import Mock, sentinel, patch
 
 import pytz
 
 from gps import sirf
-
-ASSET_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         '../../tests/assets')
-TEST_FILE = os.path.join(ASSET_DIR, 'test-small.sbn')
+from tests.assets import get_test_file_path
 
 
 class TestSirf:
 
     def test_reading_of_sirf_file(self):
-        p = sirf.read_sbn(os.path.join(ASSET_DIR, 'test.sbn'))
+        p = sirf.read_sbn(get_test_file_path('test.sbn'))
         assert p.counts['rx'] == 679
         assert p.pktq[1]['date'] == '2013/07/09'
         assert p.pktq[1]['time'] == '23:54:47'
