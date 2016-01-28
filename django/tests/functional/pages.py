@@ -342,25 +342,30 @@ class ActivityTrackPage(BasePage):
         time.sleep(.5)
         return is_visible
 
+    def go_to_trim(self):
+        trim_button = self.browser.find_element_by_id('trim-track')
+        self.click_through_to_new_page(trim_button)
+
+    def click_untrim(self):
+        untrim_button = self.browser.find_element_by_link_text('Untrim Track')
+        self.click_through_to_new_page(untrim_button)
+
+
+class ActivityTrackTrimPage(BasePage):
+
     def press_right_arrow(self):
         time.sleep(.5)
         self.browser.find_element_by_tag_name('body').send_keys(
             Keys.ARROW_RIGHT
         )
 
-    def click_trim_start(self):
+    def press_down_arrow(self):
         time.sleep(.5)
-        self.browser.find_element_by_id('trim-start').click()
-
-    def click_trim_end(self):
-        time.sleep(.5)
-        self.browser.find_element_by_id('trim-end').click()
+        self.browser.find_element_by_tag_name('body').send_keys(
+            Keys.ARROW_DOWN
+        )
 
     def click_trim_activity(self):
         time.sleep(.5)
         trim_button = self.browser.find_element_by_id('trim-activity')
         self.click_through_to_new_page(trim_button)
-
-    def click_untrim(self):
-        untrim_button = self.browser.find_element_by_link_text('Untrim')
-        self.click_through_to_new_page(untrim_button)

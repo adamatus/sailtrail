@@ -13,6 +13,9 @@ module.exports = {
     y: undefined,
     units: undefined,
     marker_pos: 0,
+    trim_track: false,
+    lower_marker: undefined,
+    upper_marker: undefined,
 
     /**
      * Main function to initialize plot
@@ -22,7 +25,7 @@ module.exports = {
      * @param {Object} units Object holding the current unit details
      * @param {Element} time_slider The time-slider to use
      */
-    draw_plot: function(data, max_speed, units, time_slider) {
+    draw_plot: function(data, max_speed, units, time_slider, trim_slider) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
@@ -39,6 +42,9 @@ module.exports = {
             self = this;
 
         this.units = units;
+
+        this.lower_marker = 0;
+        this.upper_marker = data.time.length - 1;
 
         this.line_factory = d3.svg.line();
 
@@ -118,20 +124,34 @@ module.exports = {
             .style('fill', 'none')
             .style('stroke-width', 3);
 
-        this.marker = this.plot.append('svg:circle')
-            .attr('r', 5)
-            .attr('cx', this.x(this.times[this.marker_pos]))
-            .attr('cy', this.y(this.speeds[this.marker_pos]))
-            .style('fill', 'black')
-            .style('stroke', 'black')
-            .style('stroke-width', 3);
-
         // Register with slider to update positional marker
         if (time_slider) {
-            time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
+            this.marker = this.plot.append('svg:circle')
+                .attr('r', 5)
+                .attr('cx', this.x(this.times[this.marker_pos]))
+                .attr('cy', this.y(this.speeds[this.marker_pos]))
+                .style('fill', 'black')
+                .style('stroke', 'black')
+                .style('stroke-width', 3);
+
+            time_slider.on('slide', function update_marker_pos(slideEvnt, d) {
                 var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
+            });
+        }
+
+        // Register with trim slider to update color for trimming. For now,
+        // assuming that we will never enable show-only-last-minute while trimming
+        if (trim_slider) {
+            this.trim_track = true;
+
+            trim_slider.on('slide', function update_trim_slider_data(slideEvnt, d) {
+                var newdata = d || slideEvnt.value;
+
+                self.lower_marker = newdata[0];
+                self.upper_marker = newdata[1];
+                self.update_plot();
             });
         }
 
@@ -165,10 +185,14 @@ module.exports = {
         var self = this,
             data;
 
-        if (this.filter_track) {
+        if (this.trim_track || this.filter_track) {
+            if (this.filter_track) {
+                this.upper_marker = self.marker_pos;
+                this.lower_marker = self.marker_pos - 60;
+            }
             data = _.zip(this.times, this.speeds);
             data = data.filter(function(d, i) {
-                return (i <= self.marker_pos) && (i > (self.marker_pos - 60));
+                return (i <= self.upper_marker) && (i >= self.lower_marker);
             });
 
             this.colored_line.attr('d', this.line_factory(data));

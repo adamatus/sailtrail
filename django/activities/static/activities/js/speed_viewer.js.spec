@@ -39,7 +39,7 @@ describe('speed_viewer', function() {
 
     describe('move_marker', function() {
         beforeEach(function() {
-            speed_viewer.draw_plot(pos, null, units);
+            speed_viewer.draw_plot(pos, null, units, {on: function() {}});
         });
 
         afterEach(function() {

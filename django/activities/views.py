@@ -122,6 +122,11 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         return context
 
 
+class ActivityTrackTrimView(ActivityTrackView):
+    """Activity Track view"""
+    template_name = 'track_trim.html'
+
+
 class ActivityTrackDownloadView(DetailView):
     """Activity Track Download view"""
     model = ActivityTrack

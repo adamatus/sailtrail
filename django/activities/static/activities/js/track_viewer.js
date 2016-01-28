@@ -9,6 +9,9 @@ module.exports = {
     map: null,
     marker: null,
     marker_pos: 0,
+    trim_track: false,
+    lower_marker: undefined,
+    upper_marker: undefined,
     // tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     // attribution: '&copy; <a
     // href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -36,7 +39,7 @@ module.exports = {
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Element} time_slider Time-slider element
      */
-    draw_map: function(data, max_speed, time_slider) {
+    draw_map: function(data, max_speed, time_slider, trim_slider) {
         var i,
             trkpnt,
             self = this;
@@ -78,6 +81,8 @@ module.exports = {
             maxZoom: 18,
         }).addTo(this.map);
 
+        this.map.fitBounds(this.latlng);
+
         this.color_scale = d3.scale.linear()
             .domain([
                 0,
@@ -95,7 +100,9 @@ module.exports = {
             opacity: 0.5,
         });
 
-        this.full_track = this.create_geo_json_layer(this.geo_json).addTo(this.map);
+        if (!trim_slider) {
+            this.full_track = this.create_geo_json_layer(this.geo_json).addTo(this.map);
+        }
 
         this.filtered_track = this.create_geo_json_layer(
             this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
@@ -104,16 +111,34 @@ module.exports = {
             radius: 6,
             color: 'red',
             weight: 3,
-        }).addTo(this.map);
-
-        this.map.fitBounds(this.latlng);
+        });
 
         // Register with slider to update positional marker
         if (time_slider) {
+            this.marker.addTo(this.map);
             time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
                 var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
+            });
+        }
+
+        if (trim_slider) {
+            this.trim_track = true;
+            this.base_track.addTo(this.map);
+            this.full_track = L.polyline(this.latlng, {
+                smoothFactor: 0,
+                color: 'black',
+                weight: 3,
+                opacity: 0.5,
+            }).addTo(this.map);
+
+            trim_slider.on('slide', function update_trim_slider_data(slideEvnt, d) {
+                var newdata = d || slideEvnt.value;
+
+                self.lower_marker = newdata[0];
+                self.upper_marker = newdata[1];
+                self.update_track();
             });
         }
 
@@ -134,7 +159,9 @@ module.exports = {
      * @returns boolean
      */
     filter_recent_timepoints: function(data) {
-        return (data.properties.id <= this.marker_pos) && (data.properties.id > (this.marker_pos - 60));
+        this.lower_marker = this.marker_pos - 60;
+        this.upper_marker = this.marker_pos;
+        return (data.properties.id <= this.upper_marker) && (data.properties.id > (this.lower_marker));
     },
 
     /**
@@ -158,6 +185,8 @@ module.exports = {
      * Apply recency filtering, if necessary.
      */
     update_track: function() {
+        var self = this;
+
         if (this.filter_track) {
             if (this.filter_state_changed) {
                 // On initial change to filtered, remove full layer, add base
@@ -172,11 +201,16 @@ module.exports = {
 
             // Create new filtered layer
             this.filtered_track = this.create_geo_json_layer(
-                this.geo_json.filter(this.filter_recent_timepoints.bind(this)));
+                this.geo_json.filter(
+                    this.filter_recent_timepoints.bind(this)));
 
             // Add filtered track and layers
             this.map.addLayer(this.filtered_track);
             this.map.addLayer(this.marker);
+        } else if (this.trim_track) {
+            this.full_track.setLatLngs(this.latlng.filter(function(d, i) {
+                return i >= self.lower_marker && i <= self.upper_marker;
+            }));
         } else if (this.filter_state_changed) {
             // Only reset back to unfiltered once, not on every call
             this.filter_state_changed = false;
