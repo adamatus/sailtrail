@@ -2,8 +2,8 @@
 Helper module to compute stats on GPS tracks
 """
 import datetime
-import numpy as np
 
+import numpy as np
 from pint import UnitRegistry
 
 
@@ -115,7 +115,7 @@ class Stats(object):
         return np.sum(dist)
 
     def bearing(self) -> list:
-        """Calculate the instantaneous bearing at each trackpoint"""
+        """Calculate the instantaneous bearing between each trackpoint pair"""
 
         lats = np.deg2rad(np.asarray([x['lat'] for x in self.trackpoints]))
         lons = np.deg2rad(np.asarray([x['lon'] for x in self.trackpoints]))

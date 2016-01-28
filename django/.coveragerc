@@ -1,10 +1,18 @@
 [run]
 branch = True
-omit = 
+omit =
 	*/migrations/*
     */functional/*
+	**/test_*
     manage.py
     sailtrail/wsgi.py
 
+[report]
+exclude_lines =
+    pragma: unit cover ignore
+
 [html]
 directory = ../.cover/python/units
+
+[xml]
+output = ../.cover/python/units/coverage.xml

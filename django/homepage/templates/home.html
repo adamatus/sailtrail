@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
+{% load unit_conversions %}
 
 {% block title_text %}Home{% endblock %}
 
 {% block main_section %}
-    {% load unit_conversions %}
     <h1>SailTrail</h1>
     <p>The best place to track and analyze windsports activites</p>
     <div class="row">
@@ -27,7 +27,7 @@
                     <ul class="list-inline">
                         <li class="activity-date">{{ activity.date }}</li>
                         <li class="activity-time">{{ activity.start_time }}</li>
-                        <li class="activity-max-speed">{{ activity.model_max_speed|speed }}
+                        <li class="activity-max-speed">{{ activity.max_speed|speed }}
                             max
                         </li>
                         <li class="activity-category">{{ activity.get_category_display }}</li>
