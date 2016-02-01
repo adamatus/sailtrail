@@ -23,6 +23,7 @@ activity_viewer = {
     do_polars: true,
     do_slider: true,
     do_trim_slider: false,
+    config: undefined,
 
     /**
      * Initialize all the parts of an activity page asynchronously
@@ -34,6 +35,7 @@ activity_viewer = {
      * @param {Object} config Optional config object
      */
     init: function(urls, max_speed, wind_direction, units, config) {
+        this.config = config;
         this.max_speed = max_speed;
         this.units = units;
         this.wind_direction = wind_direction;
@@ -64,14 +66,16 @@ activity_viewer = {
             this.setup_slider();
         }
         if (this.do_trim_slider) {
+            this.config.trim_start_index = data.time.indexOf(this.config.trim_start);
+            this.config.trim_end_index = data.time.indexOf(this.config.trim_end);
             this.trim_slider = $('#trim-slider');
             this.setup_trim_slider();
         }
         if (this.do_track) {
-            track_viewer.draw_map(this.data, this.max_speed, this.time_slider, this.trim_slider);
+            track_viewer.draw_map(this.data, this.max_speed, this.time_slider, this.trim_slider, this.config);
         }
         if (this.do_speed) {
-            speed_viewer.draw_plot(this.data, this.max_speed, this.units, this.time_slider, this.trim_slider);
+            speed_viewer.draw_plot(this.data, this.max_speed, this.units, this.time_slider, this.trim_slider, this.config);
         }
         if (this.do_polars) {
             polar_viewer.draw_plot(this.data, this.wind_direction, this.time_slider, this.urls.winddir);
@@ -124,7 +128,8 @@ activity_viewer = {
         this.trim_slider.slider({
             max: this.data.time.length - 1,
             range: true,
-            value: [0, this.data.time.length - 1],
+            value: [this.config.trim_start_index || 0,
+                    this.config.trim_end_index || this.data.time.length - 1],
             tooltip_split: true,
             formatter: function(value) {
                 if (value < 0) {

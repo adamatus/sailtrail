@@ -73,6 +73,24 @@ def track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
     return return_json(pos)
 
 
+def full_track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
+        HttpResponse:
+    """Track data API endpoint handler, to return full track"""
+    del activity_id  # delete activity_id as it is not attached to track
+
+    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
+
+    # Check to see if current user can see this, 403 if necessary
+    Helper.verify_private_owner(track.activity_id, request)
+
+    pos = list(track.get_trackpoints(filtered=False).values('sog',
+                                                            'lat',
+                                                            'lon',
+                                                            'timepoint'))
+
+    return return_json(pos)
+
+
 def return_json(pos: list) -> HttpResponse:
     """Helper method to return JSON data"""
 

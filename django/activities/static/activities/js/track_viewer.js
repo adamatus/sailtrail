@@ -38,8 +38,10 @@ module.exports = {
      * @param {Object} data Arrays of track info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Element} time_slider Time-slider element
+     * @param {Element} trim_slider Trim-slider element
+     * @param {Object} config Optional config details
      */
-    draw_map: function(data, max_speed, time_slider, trim_slider) {
+    draw_map: function(data, max_speed, time_slider, trim_slider, config) {
         var i,
             trkpnt,
             self = this;
@@ -126,7 +128,15 @@ module.exports = {
         if (trim_slider) {
             this.trim_track = true;
             this.base_track.addTo(this.map);
-            this.full_track = L.polyline(this.latlng, {
+
+            if (config) {
+                self.lower_marker = config.trim_start_index || self.lower_marker;
+                self.upper_marker = config.trim_end_index || self.upper_marker;
+            }
+
+            this.full_track = L.polyline(this.latlng.filter(function(d, j) {
+                return j >= self.lower_marker && j <= self.upper_marker;
+            }), {
                 smoothFactor: 0,
                 color: 'black',
                 weight: 3,

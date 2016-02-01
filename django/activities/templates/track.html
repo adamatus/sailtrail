@@ -29,6 +29,8 @@
         {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
     {% endif %}
     {% if track.trimmed %}
+        <a href="{% url 'edit_track_trim' track.activity_id.id track.id %}"
+           class="btn btn-default">Adjust Trim</a>
         <a href="{% url 'untrim_track' track.activity_id.id track.id %}"
            class="btn btn-default">Untrim Track</a>
     {% else %}

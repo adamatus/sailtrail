@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.views.generic import DetailView, UpdateView, View
 
 from .forms import ActivityDetailsForm
-from activities import UNIT_SETTING
+from activities import UNIT_SETTING, DATETIME_FORMAT_STR
 from api.models import Activity, ActivityTrack, Helper
 from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
@@ -125,6 +125,14 @@ class ActivityTrackView(UploadFormMixin, DetailView):
 class ActivityTrackTrimView(ActivityTrackView):
     """Activity Track view"""
     template_name = 'track_trim.html'
+
+    def get_context_data(self, **kwargs) -> dict:
+        """Add additional content to the user page"""
+        context = super(ActivityTrackTrimView, self).get_context_data(**kwargs)
+        track = self.get_object()
+        context['start_time'] = track.trim_start.strftime(DATETIME_FORMAT_STR)
+        context['end_time'] = track.trim_end.strftime(DATETIME_FORMAT_STR)
+        return context
 
 
 class ActivityTrackDownloadView(DetailView):

@@ -16,6 +16,7 @@ module.exports = {
     trim_track: false,
     lower_marker: undefined,
     upper_marker: undefined,
+    config: undefined,
 
     /**
      * Main function to initialize plot
@@ -23,9 +24,11 @@ module.exports = {
      * @param {Object} data Object containing arrays with time and speed info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
-     * @param {Element} time_slider The time-slider to use
+     * @param {Element} time_slider The time-slider to use, if present
+     * @param {Element} trim_slider The trim-slider to use, if present
+     * @param {Object} config The extra config details, if present
      */
-    draw_plot: function(data, max_speed, units, time_slider, trim_slider) {
+    draw_plot: function(data, max_speed, units, time_slider, trim_slider, config) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
@@ -145,6 +148,16 @@ module.exports = {
         // assuming that we will never enable show-only-last-minute while trimming
         if (trim_slider) {
             this.trim_track = true;
+
+            if (config) {
+                if (config.trim_start_index) {
+                    self.lower_marker = config.trim_start_index;
+                }
+                if (config.trim_end_index) {
+                    self.upper_marker = config.trim_end_index;
+                }
+                self.update_plot();
+            }
 
             trim_slider.on('slide', function update_trim_slider_data(slideEvnt, d) {
                 var newdata = d || slideEvnt.value;
