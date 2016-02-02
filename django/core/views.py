@@ -1,7 +1,7 @@
 """Shared view mixins"""
 from django.views.generic import TemplateView
 
-from .forms import UploadFileForm
+from core.forms import UploadFileForm
 
 
 class UploadFormMixin(object):

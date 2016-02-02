@@ -1,4 +1,4 @@
-"""Routing for activity related pages"""
+"""Routing for user related pages"""
 from django.conf.urls import url
 
 from .views import UserView, UserListView, UserSettingsView

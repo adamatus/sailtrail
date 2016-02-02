@@ -1,420 +1,372 @@
-import os.path
-import shutil
-import tempfile
-from unittest.mock import patch, sentinel, MagicMock, Mock
+from unittest.mock import patch, sentinel, Mock
 
 import pytest
-import unittest
-
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test import TestCase, RequestFactory
 
-from activities.forms import (ActivityDetailsForm,
-                              ERROR_ACTIVITY_NAME_MISSING,
-                              ERROR_ACTIVITY_CATEGORY_MISSING)
-from activities.views import UploadView, UploadTrackView, \
-    DetailsView, ActivityTrackView
-from api.models import Activity, ActivityTrack
-from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
-                                 ActivityTrackpointFactory)
-from users.tests.factories import UserFactory
-
-ASSET_PATH = os.path.join(os.path.dirname(__file__), 'assets')
-
-with open(os.path.join(ASSET_PATH, 'tiny.SBN'), 'rb') as f:
-    SBN_BIN = f.read()
+from activities.views import (UploadView, UploadTrackView,
+                              DetailsView, ActivityTrackView, ActivityView,
+                              ActivityTrackDownloadView)
 
 
-class TestFileUploadView(unittest.TestCase):
+class TestUploadView:
 
-    def setUp(self):
-        self.user = UserFactory.stub()
-        self.request = RequestFactory()
-        self.request.user = self.user
-        self.request.POST = sentinel.POST
-        self.request.FILES = sentinel.FILES
-        self.view = UploadView()
-
-    @patch('activities.views.UploadFileForm')
-    def test_post_raises_suspicious_operation_on_bad_form(self,
-                                                          upload_form_mock):
+    @patch('activities.views.UploadFileForm', spec=True)
+    def test_post_raises_suspicious_operation_on_bad_form(self, up_mock):
+        # Given an upload file form mock that is marked as invalid
         form = Mock()
         form.is_valid.return_value = False
-        upload_form_mock.return_value = form
+        up_mock.return_value = form
 
-        with self.assertRaises(SuspiciousOperation):
-            self.view.post(self.request)
+        view = UploadView()
 
-        upload_form_mock.assert_called_with(sentinel.POST, sentinel.FILES)
+        # When posting to the view, Then a suspicious operation will be raised
+        with pytest.raises(SuspiciousOperation):
+            view.post(Mock(POST=sentinel.POST, FILES=sentinel.FILES))
+
+        # and the upload form will be created with the correct request data
+        up_mock.assert_called_with(sentinel.POST,
+                                   sentinel.FILES)
 
     @patch('activities.views.redirect')
-    @patch('activities.views.Activity')
+    @patch('activities.views.create_new_activity_for_user')
     @patch('activities.views.UploadFileForm')
     def test_post_creates_track_for_each_file_and_redirects(self,
-                                                            upload_form_mock,
-                                                            activity_mock,
-                                                            redirect_mock):
-        form = Mock()
+                                                            up_mock,
+                                                            create_mock,
+                                                            redir_mock):
+        # Given an upload file form mock that is marked as valid and has files
+        form = Mock(cleaned_data=dict(upfile=[sentinel.file1,
+                                              sentinel.file2]))
         form.is_valid.return_value = True
-        form.cleaned_data = dict(upfile=[sentinel.file1, sentinel.file2])
-        upload_form_mock.return_value = form
+        up_mock.return_value = form
 
-        created_mock = MagicMock()
-        created_mock.id = sentinel.id
-        activity_mock.objects.create.return_value = created_mock
+        # and a create activity mock that returns a mock new activity
+        new_activity_mock = Mock(id=sentinel.id)
+        create_mock.return_value = new_activity_mock
 
-        redirect_mock.return_value = sentinel.response
+        view = UploadView()
 
-        response = self.view.post(self.request)
+        redir_mock.return_value = sentinel.response
 
-        activity_mock.objects.create.assert_called_with(user=self.request.user)
-        created_mock.add_track.assert_any_call(sentinel.file1)
-        created_mock.add_track.assert_any_call(sentinel.file2)
+        # When posting the request to the view
+        response = view.post(Mock(POST=sentinel.POST,
+                                  FILES=sentinel.FILES,
+                                  user=sentinel.user))
 
-        redirect_mock.assert_called_with('details', sentinel.id)
+        # Then the helper will be called with the request user
+        create_mock.assert_called_with(user=sentinel.user)
 
-        self.assertEqual(response, sentinel.response)
+        # and the files will be added to the new activity
+        new_activity_mock.add_track.assert_any_call(sentinel.file1)
+        new_activity_mock.add_track.assert_any_call(sentinel.file2)
+
+        # and the correct redirect response will be returned
+        redir_mock.assert_called_with('details', sentinel.id)
+        assert response == sentinel.response
 
 
-class TestUploadTrackView(unittest.TestCase):
+class TestUploadTrackView:
 
-    def setUp(self):
-        self.user = UserFactory.stub()
-        self.request = RequestFactory()
-        self.request.user = self.user
-        self.request.POST = sentinel.POST
-        self.request.FILES = sentinel.FILES
-        self.view = UploadTrackView()
+    @patch('activities.views.get_activity_by_id')
+    def test_post_raises_permission_denied_if_not_owner(self, get_mock):
+        # Given a mock that returns a mock activity with different user
+        get_mock.return_value = Mock(user=sentinel.other)
 
-    @patch('activities.views.Activity')
-    def test_post_raises_permission_denied_if_not_owner(self,
-                                                        activity_mock):
-        found_activity = MagicMock()
-        found_activity.user = UserFactory.stub()
-        activity_mock.objects.get.return_value = found_activity
+        view = UploadTrackView()
 
-        with self.assertRaises(PermissionDenied):
-            self.view.post(self.request, sentinel.activity_id)
+        # When posting to the view, Then a permission denied will be raised
+        with pytest.raises(PermissionDenied):
+            view.post(Mock(user=sentinel.user), sentinel.activity_id)
 
-        activity_mock.objects.get.assert_called_with(id=sentinel.activity_id)
+        # and the mock will be called with the activity id
+        get_mock.assert_called_with(sentinel.activity_id)
 
     @patch('activities.views.UploadFileForm')
-    @patch('activities.views.Activity')
+    @patch('activities.views.get_activity_by_id')
     def test_post_raises_suspicious_operation_on_bad_form(self,
-                                                          activity_mock,
-                                                          upload_form_mock):
-        found_activity = MagicMock()
-        found_activity.user = self.user
-        activity_mock.objects.get.return_value = found_activity
+                                                          get_mock,
+                                                          up_mock):
+        # Given a mock that returns a mock activity for current user
+        get_mock.return_value = Mock(user=sentinel.user)
 
+        # and an upload form mock that is marked as invalid
         form = Mock()
         form.is_valid.return_value = False
-        upload_form_mock.return_value = form
+        up_mock.return_value = form
 
-        with self.assertRaises(SuspiciousOperation):
-            self.view.post(self.request, sentinel.activity_id)
+        view = UploadTrackView()
 
-        upload_form_mock.assert_called_with(sentinel.POST, sentinel.FILES)
+        # When posting to the view, Then a suspicious operation will be raised
+        with pytest.raises(SuspiciousOperation):
+            view.post(Mock(user=sentinel.user,
+                           POST=sentinel.POST,
+                           FILES=sentinel.FILES),
+                      sentinel.activity_id)
+
+        # and the upload form will be called with the request data
+        up_mock.assert_called_with(sentinel.POST, sentinel.FILES)
 
     @patch('activities.views.redirect')
-    @patch('activities.views.Activity')
     @patch('activities.views.UploadFileForm')
+    @patch('activities.views.get_activity_by_id')
     def test_post_creates_track_for_each_file_and_redirects(self,
-                                                            upload_form_mock,
-                                                            activity_mock,
-                                                            redirect_mock):
-        found_activity = MagicMock()
-        found_activity.user = self.user
-        found_activity.id = sentinel.id
-        activity_mock.objects.get.return_value = found_activity
+                                                            get_mock,
+                                                            up_mock,
+                                                            redir_mock):
+        # Given a get_activity mock that returns a mock activity
+        found_activity = Mock(user=sentinel.user, id=sentinel.id)
+        get_mock.return_value = found_activity
 
-        form = Mock()
+        # and an upload form mock that is valid and has files
+        form = Mock(cleaned_data=dict(upfile=[sentinel.file1,
+                                              sentinel.file2]))
         form.is_valid.return_value = True
-        form.cleaned_data = dict(upfile=[sentinel.file1, sentinel.file2])
-        upload_form_mock.return_value = form
+        up_mock.return_value = form
 
-        redirect_mock.return_value = sentinel.response
+        redir_mock.return_value = sentinel.response
 
-        response = self.view.post(self.request, sentinel.activity_id)
+        view = UploadTrackView()
 
+        # When positing to the view
+        response = view.post(Mock(user=sentinel.user,
+                                  FILES=sentinel.FILES,
+                                  POST=sentinel.POST),
+                             sentinel.activity_id)
+
+        # Then the files will be added as tracks to the activity
         found_activity.add_track.assert_any_call(sentinel.file1)
         found_activity.add_track.assert_any_call(sentinel.file2)
 
-        redirect_mock.assert_called_with('view_activity', pk=sentinel.id)
-
-        self.assertEqual(response, sentinel.response)
-
-
-@pytest.mark.integration
-class TestFileUploadViewIntegration(TestCase):
-
-    def setUp(self):
-        self.user = UserFactory.create(username='test')
-        self.client.login(username='test', password='password')
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-    def test_saving_POST_request(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            self.client.post(reverse('upload'),
-                             data={'upfile': test_file})
-
-            self.assertEqual(ActivityTrack.objects.count(), 1)
-            new_activity = ActivityTrack.objects.first()
-            self.assertEqual(new_activity.original_filename,
-                             'test1.sbn')
-
-    # TODO This test is very slow as it's actually parsing
-    # the uploaded SBN!
-    def test_POST_request_redirects_to_new_activity_page(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
-            test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
-
-            response = self.client.post(reverse('upload'),
-                                        data={'upfile': test_file})
-            self.assertRedirects(response,
-                                 reverse('details',
-                                         args=[1]))
+        # and the response will be the redirected response
+        redir_mock.assert_called_with('view_activity', pk=sentinel.id)
+        assert response == sentinel.response
 
 
-class TestDetailsView(unittest.TestCase):
+class TestDetailsView:
 
-    def setUp(self):
-        self.user = UserFactory.stub()
-        self.request = RequestFactory()
-        self.request.user = self.user
+    @patch('activities.views.UpdateView.get_object')
+    def test_get_object_returns_activity_if_current_user(self, mock):
+        # Given a mocked queryset that will return a mock activity for
+        # the current user
+        mock.return_value = Mock(user=sentinel.user)
+
         view = DetailsView()
-        view.request = self.request
-        view.object = Mock()
-        view.pk_url_kwarg = 'pk'
-        view.kwargs = dict(pk=1)
-        self.view = view
+        view.request = Mock(user=sentinel.user)
 
-    def test_get_object_returns_activity_if_current_user(self):
-        mock_queryset = Mock()
-        mock_queryset2 = Mock()
-        mock_activity = Mock()
-        mock_activity.user = self.user
-        mock_queryset.filter.return_value = mock_queryset2
-        mock_queryset2.get.return_value = mock_activity
+        # When getting the object
+        activity = view.get_object()
 
-        activity = self.view.get_object(queryset=mock_queryset)
+        # Then the mock activity will be returned
+        assert activity == mock.return_value
 
-        self.assertEqual(activity, mock_activity)
+    @patch('activities.views.UpdateView.get_object')
+    def test_get_object_raises_permission_error_if_not_current_user(
+        self,
+        mock
+    ):
+        # Given a mocked queryset that will return a mock activity for
+        # a different user
+        mock.return_value = Mock(user=sentinel.other)
 
-    def test_get_object_raises_persmission_error_if_not_current_user(self):
-        mock_queryset = Mock()
-        mock_queryset2 = Mock()
-        mock_activity = Mock()
-        mock_activity.user = UserFactory.stub()
-        mock_queryset.filter.return_value = mock_queryset2
-        mock_queryset2.get.return_value = mock_activity
+        view = DetailsView()
+        view.request = Mock(user=sentinel.user)
 
-        with self.assertRaises(PermissionDenied):
-            self.view.get_object(queryset=mock_queryset)
+        # When getting the object, Then a permission denied will be raised
+        with pytest.raises(PermissionDenied):
+            view.get_object()
 
-    def test_get_context_adds_delete_cancel_link(self):
-        self.view.object.id = 1
-        self.view.object.name = None
+    @patch('activities.views.UpdateView.get_context_data')
+    def test_get_context_adds_delete_cancel_link(self, mock):
+        # Given a mock object in the view with no name
+        view = DetailsView()
+        view.object = Mock(id=1)
+        view.object.name = None
 
-        context = self.view.get_context_data()
+        mock.return_value = dict(super=sentinel.super)
 
+        # and a known delete link
         link = reverse('delete_activity', args=[1])
 
-        self.assertEqual(context['cancel_link'], link)
+        # When getting the context data
+        context = view.get_context_data()
 
-    def test_get_context_adds_view_cancel_link(self):
-        self.view.object.id = 1
-        self.view.object.name = 'Something'
+        # Then the delete link will be added to the context
+        assert context['cancel_link'] == link
+        assert context['super'] == sentinel.super
 
-        context = self.view.get_context_data()
+    @patch('activities.views.UpdateView.get_context_data')
+    def test_get_context_adds_view_cancel_link(self, mock):
+        # Given a mock object in the view with an existing name
+        view = DetailsView()
+        view.object = Mock(id=1)
+        view.object.name = 'Something'
 
+        mock.return_value = {}
+
+        # and a known cancel link
         link = reverse('view_activity', args=[1])
 
-        self.assertEqual(context['cancel_link'], link)
+        # When getting the context data
+        context = view.get_context_data()
+
+        # Then the delete link will be added to the context
+        assert context['cancel_link'] == link
 
 
-@pytest.mark.integration
-class TestNewActivityDetailViewIntegration(TestCase):
+class TestActivityView:
 
-    def setUp(self):
-        user = UserFactory.create(username="test")
-        a = ActivityFactory(user=user)
-        t = ActivityTrackFactory.create(activity_id=a)
-        ActivityTrackpointFactory.create(track_id=t)
-        t.initialize_stats()
-        self.client.login(username='test', password='password')
+    @patch('activities.views.verify_private_owner')
+    @patch('activities.views.DetailView.get_object')
+    def test_get_object_returns_activity_after_verify(self, get_mock,
+                                                      verify_mock):
+        # Given a mock parent that returns a mock activity for current user
+        view = ActivityView()
+        view.request = sentinel.req
 
-    def test_new_view_uses_activity_details_template(self):
-        response = self.client.get(reverse('details', args=[1]))
-        self.assertTemplateUsed(response, 'activity_details.html')
+        get_mock.return_value = sentinel.activity
 
-    def test_new_view_uses_new_session_form(self):
-        response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['form'],
-                              ActivityDetailsForm)
+        # When getting the object
+        activity = view.get_object()
 
-    def test_POST_to_new_view_redirects_to_activity(self):
-        response = self.client.post(
-            reverse('details', args=[1]),
-            data={'name': 'Test post',
-                  'category': 'SK',
-                  'description': 'Test description'})
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        # Then the mock activity is returned and helper called
+        assert activity == sentinel.activity
+        verify_mock.assert_called_with(sentinel.activity, sentinel.req)
 
-    def test_POST_with_valid_input_saves_details(self):
-        name = 'Test name'
-        desc = 'Test description'
-        self.client.post(
-            reverse('details', args=[1]),
-            data={'name': name,
-                  'category': 'SK',
-                  'description': desc})
-        new_details = Activity.objects.first()
-        self.assertEqual(new_details.name, name)
+    @patch('activities.views.DetailView.get_context_data')
+    def test_get_context_adds_units_and_errors(self, get_mock):
+        view = ActivityView()
+        get_mock.return_value = dict(super=sentinel.super)
 
-    def test_POST_without_name_displays_error(self):
-        name = ''
-        desc = 'Test description'
-        response = self.client.post(
-            reverse('details', args=[1]),
-            data={'name': name,
-                  'category': 'SK',
-                  'description': desc})
-        self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
+        # When getting the context data
+        context = view.get_context_data()
 
-    def test_POST_without_category_displays_error(self):
-        name = 'Name'
-        desc = 'Test description'
-        response = self.client.post(
-            reverse('details', args=[1]),
-            data={'name': name,
-                  'description': desc})
-        self.assertContains(response, ERROR_ACTIVITY_CATEGORY_MISSING)
+        # Then the val_errors and units fields are included
+        assert context['val_errors'] is not None
+        assert context['units'] is not None
+        assert context['super'] == sentinel.super
 
 
-@pytest.mark.integration
-class TestActivityDetailViewIntegration(TestCase):
+class TestActivityTrackView:
 
-    def setUp(self):
-        user = UserFactory.create(username="test")
-        a = ActivityFactory(user=user)
-        t = ActivityTrackFactory.create(activity_id=a)
-        ActivityTrackpointFactory.create(track_id=t)
-        t.initialize_stats()
-        self.client.login(username='test', password='password')
+    @patch('activities.views.DetailView.get_queryset')
+    def test_get_queryset_calls_parent_and_selects_related(self, detail_mock):
+        queryset = Mock()
+        queryset.select_related.return_value = sentinel.queryset
 
-    def test_detail_view_uses_activity_details_template(self):
-        response = self.client.get(reverse('details', args=[1]))
-        self.assertTemplateUsed(response, 'activity_details.html')
+        detail_mock.return_value = queryset
 
-    def test_detail_view_uses_new_session_form(self):
-        response = self.client.get(reverse('details', args=[1]))
-        self.assertIsInstance(response.context['form'],
-                              ActivityDetailsForm)
-
-    def test_detail_view_shows_current_values(self):
-        details = Activity.objects.first()
-        response = self.client.get(reverse('details', args=[1]))
-        self.assertContains(response, details.name)
-        self.assertContains(response, details.description)
-
-    def test_POST_to_detail_view_redirects_to_activity(self):
-        response = self.client.post(
-            reverse('details', args=[1]),
-            data={'name': 'Test post',
-                  'category': 'SK',
-                  'description': 'Test description'})
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
-
-    def test_POST_with_valid_input_saves_details(self):
-        name = 'Test name'
-        desc = 'Test description'
-        self.client.post(
-            reverse('details', args=[1]),
-            data={'name': name,
-                  'category': 'SK',
-                  'description': desc})
-        new_details = Activity.objects.first()
-        self.assertEqual(new_details.name, name)
-
-    def test_POST_without_name_displays_error(self):
-        name = ''
-        desc = 'Test description'
-        response = self.client.post(
-            reverse('details', args=[1]),
-            data={'name': name,
-                  'description': desc})
-        self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
-
-
-@pytest.mark.integration
-class TestActivityViewIntegration(TestCase):
-
-    def setUp(self):
-        a = ActivityFactory.create(
-            name="First snowkite of the season",
-            description="Hooray ice!")
-        t = ActivityTrackFactory.create(activity_id=a)
-        ActivityTrackpointFactory.create(track_id=t)
-        t.initialize_stats()
-
-    def test_uses_activity_template(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
-        self.assertTemplateUsed(response, 'activity.html')
-
-    def test_displays_only_details_for_that_session(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
-
-        # Expected responses from fixture
-        self.assertContains(response, 'First snowkite of the season')
-        self.assertContains(response, 'Hooray ice!')
-        self.assertNotContains(response, 'Snowkite lesson:')
-
-    def test_html_includes_max_speed(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
-        self.assertContains(response, 'Max Speed')
-        self.assertContains(response, 'knots')
-
-
-class TesActivityTrackView(unittest.TestCase):
-
-    def setUp(self):
-        self.user = UserFactory.stub()
-        self.request = RequestFactory()
-        self.request.user = self.user
         view = ActivityTrackView()
-        view.request = self.request
+
+        result = view.get_queryset()
+        assert result == sentinel.queryset
+        queryset.select_related.assert_called_once_with('activity')
+
+    @patch('activities.views.DetailView.get_object')
+    def test_get_object_returns_track_if_current_user(self, get_mock):
+        # Given a mock parent that returns a mock track for current user
+        mock_track = Mock()
+        mock_track.activity.user = sentinel.user
+        get_mock.return_value = mock_track
+
+        view = ActivityTrackView()
+        view.request = Mock(user=sentinel.user)
+
+        # When getting the object
+        track = view.get_object()
+
+        # Then the mock track will be returned
+        assert track == mock_track
+
+    @patch('activities.views.DetailView.get_object')
+    def test_get_object_raised_permission_denied_if_not_owner(self,
+                                                              get_mock):
+        # Given a mock parent that returns a mock track for another user
+        mock_track = Mock()
+        mock_track.activity.user = sentinel.other
+        get_mock.return_value = mock_track
+
+        view = ActivityTrackView()
+        view.request = Mock(user=sentinel.user)
+
+        # When getting the object, Then permission denied will be raised
+        with pytest.raises(PermissionDenied):
+            view.get_object()
+
+    @patch('activities.views.DetailView.get_context_data')
+    def test_get_context_data_returns_correct_context_data(self, get_mock):
+        # Given a mock track with activity with track count of 1
+        view = ActivityTrackView()
         view.object = Mock()
-        view.pk_url_kwarg = 'pk'
-        view.kwargs = dict(pk=1)
-        self.view = view
+        view.object.activity.tracks.count.return_value = 1
 
-    def test_get_object_returns_track_if_current_user(self):
-        mock_queryset = Mock()
-        mock_queryset2 = Mock()
+        get_mock.return_value = dict(super=sentinel.super)
+
+        # When getting the context data
+        context = view.get_context_data()
+
+        # Then the context indicates that this is the last track
+        assert context['last_track'] is True
+        assert context['val_errors'] is not None
+        assert context['units'] is not None
+        assert context['super'] == sentinel.super
+
+    @patch('activities.views.DetailView.get_context_data')
+    def test_get_context_data_returns_correct_context_data_not_last(self,
+                                                                    get_mock):
+        # Given a mock track with activity with track count above 1
+        view = ActivityTrackView()
+        view.object = Mock()
+        view.object.activity.tracks.count.return_value = 2
+
+        get_mock.return_value = {}
+
+        # When getting the context data
+        context = view.get_context_data()
+
+        # Then the context indicates that this is not the last track
+        assert context['last_track'] is False
+
+    @patch('activities.views.DetailView.get_context_data')
+    def test_get_context_data_returns_extra_context_data(self, get_mock):
+        # When getting the context data
+        view = ActivityTrackView()
+        view.object = Mock()
+
+        get_mock.return_value = {}
+
+        context = view.get_context_data()
+
+        # Then the val_errors and units fields are included
+        assert context['val_errors'] is not None
+        assert context['units'] is not None
+
+
+class TestActivityTrackDownloadView:
+
+    def test_get_raises_permission_denied_on_bad_user(self):
+        # Given a request with another user
+        view = ActivityTrackDownloadView()
+
         mock_track = Mock()
-        mock_track.activity_id.user = self.user
-        mock_queryset.filter.return_value = mock_queryset2
-        mock_queryset2.get.return_value = mock_track
+        mock_track.activity.user = sentinel.user
+        view.get_object = Mock(return_value=mock_track)
 
-        activity = self.view.get_object(queryset=mock_queryset)
+        # When getting the view, Then a permission denied will be raised
+        with pytest.raises(PermissionDenied):
+            view.get(Mock(user=sentinel.other))
 
-        self.assertEqual(activity, mock_track)
+    def test_get_returns_response_with_file(self):
+        view = ActivityTrackDownloadView()
 
-    def test_get_object_raised_permission_denied_if_not_owner(self):
-        mock_queryset = Mock()
-        mock_queryset2 = Mock()
         mock_track = Mock()
-        mock_track.activity_id.user = UserFactory.stub()
-        mock_queryset.filter.return_value = mock_queryset2
-        mock_queryset2.get.return_value = mock_track
+        mock_track.activity.user = sentinel.user
+        mock_track.original_file.file.name = 'Something/file.gpx'
+        view.get_object = Mock(return_value=mock_track)
 
-        with self.assertRaises(PermissionDenied):
-            self.view.get_object(queryset=mock_queryset)
+        # When getting the view as the current user
+        response = view.get(Mock(user=sentinel.user))
+
+        # Then the response will contain the file name in the header
+        assert 'file.gpx' in response['Content-Disposition']
+        assert 'Something/' not in response['Content-Disposition']

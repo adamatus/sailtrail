@@ -1,3 +1,14 @@
+<a name="0.1.14"></a>
+## [0.1.14](https://github.com/adamatus/sailtrail/compare/v0.1.13...v0.1.14) (2016-01-27)
+
+### Features
+
+* Major code cleanup, with some query optimizations ([97abe17](https://github.com/adamatus/sailtrail/commit/97abe17))
+
+### Bug Fixes
+
+* Fixed several small edges cases during refactor ([97abe17](https://github.com/adamatus/sailtrail/commit/97abe17))
+
 <a name="0.1.13"></a>
 ## [0.1.13](https://github.com/adamatus/sailtrail/compare/v0.1.12...v0.1.13) (2015-12-31)
 

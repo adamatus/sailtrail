@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
+{% load unit_conversions %}
 
 {% block title_text %}{{view_user.username}}'s activities{% endblock %}
 
 {% block main_section %}
-{% load unit_conversions %}
       <div class="row">
         <div class="col-md-7">
           <h2>Activity List for {{view_user.username}}</h2>
@@ -18,7 +18,7 @@
             <ul class="list-inline">
               <li class="activity-date">{{ activity.date }}</li>
               <li class="activity-time">{{ activity.start_time }}</li>
-              <li class="activity-max-speed">{{ activity.max_speed }}</li>
+              <li class="activity-max-speed">{{ activity.max_speed|speed }}</li>
               <li class="activity-category">{{ activity.get_category_display }}</li>
             </ul>
           </div>

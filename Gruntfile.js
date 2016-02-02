@@ -61,11 +61,13 @@ module.exports = function(grunt) {
             apps: {
                 src: [
                     'django/activities',
+                    'django/analysis',
                     'django/api',
                     'django/core',
+                    'django/gps',
+                    'django/healthcheck',
                     'django/homepage',
                     'django/leaders',
-                    'django/sirf',
                     'django/users',
                 ],
                 options: {
@@ -147,19 +149,19 @@ module.exports = function(grunt) {
                 command: 'py.test -f --lf --color=yes . -m functional',
             },
             pyfunctest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .func-coveragerc --cov-report term-missing --cov-report html --cov . -m functional',
+                command: 'py.test -v --color=yes --durations=5 --cov-config .func-coveragerc --cov-report html --cov . -m functional',
             },
             pyintdev: {
                 command: 'py.test -f --lf --color=yes . -m integration',
             },
             pyinttest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .int-coveragerc --cov-report term-missing --cov-report html --cov . -m integration',
+                command: 'py.test -v --color=yes --durations=5 --cov-config .int-coveragerc --cov-report html --cov . -m integration',
             },
             pydev: {
                 command: 'py.test -f --lf --color=yes . -m "not functional and not integration"',
             },
             pytest: {
-                command: 'py.test -v --color=yes --durations=0 --cov-config .coveragerc --cov-report term-missing --cov-report html --cov-report xml --cov . -m "not functional and not integration"',
+                command: 'py.test -v --color=yes --durations=5 --cov-config .coveragerc --cov-report html --cov-report xml --cov . -m "not functional and not integration"',
             },
         },
     });

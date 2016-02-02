@@ -3,8 +3,13 @@ branch = True
 omit =
 	*/migrations/*
     */functional/*
+	**/test_*
     manage.py
     sailtrail/wsgi.py
+
+[report]
+exclude_lines =
+    pragma: unit cover ignore
 
 [html]
 directory = ../.cover/python/units
