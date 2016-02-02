@@ -219,11 +219,13 @@ class ActivityTrack(models.Model):
         trackpoint = self._get_trackpoints()
         return trackpoint.first().timepoint, trackpoint.last().timepoint
 
-    def get_trackpoints(self) -> QuerySet:
+    def get_trackpoints(self, filtered=True) -> QuerySet:
         """Get sorted, trimmed trackpoints for an activity"""
-        return self._get_trackpoints().filter(
-            timepoint__range=(self.trim_start, self.trim_end)
-        ).order_by('timepoint')
+        trackpoints = self._get_trackpoints()
+        if filtered:
+            trackpoints = trackpoints.filter(
+                timepoint__range=(self.trim_start, self.trim_end))
+        return trackpoints.order_by('timepoint')
 
     @staticmethod
     def create_new(upfile: InMemoryUploadedFile, activity: Activity) -> \

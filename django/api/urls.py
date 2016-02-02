@@ -18,6 +18,9 @@ urlpatterns = [
     url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/json$',
         views.TrackJSONView.as_view(),
         name="track_json"),
+    url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/full_json$',
+        views.FullTrackJSONView.as_view(),
+        name="full_track_json"),
 
     url(r'activity/(?P<pk>\d+)/delete$',
         login_required(views.DeleteActivityView.as_view()),

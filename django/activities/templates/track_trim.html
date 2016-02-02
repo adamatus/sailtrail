@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load js %}
+{% load static %}
+{% load unit_conversions %}
+
+{% block title_text %}{{ track.activity.name }} ::
+    {{ track.original_filename }} :: Trim{% endblock %}
+
+{% block extra_styles %}
+    {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+    <style>
+        .slider.slider-horizontal {
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block main_section %}
+    <h1><a href="../..">{{ track.activity.name }}</a>
+        :: <a href="{% url 'view_track' track.activity_id track.id %}">{{ track.original_filename }}</a></h1>
+    <div class="row">
+        <div class="col-md-12" style="padding-top: 1em;">
+            <p>Trim this activity to the stretch when you were actually sailing, by adjusting
+                the two slider points below to keep only the section of interest highlighted.
+                This will allow for the analysis of the track to more accurate and meaningful!
+                Don't worry, you can always adjust the trimming amount or revert back to the entire
+                track at any time.</p>
+            {% include 'components/speed-plot.html' %}
+        </div>
+        <div class="col-md-12 text-center" style="padding-top: 1em;">
+            {% include 'components/track-plot.html' %}
+            {% include 'components/trim-slider.html' %}
+            <form role="form"
+                  action="{% url 'trim_track' track.activity_id track.id %}"
+                  method="POST">
+
+                <input type="hidden" id="input-trim-start" name="trim-start"
+                       value='-1'>
+                <input type="hidden" id="input-trim-end" name="trim-end"
+                       value='-1'>
+                {% csrf_token %}
+                <button type="submit" class='btn btn-default'
+                        id='trim-activity'>Trim Activity
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_bottom_js %}
+    {% js 'activities/activity_viewer.bundle.js' %}
+    <script>
+        var max_speed = +"{{ track.activity.max_speed|speed }}".split(' ')[0],
+            wind_direction = "{{ track.activity.wind_direction }}" == "None" ? null : +"{{track.activity.wind_direction}}",
+            units = {{ units|safe }},
+            urls = {
+                json: "{% url 'full_track_json' track.activity_id track.id %}",
+                winddir: "{% url 'activity_wind_direction' track.activity_id %}"
+            };
+
+        activity_viewer.init(urls, max_speed, wind_direction, units, {
+            do_polars: false,
+            do_slider: false,
+            do_trim_slider: true,
+            trim_start: "{{ start_time }}",
+            trim_end: "{{ end_time }}",
+        });
+    </script>
+{% endblock %}

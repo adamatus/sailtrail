@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 
 from api.views import WindDirection, JSONResponseMixin, BaseJSONView, \
     ActivityJSONView, TrackJSONView, DeleteActivityView, BaseTrackView, \
-    DeleteTrackView, TrimView, UntrimView, TrackJSONMixin
+    DeleteTrackView, TrimView, UntrimView, TrackJSONMixin, FullTrackJSONView
 
 
 class TestWindDirection(unittest.TestCase):
@@ -278,10 +278,8 @@ class TestTrackJSONView:
         trackpoints.get_trackpoints.return_value.values.return_value = \
             [sentinel.tp1, sentinel.tp2]
 
-        class TestView(TrackJSONView):
-            def get_object(self, queryset=None):
-                return trackpoints
-        view = TestView()
+        view = TrackJSONView()
+        view.get_object = Mock(return_value=trackpoints)
 
         # When getting the trackpoints
         tps = view.get_trackpoints()
@@ -290,6 +288,27 @@ class TestTrackJSONView:
         assert tps == [sentinel.tp1, sentinel.tp2]
         trackpoints.get_trackpoints.assert_called_once_with()
         trackpoints.get_trackpoints.return_value.values.\
+            assert_called_once_with('sog', 'lat', 'lon', 'timepoint')
+
+
+class TestFullTrackJSONView:
+
+    def test_get_trackpoints(self):
+        # Given a test class with mock get_object
+        trackpoints = Mock()
+        trackpoints.get_trackpoints.return_value.values.return_value = \
+            [sentinel.tp1, sentinel.tp2]
+
+        view = FullTrackJSONView()
+        view.get_object = Mock(return_value=trackpoints)
+
+        # When getting the trackpoints
+        tps = view.get_trackpoints()
+
+        # Then the correct list is returned, after mock calls
+        assert tps == [sentinel.tp1, sentinel.tp2]
+        trackpoints.get_trackpoints.assert_called_once_with(filtered=False)
+        trackpoints.get_trackpoints.return_value.values. \
             assert_called_once_with('sog', 'lat', 'lon', 'timepoint')
 
 

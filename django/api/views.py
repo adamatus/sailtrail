@@ -117,6 +117,17 @@ class TrackJSONView(TrackJSONMixin, BaseJSONView):
                                                                'timepoint'))
 
 
+class FullTrackJSONView(TrackJSONMixin, BaseJSONView):
+    """Track trackpoint JSON view"""
+    model = ActivityTrack
+    data_field = 'pos'
+
+    def get_trackpoints(self):
+        """Get the track trackpoints"""
+        trackpoints = self.get_object().get_trackpoints(filtered=False)
+        return list(trackpoints.values('sog', 'lat', 'lon', 'timepoint'))
+
+
 class DeleteActivityView(BaseDetailView):
     """Delete activity view"""
     model = Activity

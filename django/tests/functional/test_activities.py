@@ -13,7 +13,7 @@ from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
 from tests.functional.pages import (
     HomePage, ActivityPage, ActivityDetailsPage, RegistrationPage,
     LoginPage, ActivityTrackPage, SettingsPage, ChangePasswordPage,
-    ChangeEmailPage
+    ChangeEmailPage, ActivityTrackTrimPage
 )
 from tests.utils import FileDeleter
 
@@ -720,7 +720,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             # notice the trim activity section
             self.activity_page.go_to_track("tiny-run.gpx")
             content = self.track_page.get_page_content()
-            self.assertIn("Trim Activity", content)
+            self.assertIn("Trim Track", content)
 
             # They notice the delete button and click it,
             # and the model pops up
@@ -746,6 +746,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
     def test_track_trimming(self):
 
+        trim_page = ActivityTrackTrimPage(self)
+
         with self.settings(MEDIA_ROOT=self.temp_dir):
             self.home_page.go_to_homepage()
             self.home_page.login()
@@ -754,7 +756,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
                 self.home_page.is_user_dropdown_present('registered'))
 
             # Third times the charm, they successful upload a GPX file and
-            # fill in the revelant details, including the category. They notice
+            # fill in the relevant details, including the category. They notice
             # the Private checkbox and check it
             self.home_page.upload_file('tiny-run-2.gpx')
             name = 'A short GPX-based activity'
@@ -770,12 +772,10 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             # They return to the individual track page, and decide to try
             # trimming it
             self.activity_page.go_to_track("tiny-run-2.gpx")
-            self.track_page.press_right_arrow()
-            self.track_page.click_trim_start()
-            self.track_page.press_right_arrow()
-            self.track_page.press_right_arrow()
-            self.track_page.click_trim_end()
-            self.track_page.click_trim_activity()
+            self.track_page.go_to_trim()
+            trim_page.press_right_arrow()
+            trim_page.press_down_arrow()
+            trim_page.click_trim_activity()
 
             # The visitor is taken back to the activity page, where
             # the track is now trimmed

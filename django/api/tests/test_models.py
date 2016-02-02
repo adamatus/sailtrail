@@ -421,6 +421,20 @@ class TestActivityTrackModel:
             'timepoint'
         )
 
+    def test_get_trackpoints_returns_full_if_desired_expected(self):
+        track = ActivityTrack()
+        track.trim_start = sentinel.start
+        track.trim_end = sentinel.end
+
+        trackpoint = Mock()
+        trackpoint.order_by.return_value = sentinel.tps
+        track._get_trackpoints = Mock(return_value=trackpoint)
+
+        trackpoints = track.get_trackpoints(filtered=False)
+
+        assert trackpoints == sentinel.tps
+        trackpoint.order_by.assert_called_once_with('timepoint')
+
     @patch('api.models.ActivityTrackpoint')
     @patch('api.models.ActivityTrack.objects')
     @patch('api.models.ActivityTrackFile')

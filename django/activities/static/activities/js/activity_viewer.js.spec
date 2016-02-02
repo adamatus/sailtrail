@@ -50,9 +50,9 @@ describe('activity_viewer', function() {
         });
     });
 
-    describe('setup_trim_events', function() {
+    describe('setup_trim_slider', function() {
         it('should respond', function() {
-            activity_viewer.should.respondTo('setup_trim_events');
+            activity_viewer.should.respondTo('setup_trim_slider');
         });
     });
 });

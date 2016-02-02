@@ -13,6 +13,10 @@ module.exports = {
     y: undefined,
     units: undefined,
     marker_pos: 0,
+    trim_track: false,
+    lower_marker: undefined,
+    upper_marker: undefined,
+    config: undefined,
 
     /**
      * Main function to initialize plot
@@ -20,9 +24,11 @@ module.exports = {
      * @param {Object} data Object containing arrays with time and speed info
      * @param {Number} max_speed Precomputed max speed, used for axis max
      * @param {Object} units Object holding the current unit details
-     * @param {Element} time_slider The time-slider to use
+     * @param {Element} time_slider The time-slider to use, if present
+     * @param {Element} trim_slider The trim-slider to use, if present
+     * @param {Object} config The extra config details, if present
      */
-    draw_plot: function(data, max_speed, units, time_slider) {
+    draw_plot: function(data, max_speed, units, time_slider, trim_slider, config) {
         var width = $('#speed-plot').width(),
             height = $('#speed-plot').height(),
             margins = [40, 40, 10, 10],
@@ -32,7 +38,6 @@ module.exports = {
             mr = margins[3],
             w = width - (ml + mr),
             h = height - (mb + mt),
-            line = d3.svg.line(),
             time_format = d3.time.format('%Y-%m-%dT%X+0000'),
             svg,
             xAxis,
@@ -40,6 +45,11 @@ module.exports = {
             self = this;
 
         this.units = units;
+
+        this.lower_marker = 0;
+        this.upper_marker = data.time.length - 1;
+
+        this.line_factory = d3.svg.line();
 
         this.speeds = data.speed;
         this.times = data.time.map(function get_parsed_time(d) { return time_format.parse(d); });
@@ -80,8 +90,8 @@ module.exports = {
             .attr('transform', 'translate(-32,' + (h / 2) + ') rotate(-90)')
             .text('Speed (' + units.speed + ')');
 
-        line.x(function get_x_time(d) { return self.x(d[0]); })
-            .y(function get_y_speed(d) { return self.y(d[1]); });
+        this.line_factory.x(function get_x_time(d) { return self.x(d[0]); })
+                         .y(function get_y_speed(d) { return self.y(d[1]); });
 
         this.plot.append('linearGradient')
             .attr('id', 'speed-gradient')
@@ -103,28 +113,69 @@ module.exports = {
                     .attr('offset', function get_offset(d) { return d.offset; })
                     .attr('stop-color', function get_color(d) { return d.color; });
 
-        this.plot.append('svg:path')
-            .attr('d', line(_.zip(this.times, this.speeds)))
+        this.base_line = this.plot.append('svg:path')
+            .attr('id', 'speed-plot-base-line')
+            .attr('d', this.line_factory(_.zip(this.times, this.speeds)))
+            .style('stroke', '#BBB')
+            .style('fill', 'none')
+            .style('stroke-width', 1);
+
+        this.colored_line = this.plot.append('svg:path')
+            .attr('id', 'speed-plot-colored-line')
+            .attr('d', this.line_factory(_.zip(this.times, this.speeds)))
             .style('stroke', 'url(#speed-gradient)')
             .style('fill', 'none')
-            .style('stroke-width', 2);
-
-        this.marker = this.plot.append('svg:circle')
-            .attr('r', 5)
-            .attr('cx', this.x(this.times[this.marker_pos]))
-            .attr('cy', this.y(this.speeds[this.marker_pos]))
-            .style('fill', 'black')
-            .style('stroke', 'black')
             .style('stroke-width', 3);
 
         // Register with slider to update positional marker
         if (time_slider) {
-            time_slider.on('slide', function movepolarmaker(slideEvnt, d) {
+            this.marker = this.plot.append('svg:circle')
+                .attr('r', 5)
+                .attr('cx', this.x(this.times[this.marker_pos]))
+                .attr('cy', this.y(this.speeds[this.marker_pos]))
+                .style('fill', 'black')
+                .style('stroke', 'black')
+                .style('stroke-width', 3);
+
+            time_slider.on('slide', function update_marker_pos(slideEvnt, d) {
                 var newdata = d || slideEvnt.value;
 
                 self.move_marker(newdata);
             });
         }
+
+        // Register with trim slider to update color for trimming. For now,
+        // assuming that we will never enable show-only-last-minute while trimming
+        if (trim_slider) {
+            this.trim_track = true;
+
+            if (config) {
+                if (config.trim_start_index) {
+                    self.lower_marker = config.trim_start_index;
+                }
+                if (config.trim_end_index) {
+                    self.upper_marker = config.trim_end_index;
+                }
+                self.update_plot();
+            }
+
+            trim_slider.on('slide', function update_trim_slider_data(slideEvnt, d) {
+                var newdata = d || slideEvnt.value;
+
+                self.lower_marker = newdata[0];
+                self.upper_marker = newdata[1];
+                self.update_plot();
+            });
+        }
+
+        // Register with track-only-last-minute checkbox to optionally filter track
+        this.filter_track = false;
+        this.filter_state_changed = false;
+        $('#track-only-last-minute').on('change', function(e) {
+            self.filter_track = !!e.target.checked;
+            self.filter_state_changed = true;
+            self.update_plot();
+        });
     },
 
     /**
@@ -137,5 +188,30 @@ module.exports = {
         this.marker
             .attr('cx', this.x(this.times[this.marker_pos]))
             .attr('cy', this.y(this.speeds[this.marker_pos]));
+        this.update_plot();
+    },
+
+    /**
+     * Filter plot, based on current marker position
+     */
+    update_plot: function() {
+        var self = this,
+            data;
+
+        if (this.trim_track || this.filter_track) {
+            if (this.filter_track) {
+                this.upper_marker = self.marker_pos;
+                this.lower_marker = self.marker_pos - 60;
+            }
+            data = _.zip(this.times, this.speeds);
+            data = data.filter(function(d, i) {
+                return (i <= self.upper_marker) && (i >= self.lower_marker);
+            });
+
+            this.colored_line.attr('d', this.line_factory(data));
+        } else if (this.filter_state_changed) {
+            this.colored_line.attr('d', this.line_factory(_.zip(this.times, this.speeds)));
+            this.filter_state_changed = false;
+        }
     },
 };

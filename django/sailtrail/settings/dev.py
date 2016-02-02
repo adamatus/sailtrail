@@ -35,7 +35,7 @@ MIDDLEWARE_CLASSES.insert(
 )
 MIDDLEWARE_CLASSES += [
     'livereload.middleware.LiveReloadScript',
-    'qinspect.middleware.QueryInspectMiddleware',
+    # 'qinspect.middleware.QueryInspectMiddleware',
 ]
 
 DATABASES = {

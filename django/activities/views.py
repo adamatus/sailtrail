@@ -10,7 +10,7 @@ from activities.forms import ActivityDetailsForm
 from api.helper import (create_new_activity_for_user, get_activity_by_id,
                         verify_private_owner)
 from api.models import Activity, ActivityTrack
-from core import UNIT_SETTING
+from core import UNIT_SETTING, DATETIME_FORMAT_STR
 from core.views import UploadFormMixin
 from core.forms import (UploadFileForm,
                         ERROR_NO_UPLOAD_FILE_SELECTED,
@@ -125,6 +125,19 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         context['val_errors'] = ERRORS
         context['units'] = UNIT_SETTING
         context['last_track'] = self.object.activity.tracks.count() == 1
+        return context
+
+
+class ActivityTrackTrimView(ActivityTrackView):
+    """Activity Track view"""
+    template_name = 'track_trim.html'
+
+    def get_context_data(self, **kwargs) -> dict:
+        """Add additional content to the user page"""
+        context = super(ActivityTrackTrimView, self).get_context_data(**kwargs)
+        track = self.get_object()
+        context['start_time'] = track.trim_start.strftime(DATETIME_FORMAT_STR)
+        context['end_time'] = track.trim_end.strftime(DATETIME_FORMAT_STR)
         return context
 
 

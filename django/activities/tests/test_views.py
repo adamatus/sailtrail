@@ -1,12 +1,14 @@
+from datetime import datetime
 from unittest.mock import patch, sentinel, Mock
 
 import pytest
+import pytz
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
 from django.core.urlresolvers import reverse
 
 from activities.views import (UploadView, UploadTrackView,
                               DetailsView, ActivityTrackView, ActivityView,
-                              ActivityTrackDownloadView)
+                              ActivityTrackDownloadView, ActivityTrackTrimView)
 
 
 class TestUploadView:
@@ -340,6 +342,25 @@ class TestActivityTrackView:
         # Then the val_errors and units fields are included
         assert context['val_errors'] is not None
         assert context['units'] is not None
+
+
+class TestActivityTrackTrimView:
+
+    @patch('activities.views.ActivityTrackView.get_context_data')
+    def test_get_context_calls_parent_and_adds_times(self, super_mock):
+        super_mock.return_value = dict(super=sentinel.super)
+
+        track = Mock()
+        track.trim_start = datetime(2015, 1, 1, tzinfo=pytz.UTC)
+        track.trim_end = datetime(2016, 1, 1, tzinfo=pytz.UTC)
+
+        view = ActivityTrackTrimView()
+        view.get_object = Mock(return_value=track)
+
+        context = view.get_context_data()
+        assert context['super'] == sentinel.super
+        assert context['start_time'] == "2015-01-01T00:00:00+0000"
+        assert context['end_time'] == "2016-01-01T00:00:00+0000"
 
 
 class TestActivityTrackDownloadView:
