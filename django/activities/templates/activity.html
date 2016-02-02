@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load js %}
+{% load static %}
+{% load unit_conversions %}
 
 {% block title_text %}{{ activity.name }}{% endblock %}
 
@@ -13,12 +15,11 @@
     </style>
 {% endblock %}
 
-{% load static %}
 {% block main_section %}
-    {% load unit_conversions %}
+    {% with activity_user=activity.user %}
     <h1>{{ activity.name }}</h1>
     <p>{{ activity.get_category_display }} by <a
-            href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+            href="{% url "user" activity_user.username %}">{{ activity_user.username }}</a>
         at {{ activity.start_time }} on {{ activity.date }}</p>
     <div class="row">
         <div class="col-md-4">
@@ -33,8 +34,8 @@
                 <tbody>
                 <tr>
                     <td>{{ activity.duration }}</td>
-                    <td>{{ activity.model_distance|distance }}</td>
-                    <td>{{ activity.model_max_speed|speed }}</td>
+                    <td>{{ activity.distance|distance }}</td>
+                    <td>{{ activity.max_speed|speed }}</td>
                 </tr>
                 </tbody>
             </table>
@@ -44,7 +45,7 @@
     {% if activity.private %}
         <p><i>This activity is currently private</i></p>
     {% endif %}
-    {% if user == activity.user %}
+    {% if user == activity_user %}
         <a class="btn btn-default"
            href="{% url 'details' activity.id %}">Edit</a>
         <button type="button" class="btn btn-default" data-toggle="modal"
@@ -60,23 +61,24 @@
     {% endif %}
     {% include 'components/track-map-and-plot.html' %}
 
-    {% if user == activity.user %}
+    {% if user == activity_user %}
         <h4>Activity Track Segments</h4>
         <ul>
-            {% for track in activity.track.all %}
+            {% for track in activity.tracks.all %}
                 <li>
                     <a href="tracks/{{ track.id }}/">{{ track.original_filename }}
                         {% if track.trimmed %}(trimmed){% endif %}</a></li>
             {% endfor %}
         </ul>
     {% endif %}
+    {% endwith %}
 {% endblock %}
 
 {% block extra_bottom_js %}
     {% js 'bootstrap-toggle/js/bootstrap-toggle.min.js' %}
     {% js 'activities/activity_viewer.bundle.js' %}
     <script>
-        var max_speed = +"{{ activity.max_speed }}".split(' ')[0],
+        var max_speed = +"{{ activity.max_speed|speed }}".split(' ')[0],
                 wind_direction = "{{ activity.wind_direction }}" == "None"
                         ? null : +"{{activity.wind_direction}}",
                 units = {{ units|safe }},

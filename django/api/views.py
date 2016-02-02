@@ -1,28 +1,22 @@
 """Activity view module"""
 import json
 
-import numpy as np
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
-from django.views.generic import View
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import BaseDetailView
 
-from activities import UNIT_SETTING, UNITS, DATETIME_FORMAT_STR
-from api.models import Activity, ActivityTrack, Helper
+from analysis.track_analysis import make_json_from_trackpoints
+from api.helper import verify_private_owner
+from api.models import Activity, ActivityTrack
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
-from sirf.stats import Stats
-
-USER = get_user_model()
 
 ERRORS = dict(no_file=ERROR_NO_UPLOAD_FILE_SELECTED,
               bad_file_type=ERROR_UNSUPPORTED_FILE_TYPE)
 
 
-class WindDirection(SingleObjectMixin, View):
+class WindDirection(BaseDetailView):
     """Wind direction handler"""
     model = Activity
 
@@ -37,135 +31,162 @@ class WindDirection(SingleObjectMixin, View):
 
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Return wind direction as JSON"""
-        del args, kwargs  # remove to eliminate unused-warnings
         activity = self.get_object()
-        if request.user != activity.user and activity.private:
-            raise PermissionDenied
+        verify_private_owner(activity, request)
         return HttpResponse(
             json.dumps(dict(wind_direction=activity.wind_direction)),
             content_type="application/json")
 
 
-def activity_json(request: HttpRequest, activity_id: int) -> HttpResponse:
-    """ Activity JSON data endpoint"""
-    activity = Activity.objects.get(id=activity_id)
+class JSONResponseMixin(object):
+    """Mixin to render response as JsonResponse"""
+    data_field = None
 
-    # Check to see if current user can see this, 403 if necessary
-    Helper.verify_private_owner(activity, request)
+    """
+    A mixin that can be used to render a JSON response.
+    """
+    def render_to_json_response(self, context, **response_kwargs):
+        """Render response as JSON"""
+        return JsonResponse(
+            self.get_data(context),
+            **response_kwargs
+        )
 
-    pos = activity.get_trackpoints()
-    return return_json(pos)
-
-
-def track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponse:
-    """Track data API endpoint handler"""
-    del activity_id  # delete activity_id as it is not attached to track
-
-    track = ActivityTrack.objects.get(id=track_id)
-
-    # Check to see if current user can see this, 403 if necessary
-    Helper.verify_private_owner(track.activity_id, request)
-
-    pos = list(track.get_trackpoints().values('sog', 'lat',
-                                              'lon', 'timepoint'))
-
-    return return_json(pos)
+    def get_data(self, context):
+        """Get the data that will be serialized to JSON"""
+        return context[self.data_field]
 
 
-def full_track_json(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponse:
-    """Track data API endpoint handler, to return full track"""
-    del activity_id  # delete activity_id as it is not attached to track
+class BaseJSONView(JSONResponseMixin, BaseDetailView):
+    """Base detail JSON view"""
+    data_field = 'json'
 
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
+    def return_json(self):
+        """Return the data to be serialized to JSON"""
+        raise NotImplementedError("Sub-classes must implement this method")
 
-    # Check to see if current user can see this, 403 if necessary
-    Helper.verify_private_owner(track.activity_id, request)
+    def get_object(self, queryset=None):
+        """Get the object"""
+        the_object = super(BaseJSONView, self).get_object(queryset=queryset)
+        verify_private_owner(the_object, self.request)
+        return the_object
 
-    pos = list(track.get_trackpoints(filtered=False).values('sog',
-                                                            'lat',
-                                                            'lon',
-                                                            'timepoint'))
+    def render_to_response(self, context, **response_kwargs):
+        """Render to response"""
+        return self.render_to_json_response(context, **response_kwargs)
 
-    return return_json(pos)
-
-
-def return_json(pos: list) -> HttpResponse:
-    """Helper method to return JSON data"""
-
-    stats = Stats(pos)
-    distances = stats.distances()
-    bearings = stats.bearing()
-
-    # hack to get same size arrays (just repeat final element)
-    distances = np.round(np.append(distances, distances[-1]), 3)
-    bearings = np.round(np.append(bearings, bearings[-1]))
-    speed = []
-    time = []
-    lat = []
-    lon = []
-
-    for position in pos:
-        lat.append(position['lat'])
-        lon.append(position['lon'])
-        speed.append(round(
-            (position['sog'] * UNITS.m / UNITS.s).to(
-                UNIT_SETTING['speed']).magnitude,
-            2))
-        time.append(position['timepoint'].strftime(DATETIME_FORMAT_STR))
-
-    out = dict(bearing=bearings.tolist(), time=time,
-               speed=speed, lat=lat, lon=lon)
-
-    return HttpResponse(json.dumps(out), content_type="application/json")
+    def get_context_data(self, **kwargs):
+        """Get the context data, populating the data_field with data"""
+        context = super(BaseJSONView, self).get_context_data(**kwargs)
+        context[self.data_field] = self.return_json()
+        return context
 
 
-@login_required
-def delete(request: HttpRequest, activity_id: int) -> HttpResponseRedirect:
-    """Delete activity handler"""
-    activity = Activity.objects.get(id=activity_id)  # type: Activity
-    if request.user != activity.user:
-        raise PermissionDenied
-    activity.delete()
-    return redirect('home')
+class TrackJSONMixin(object):
+    """Mixin to handle the conversion of trackpoint data to desired output"""
+
+    def get_trackpoints(self):
+        """Return the specific trackpoints to include"""
+        raise NotImplementedError("Sub-classes must implement this method")
+
+    def return_json(self) -> dict:
+        """Helper method to return JSON data for trackpoints"""
+        return make_json_from_trackpoints(self.get_trackpoints())
 
 
-@login_required
-def delete_track(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Delete track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
+class ActivityJSONView(TrackJSONMixin, BaseJSONView):
+    """Activity trackpoint JSON view"""
+    model = Activity
+    data_field = 'pos'
 
-    if track.activity_id.track.count() < 2:
-        raise SuspiciousOperation("Cannot delete final track in activity")
-
-    track.delete()
-    track.activity_id.model_distance = None
-    track.activity_id.model_max_speed = None
-    track.activity_id.compute_stats()
-    return redirect('view_activity', activity_id)
+    def get_trackpoints(self):
+        """Get the activity trackpoints"""
+        return self.get_object().get_trackpoints()
 
 
-@login_required
-def trim(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Trim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.trim(request.POST['trim-start'], request.POST['trim-end'])
-    return redirect('view_activity', activity_id)
+class TrackJSONView(TrackJSONMixin, BaseJSONView):
+    """Track trackpoint JSON view"""
+    model = ActivityTrack
+    data_field = 'pos'
+
+    def get_trackpoints(self):
+        """Get the track trackpoints"""
+        return list(self.get_object().get_trackpoints().values('sog',
+                                                               'lat',
+                                                               'lon',
+                                                               'timepoint'))
 
 
-@login_required
-def untrim(request: HttpRequest, activity_id: int, track_id: int) -> \
-        HttpResponseRedirect:
-    """Untrim track handler"""
-    track = ActivityTrack.objects.get(id=track_id)  # type: ActivityTrack
-    if request.user != track.activity_id.user:
-        raise PermissionDenied
-    track.reset_trim()
-    return redirect('view_activity', activity_id)
+class FullTrackJSONView(TrackJSONMixin, BaseJSONView):
+    """Track trackpoint JSON view"""
+    model = ActivityTrack
+    data_field = 'pos'
+
+    def get_trackpoints(self):
+        """Get the track trackpoints"""
+        trackpoints = self.get_object().get_trackpoints(filtered=False)
+        return list(trackpoints.values('sog', 'lat', 'lon', 'timepoint'))
+
+
+class DeleteActivityView(BaseDetailView):
+    """Delete activity view"""
+    model = Activity
+
+    def get_object(self, queryset=None) -> Activity:
+        """Get the activity"""
+        activity = super(DeleteActivityView, self).get_object(
+            queryset=queryset)
+        if self.request.user != activity.user:
+            raise PermissionDenied
+        return activity
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Delete the activity"""
+        self.get_object().delete()
+        return redirect('home')
+
+
+class BaseTrackView(BaseDetailView):
+    """Base detail view for track, only allows access to owner"""
+    model = ActivityTrack
+
+    def get_object(self, queryset=None) -> ActivityTrack:
+        track = super(BaseTrackView, self).get_object(
+            queryset=queryset)
+        if self.request.user != track.activity.user:
+            raise PermissionDenied
+        return track
+
+
+class DeleteTrackView(BaseTrackView):
+    """Delete track view"""
+    model = ActivityTrack
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        track = self.get_object()
+        track.delete()
+        return redirect('view_activity', track.activity_id)
+
+
+class TrimView(BaseTrackView):
+    """Trim track view"""
+    model = ActivityTrack
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        track = self.get_object()
+        track.trim(request.POST.get('trim-start', '-1'),
+                   request.POST.get('trim-end', '-1'))
+        return redirect('view_activity', track.activity_id)
+
+
+class UntrimView(BaseTrackView):
+    """Untrim track view"""
+    model = ActivityTrack
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Reset the track to be untrimmed"""
+        track = self.get_object()
+        track.reset_trim()
+        return redirect('view_activity', track.activity_id)

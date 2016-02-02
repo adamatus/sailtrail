@@ -1,4 +1,3 @@
-import os
 import time
 
 from django.core.urlresolvers import reverse
@@ -7,7 +6,7 @@ from selenium.common.exceptions import StaleElementReferenceException, \
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 
-ASSET_PATH = os.path.dirname(os.path.abspath(__file__)) + '/assets'
+from tests.assets import get_test_file_path
 
 TIMEOUT = 3
 
@@ -101,7 +100,7 @@ class BasePage(object):
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
-        upload_box.send_keys(os.path.join(ASSET_PATH, filename))
+        upload_box.send_keys(get_test_file_path(filename))
         self.click_upload()
 
     def upload_without_file(self):
@@ -281,7 +280,7 @@ class ActivityPage(BasePage):
         upload_box = self.browser.find_element_by_id(
             'id_upfile'
         )
-        upload_box.send_keys(os.path.join(ASSET_PATH, filename))
+        upload_box.send_keys(get_test_file_path(filename))
         self.browser.find_element_by_id('upload-file-btn').click()
 
 

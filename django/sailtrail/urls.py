@@ -43,6 +43,8 @@ urlpatterns = [
         name='robots.txt',
         ),
 
+    url(r'^healthcheck/', include('healthcheck.urls')),
+
     url(r'^admin/', include(admin.site.urls)),
     url(r'^djangojs/', include('djangojs.urls')),
 ]

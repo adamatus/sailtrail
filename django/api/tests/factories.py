@@ -3,6 +3,7 @@ from math import floor
 
 import factory
 from factory.fuzzy import FuzzyFloat
+from pytz import utc
 
 from api.models import (Activity, ActivityTrack,
                         ActivityTrackpoint)
@@ -15,8 +16,8 @@ class ActivityFactory(factory.DjangoModelFactory):
         model = Activity
 
     user = factory.SubFactory(UserFactory)
-    model_distance = None
-    model_max_speed = None
+    distance = None
+    max_speed = None
     name = None
     description = None
     category = 'SL'
@@ -29,7 +30,7 @@ class ActivityTrackFactory(factory.DjangoModelFactory):
 
     original_filename = factory.Sequence(lambda n: 'testuser%s.sbn' % n)
     trimmed = False
-    activity_id = factory.SubFactory(ActivityFactory)
+    activity = factory.SubFactory(ActivityFactory)
 
 
 class ActivityTrackpointFactory(factory.DjangoModelFactory):
@@ -39,9 +40,9 @@ class ActivityTrackpointFactory(factory.DjangoModelFactory):
 
     timepoint = factory.Sequence(
         lambda n:
-            datetime(2014, 10, 10, floor(n / (60**3)),
-                     floor(n / (60**2)), floor(n / 60)))
+            datetime(2014, 10, 10, floor(n / (60**2)),
+                     floor(n / 60), n % 60, tzinfo=utc))
     lat = FuzzyFloat(-180, 180)
     lon = FuzzyFloat(-180, 180)  # degrees
     sog = FuzzyFloat(0, 20)
-    track_id = factory.SubFactory(ActivityTrackFactory)
+    track = factory.SubFactory(ActivityTrackFactory)
