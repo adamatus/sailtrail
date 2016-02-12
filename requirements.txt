@@ -14,5 +14,6 @@ lxml==3.5.0
 newrelic==2.60.0.46
 numpy==1.10.2
 Pint==0.6.0
+pillow==3.1.0
 python-dateutil==2.4.2
 pytz==2015.7

@@ -12,6 +12,7 @@ from django.db.models import QuerySet
 
 from analysis.stats import Stats
 from core import DATETIME_FORMAT_STR
+from images import make_image_for_track
 from gps import gpx, sirf
 
 SAILING = 'SL'
@@ -35,6 +36,8 @@ class Activity(models.Model):
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
     user = models.ForeignKey(User, related_name='activity', null=False)
+    summary_image = models.ImageField(null=True,
+                                      upload_to='summary_images')
     distance = models.FloatField(null=True)  # m
     max_speed = models.FloatField(null=True)  # m/s
     name = models.CharField(max_length=255, null=True)
@@ -83,11 +86,19 @@ class Activity(models.Model):
         """Compute the activity stats"""
         pos = self.get_trackpoints()
         stats = Stats(pos)
+        self.generate_summary_image(pos, save_model=False)
         self.distance = stats.distance().magnitude
         self.max_speed = stats.max_speed.magnitude
         self.start = pos[0]['timepoint']
         self.end = pos[-1]['timepoint']
         self.save()
+
+    def generate_summary_image(self, pos=None, save_model=True):
+        """Call helper to generate summary image for activity"""
+        if pos is None:
+            pos = self.get_trackpoints()
+        image = make_image_for_track(pos)
+        self.summary_image.save("test.png", image, save_model)
 
     def add_track(self, uploaded_file: InMemoryUploadedFile) -> None:
         """Add a new track to the activity"""

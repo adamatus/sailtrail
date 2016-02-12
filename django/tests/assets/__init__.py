@@ -5,13 +5,15 @@ ASSET_PATH = os.path.dirname(os.path.abspath(__file__))
 
 FILES = {
     'bad.txt': 'bad.txt',
-    'kite-session1.sbn': 'site-session1.sbn',
-    'kite-session2.sbn': 'site-session2.sbn',
+    'kite-session1.sbn': 'kite-session1.sbn',
+    'kite-session2.sbn': 'kite-session2.sbn',
     'test.sbn': 'test.sbn',
     'test-small.sbn': 'test-small.sbn',
     'tiny.SBN': 'tiny.SBN',
     'tiny-run.gpx': 'tiny-run.gpx',
     'tiny-run-2.gpx': 'tiny-run-2.gpx',
+    'map.png': 'map.png',
+    'fake_map.png': 'fake_map.png',
 }
 
 
