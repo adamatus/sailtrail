@@ -95,10 +95,13 @@ class Activity(models.Model):
 
     def generate_summary_image(self, pos=None, save_model=True):
         """Call helper to generate summary image for activity"""
+        if self.summary_image is not None:
+            self.summary_image.delete()
         if pos is None:
             pos = self.get_trackpoints()
         image = make_image_for_track(pos)
-        self.summary_image.save("test.png", image, save_model)
+        if image is not None:
+            self.summary_image.save(image.name, image, save_model)
 
     def add_track(self, uploaded_file: InMemoryUploadedFile) -> None:
         """Add a new track to the activity"""

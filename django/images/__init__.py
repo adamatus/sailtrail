@@ -1,5 +1,7 @@
+import uuid
 from typing import List
 from urllib import request
+from urllib.error import HTTPError
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -28,7 +30,7 @@ def make_image_url(trackpoints: List, best_fit):
             '&'.join(params))
 
 
-def make_image_for_track(trackpoints: List):
+def make_image_for_track(trackpoints: List) -> ContentFile:
     """Generate a summary image for the given track"""
 
     # For now faking here.  In the future, create a test only endpoint
@@ -54,8 +56,14 @@ def make_image_for_track(trackpoints: List):
         url = make_image_url(simplify_to_specific_length(trackpoints),
                              best_fit)
 
-        # TODO: Handle failed requests...
-        remote_image = request.urlopen(url)
-        image = remote_image.read()
+        try:
+            with request.urlopen(url) as remote_image:
+                if remote_image.status != 200:
+                    # For now just return None if request failed
+                    return None
+                image = remote_image.read()
+        except HTTPError as error:
+            print("Request for image failed with error: ", error)
+            return None
 
-    return ContentFile(image)
+    return ContentFile(image, name="{}.png".format(uuid.uuid4()))
