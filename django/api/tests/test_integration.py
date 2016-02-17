@@ -4,7 +4,7 @@ import pytest
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from pytz import timezone
 
 from api.models import Activity, ActivityTrack, ActivityTrackpoint
@@ -63,6 +63,7 @@ class BaseTrackView(TestCase):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestDeleteTrack(BaseTrackView):
 
     def setUp(self):
@@ -145,6 +146,7 @@ class TestDeleteTrack(BaseTrackView):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestTrimTrack(BaseTrackView):
 
     def setUp(self):
@@ -236,6 +238,7 @@ class TestTrimTrack(BaseTrackView):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestUntrimTrack(BaseTrackView):
 
     def setUp(self):
@@ -281,6 +284,7 @@ class TestUntrimTrack(BaseTrackView):
 
 @pytest.mark.django_db
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestActivityModelIntegration(FileDeleter, TestCase):
 
     def setUp(self):

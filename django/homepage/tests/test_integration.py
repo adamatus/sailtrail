@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,
@@ -15,6 +15,7 @@ SBN_BIN = get_test_file_data('tiny.SBN')
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestHomepageViewIntegration(FileDeleter, TestCase):
 
     def test_home_page_renders_home_template(self):

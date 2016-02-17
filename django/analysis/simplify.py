@@ -1,31 +1,67 @@
-def get_square_distance(p1, p2):
+"""Simplify a polyline
+
+Modified code from https://github.com/omarestrella/simplify.py, which itself
+is modified code from the original javascript version available here:
+https://github.com/mourner/simplify-js
+
+Original javascript license:
+
+Copyright (c) 2015, Vladimir Agafonkin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+# pylint: disable=invalid-name
+
+
+def get_square_distance(point1, point2):
     """Square distance between two points"""
-    dx = p1['lat'] - p2['lat']
-    dy = p1['lon'] - p2['lon']
+    dx = point1['lat'] - point2['lat']
+    dy = point1['lon'] - point2['lon']
 
     return dx * dx + dy * dy
 
 
-def get_square_segment_distance(p, p1, p2):
+def get_square_segment_distance(mid_point, segment_start, segment_end):
     """Square distance between point and a segment"""
-    x = p1['lat']
-    y = p1['lon']
+    x = segment_start['lat']
+    y = segment_start['lon']
 
-    dx = p2['lat'] - x
-    dy = p2['lon'] - y
+    dx = segment_end['lat'] - x
+    dy = segment_end['lon'] - y
 
     if dx != 0 or dy != 0:
-        t = ((p['lat'] - x) * dx + (p['lon'] - y) * dy) / (dx * dx + dy * dy)
+        t = (((mid_point['lat'] - x) * dx + (mid_point['lon'] - y) * dy) /
+             (dx * dx + dy * dy))
 
         if t > 1:
-            x = p2['lat']
-            y = p2['lon']
+            x = segment_end['lat']
+            y = segment_end['lon']
         elif t > 0:
             x += dx * t
             y += dy * t
 
-    dx = p['lat'] - x
-    dy = p['lon'] - y
+    dx = mid_point['lat'] - x
+    dy = mid_point['lon'] - y
 
     return dx * dx + dy * dy
 
@@ -106,6 +142,7 @@ def simplify_douglas_peucker(points, tolerance):
 
 
 def simplify(points, tolerance=0.1, highest_quality=True):
+    """Simplify a line, to a specific tolerance"""
     squared_tolerance = tolerance * tolerance
 
     if not highest_quality:
@@ -117,6 +154,7 @@ def simplify(points, tolerance=0.1, highest_quality=True):
 
 
 def simplify_to_specific_length(points, desired_point_count=100):
+    """Simpilfy a line, to a specific number of points"""
     current_point_count = len(points)
     iterations = 0
     tolerance = 1/100000
@@ -127,4 +165,3 @@ def simplify_to_specific_length(points, desired_point_count=100):
         tolerance += 1/100000
         current_point_count = len(line)
     return line
-

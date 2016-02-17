@@ -5,9 +5,8 @@ from urllib.error import HTTPError
 
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.images import ImageFile
 
-from analysis.simplify import simplify, simplify_to_specific_length
+from analysis.simplify import simplify_to_specific_length
 from tests.assets import get_test_file_data
 
 
@@ -30,6 +29,41 @@ def make_image_url(trackpoints: List, best_fit):
             '&'.join(params))
 
 
+def compute_best_fit(trackpoints):
+    """Compute the best fit rectangle for the track
+
+    TODO: I really shouldn't be passing around a list of dicts, I should
+    have a proper object, which has methods for this.  See gpxpy objects"""
+    max_lat = trackpoints[0]['lat']
+    min_lat = trackpoints[0]['lat']
+    max_lon = trackpoints[0]['lon']
+    min_lon = trackpoints[0]['lon']
+
+    for point in trackpoints:
+        if point['lat'] > max_lat:
+            max_lat = point['lat']
+        if point['lat'] < min_lat:
+            min_lat = point['lat']
+        if point['lon'] > max_lon:
+            max_lon = point['lon']
+        if point['lon'] < min_lon:
+            min_lon = point['lon']
+
+    return [max_lat, max_lon, min_lat, min_lon]
+
+
+def get_image_from_url(url):
+    """Get raw image data from a url"""
+    try:
+        with request.urlopen(url) as remote_image:
+            if remote_image.status != 200:
+                # For now just return None if request failed
+                return None
+            return remote_image.read()
+    except HTTPError:
+        return None
+
+
 def make_image_for_track(trackpoints: List) -> ContentFile:
     """Generate a summary image for the given track"""
 
@@ -45,25 +79,10 @@ def make_image_for_track(trackpoints: List) -> ContentFile:
     if fake:
         image = get_test_file_data('fake_map.png')
     else:
-        lats = []
-        lons = []
-        for point in trackpoints:
-            lats.append(point['lat'])
-            lons.append(point['lon'])
+        best_fit = compute_best_fit(trackpoints)
+        points = simplify_to_specific_length(trackpoints)
 
-        best_fit = [max(lats), max(lons), min(lats), min(lons)]
-
-        url = make_image_url(simplify_to_specific_length(trackpoints),
-                             best_fit)
-
-        try:
-            with request.urlopen(url) as remote_image:
-                if remote_image.status != 200:
-                    # For now just return None if request failed
-                    return None
-                image = remote_image.read()
-        except HTTPError as error:
-            print("Request for image failed with error: ", error)
-            return None
+        url = make_image_url(points, best_fit)
+        image = get_image_from_url(url)
 
     return ContentFile(image, name="{}.png".format(uuid.uuid4()))

@@ -94,8 +94,10 @@ class TestActivityModel:
         assert activity.start == 1
         assert activity.end == 2
         stats_mock.assert_called_once_with(pos)
-        activity.generate_summary_image.assert_called_once_with(pos,
-            save_model=False)
+        activity.generate_summary_image.assert_called_once_with(
+            pos,
+            save_model=False
+        )
         activity.save.assert_called_once_with()
 
     @patch('api.models.make_image_for_track')
@@ -107,7 +109,9 @@ class TestActivityModel:
         activity.summary_image = Mock(name='summary_image')
 
         # and a mock make_images that returns a sentinel
-        mock.return_value = sentinel.new_image
+        image = Mock()
+        image.name = sentinel.name
+        mock.return_value = image
 
         # When computing stats
         activity.generate_summary_image(pos)
@@ -116,8 +120,9 @@ class TestActivityModel:
         mock.assert_called_once_with(pos)
 
         # and that value is saved in the activity
-        activity.summary_image.save.assert_called_once_with("test.png",
-                                                            sentinel.new_image,
+        activity.summary_image.delete.assert_called_once_with()
+        activity.summary_image.save.assert_called_once_with(image.name,
+                                                            image,
                                                             True)
 
     @patch('api.models.make_image_for_track')
@@ -130,7 +135,9 @@ class TestActivityModel:
         activity.summary_image = Mock(name='summary_image')
 
         # and a mock make_images that returns a sentinel
-        mock.return_value = sentinel.new_image
+        image = Mock()
+        image.name = sentinel.name
+        mock.return_value = image
 
         # When computing stats
         activity.generate_summary_image()
@@ -139,10 +146,31 @@ class TestActivityModel:
         mock.assert_called_once_with(pos)
 
         # and that value is saved in the activity
-        activity.summary_image.save.assert_called_once_with("test.png",
-                                                            sentinel.new_image,
+        activity.summary_image.save.assert_called_once_with(image.name,
+                                                            image,
                                                             True)
 
+    @patch('api.models.make_image_for_track')
+    def test_generate_summary_image_skips_image_helper_without_img(self,
+                                                                   mock):
+        # Given a new activity with some mocks and fake positions
+        pos = [{"timepoint": 1}, {"timepoint": 2}]
+        activity = Activity()
+        activity.get_trackpoints = Mock(return_value=pos)
+        activity.summary_image = None
+
+        # and a mock make_images that returns a sentinel
+        image = Mock()
+        image.name = sentinel.name
+        mock.return_value = image
+
+        mock.return_value = None
+
+        # When computing stats
+        activity.generate_summary_image()
+
+        # Then the image helper is called to get generate and image
+        mock.assert_called_once_with(pos)
 
     @patch("api.models.ActivityTrack")
     def test_add_track_creates_new_and_populates_start_and_end_if_none(

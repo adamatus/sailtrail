@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
@@ -37,6 +37,7 @@ class TestActivityDetailsFormIntegration:
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestFileUploadViewIntegration(FileDeleter, TestCase):
 
     def setUp(self):
@@ -45,7 +46,8 @@ class TestFileUploadViewIntegration(FileDeleter, TestCase):
         self.client.login(username='test', password='password')
 
     def test_saving_POST_request(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
             self.client.post(reverse('upload'),
@@ -58,7 +60,8 @@ class TestFileUploadViewIntegration(FileDeleter, TestCase):
     # TODO This test is very slow as it's actually parsing
     # the uploaded SBN!
     def test_POST_request_redirects_to_new_activity_page(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
             response = self.client.post(reverse('upload'),
@@ -69,6 +72,7 @@ class TestFileUploadViewIntegration(FileDeleter, TestCase):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestNewActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
@@ -128,6 +132,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestActivityDetailViewIntegration(TestCase):
 
     def setUp(self):
@@ -182,6 +187,7 @@ class TestActivityDetailViewIntegration(TestCase):
 
 
 @pytest.mark.integration
+@override_settings(REMOTE_MAP_SOURCE='fake')
 class TestActivityViewIntegration(TestCase):
 
     def setUp(self):
