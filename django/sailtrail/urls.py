@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.contrib.sitemaps.views import sitemap
@@ -48,6 +50,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^djangojs/', include('djangojs.urls')),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler400 = BadRequestView.as_error_view()
 handler404 = NotFoundView.as_error_view()

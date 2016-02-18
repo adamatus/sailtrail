@@ -1,3 +1,13 @@
+"""Functional (selenium) tests of activity related site interactions
+
+Notes:
+
+Any test that uploads files should mixin the FileDeleter mixin, and
+then use a with self.settings to alter the upload root.
+
+Any tests that need to create images should use both the FileDeleter and
+and self.settings to alter the upload root and the STATIC_MAP_TYPE to fake.
+"""
 import time
 
 import pytest
@@ -153,7 +163,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
     def test_new_user_flow(self):
         # Visitor comes to homepage
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
 
             # The notice the register link and click it, fill in their info,
@@ -246,7 +257,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
         self.assertFalse(self.home_page.is_user_dropdown_present('registered'))
 
     def test_uploading(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             # Known user comes to homepage and logs in
             self.home_page.go_to_homepage()
             self.home_page.login()
@@ -474,7 +486,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
     def test_private_activity(self):
         # Registered user comes in and logs in
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
             self.home_page.login()
             self.login_page.login_as_user('registered', 'password')
@@ -551,7 +564,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             self.assertIn("Access Denied", content)
 
     def test_edit_activity_details(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
             self.home_page.login()
             self.login_page.login_as_user('registered', 'password')
@@ -632,7 +646,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             self.assertEqual('0', self.activity_page.get_winddir())
 
     def test_deleting_activity(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
             self.home_page.login()
             self.login_page.login_as_user('registered', 'password')
@@ -673,7 +688,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             self.assertNotIn(name, self.home_page.get_page_content())
 
     def test_adding_and_deleting_tracks(self):
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
             self.home_page.login()
             self.login_page.login_as_user('registered', 'password')
@@ -748,7 +764,8 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
         trim_page = ActivityTrackTrimPage(self)
 
-        with self.settings(MEDIA_ROOT=self.temp_dir):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
             self.home_page.go_to_homepage()
             self.home_page.login()
             self.login_page.login_as_user('registered', 'password')

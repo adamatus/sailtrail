@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 {% load unit_conversions %}
+{% load staticfiles %}
 
 {% block title_text %}Home{% endblock %}
 
 {% block main_section %}
     <h1>SailTrail</h1>
-    <p>The best place to track and analyze windsports activites</p>
+    <p>The best place to track and analyze windsports activities</p>
     <div class="row">
         <div class="col-md-8">
             <h2>Activity List</h2>
@@ -16,22 +17,33 @@
             {% endif %}
             <hr>
             {% for activity in activities %}
-                <div class='activity'>
-                    <h3>
-                        <a href="/activities/{{ activity.id }}/">{{ activity.name }}</a>
-                    </h3>
+                <div class='activity media'>
+                    <div class="media-body">
+                        <h3 class="media-heading">
+                            <a href="{% url 'view_activity' activity.id %}">{{ activity.name }}</a>
+                        </h3>
 
-                    <p>Sailed by <a
-                            href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
-                        {% if activity.private %}<i>Private</i>{% endif %}</p>
-                    <ul class="list-inline">
-                        <li class="activity-date">{{ activity.date }}</li>
-                        <li class="activity-time">{{ activity.start_time }}</li>
-                        <li class="activity-max-speed">{{ activity.max_speed|speed }}
-                            max
-                        </li>
-                        <li class="activity-category">{{ activity.get_category_display }}</li>
-                    </ul>
+                        <p>Sailed by <a
+                                href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+                            {% if activity.private %}<i>Private</i>{% endif %}</p>
+                        <ul class="list-inline">
+                            <li class="activity-date">{{ activity.date }}</li>
+                            <li class="activity-time">{{ activity.start_time }}</li>
+                            <li class="activity-max-speed">{{ activity.max_speed|speed }}
+                                max
+                            </li>
+                            <li class="activity-category">{{ activity.get_category_display }}</li>
+                        </ul>
+                    </div>
+                    <div class="media-right">
+                        <a href="{% url 'view_activity' activity.id %}">
+                            {% if activity.summary_image %}
+                                <img src="{{ activity.summary_image.url }}" alt="{{ activity.name }} summary map" class="activity-summary-map">
+                            {% else %}
+                                <img src="{% static "activities/gray.jpg" %}" alt="{{ activity.name }} summary map" class="activity-summary-map">
+                            {% endif %}
+                        </a>
+                    </div>
                 </div>
                 <hr>
             {% endfor %}
