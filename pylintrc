@@ -11,3 +11,5 @@ load-plugins=pylint_django
 # do well with the ORM), so add all the ORM derived classes here,
 # and everything will be fine.
 generated-members=track,trackpoint
+
+method-rgx=(([a-z_][a-z0-9_]{2,30})|(setUp)|(tearDown))$
