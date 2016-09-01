@@ -124,7 +124,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
         self.registration_page.click_register()
         alerts = self.registration_page.get_all_alerts()
         self.assertEqual(1, len(alerts))
-        self.assertIn("This username is already taken. Please choose another.",
+        self.assertIn("A user with that username already exists",
                       alerts[0].text)
 
         # Finally, the fill in good info, submit, and
