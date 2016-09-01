@@ -10,7 +10,7 @@
     <p>Start Time: {{ activity.start_time }}</p>
     <p>Duration: {{ activity.duration }}</p>
     <form role="form" method="POST" action="{% url 'details' activity.id %}"
-          enctype="multipart/form-data">
+          enctype="multipart/form-data" novalidate>
         {% include 'components/form-errors.html' %}
         <div class="form-group">
             {{ form.name }}
