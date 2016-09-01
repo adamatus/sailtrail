@@ -76,6 +76,9 @@
 {% block extra_bottom_js %}
     <script type="text/javascript" src="{% static "bootstrap-toggle/js/bootstrap-toggle.min.js" %}"></script>
     <script type="text/javascript" src="{% static "activities/activity_viewer.bundle.js" %}"></script>
+
+    <script src="https://www.mapquestapi.com/sdk/leaflet/v2.2/mq-map.js?key=nRieDryXmshAy6j3s7GZTTMmJHHNLw67"></script>
+
     <script>
         var max_speed = +"{{ activity.max_speed|speed }}".split(' ')[0],
                 wind_direction = "{{ activity.wind_direction }}" == "None"
