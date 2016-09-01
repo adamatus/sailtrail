@@ -12,25 +12,33 @@ module.exports = {
     trim_track: false,
     lower_marker: undefined,
     upper_marker: undefined,
-    // tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-    // attribution: '&copy; <a
-    // href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-    // subdomains: 'abc',
 
-    // tile_source: 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
-    // attribution: ['Map tiles by <a href="http://stamen.com/">Stamen
-    // Design</a>, ', 'under <a
-    // href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-    // 'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ',
-    // 'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY
-    // SA</a>.', ].join(''), subdomains: 'abc',
+    // One of "none", "osm", "stamen", "mapquest"
+    source: 'none',
 
-    // tile_source:
-    // 'http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg',
-    // tile_source: '//otile{s}-s.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg',
-    tile_source: '',
-    attribution: 'Tiles by <a href="http://www.mapquest.com/">MapQuest</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-    subdomains: '1234',
+    map_tiles: {
+        osm: {
+            tile_source: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: 'abc',
+        },
+
+        stamen: {
+            tile_source: 'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
+            attribution: ['Map tiles by <a href="http://stamen.com/">Stamen Design</a>, ',
+                'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+                'Data by <a href="http://openstreetmap.org/">OpenStreetMap</a>, ',
+                'under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+            ].join(''),
+            subdomains: 'abc',
+        },
+
+        none: {
+            tile_source: '',
+            attribution: 'No map tiles loaded',
+            subdomains: 'abc',
+        },
+    },
 
     /**
      * Main function to initialize leaflet map with track
@@ -76,12 +84,25 @@ module.exports = {
             }
         }
 
-        this.map = L.map('map', {scrollWheelZoom: false});
-        L.tileLayer(this.tile_source, {
-            attribution: this.attribution,
-            subdomains: this.subdomains,
-            maxZoom: 18,
-        }).addTo(this.map);
+        if (this.source === 'mapquest') {
+            this.map = L.map(
+                'map', {
+                    layers: MQ.mapLayer(),
+                    scrollWheelZoom: false,
+                }
+            );
+        } else {
+            this.map = L.map(
+                'map', {
+                    scrollWheelZoom: false,
+                }
+            );
+            L.tileLayer(this.map_tiles[this.source].tile_source, {
+                attribution: this.map_tiles[this.source].attribution,
+                subdomains: this.map_tiles[this.source].subdomains,
+                maxZoom: 18,
+            }).addTo(this.map);
+        }
 
         this.map.fitBounds(this.latlng);
 

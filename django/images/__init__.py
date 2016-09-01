@@ -20,7 +20,7 @@ def make_image_url(trackpoints: List, best_fit):
 
     params = ['key=nRieDryXmshAy6j3s7GZTTMmJHHNLw67',
               'type=map',
-              'size=200,200',
+              'size=400,400',
               'polyline=' + '|'.join(polyline),
               'bestfit=' + ','.join([str(x) for x in best_fit]),
               'scalebar=false']

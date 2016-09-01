@@ -21,7 +21,7 @@ class TestImages:
             "http://open.mapquestapi.com/staticmap/v4/getmap?")
         assert "?key=" in url
         assert "&type=map&" in url
-        assert "&size=200,200&" in url
+        assert "&size=400,400&" in url
         assert "&polyline=color:0x000000|width:5|1,1,2,2&" in url
         assert "&bestfit=40,-100,42,-102&" in url
         assert "&scalebar=false" in url

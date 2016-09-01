@@ -9,7 +9,8 @@
 
     "globals": {
         "sinon": false,
-        "should": false
+        "should": false,
+        "MQ": false
     },
 
     "rules": {
