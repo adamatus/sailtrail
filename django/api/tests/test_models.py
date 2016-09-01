@@ -310,7 +310,8 @@ class TestActivityTrackModel:
 
         track.delete(using=sentinel.using)
 
-        delete_mock.assert_called_once_with(using=sentinel.using)
+        delete_mock.assert_called_once_with(using=sentinel.using,
+                                            keep_parents=False)
         activity.compute_stats.assert_called_once_with()
 
     def test_trim_does_nothing_with_no_input(self):

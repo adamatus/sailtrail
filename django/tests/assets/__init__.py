@@ -20,8 +20,8 @@ FILES = {
 def get_test_file_data(filename):
     """Read the data for a specific file"""
     file = FILES[filename]
-    with open(os.path.join(ASSET_PATH, file), 'rb') as f:
-        return f.read()
+    with open(os.path.join(ASSET_PATH, file), 'rb') as data:
+        return data.read()
 
 
 def get_test_file_path(filename):

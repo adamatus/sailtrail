@@ -3,6 +3,7 @@ from pint import UnitRegistry
 
 UNITS = UnitRegistry()
 UNITS.define('knots = knot')
+UNITS.define('nmi = nautical_mile')
 
 UNIT_SETTING = {'speed': 'knots', 'dist': 'nmi'}
 

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load js %}
 {% load static %}
 {% load unit_conversions %}
 
@@ -7,7 +6,7 @@
     {{ track.original_filename }}{% endblock %}
 
 {% block extra_styles %}
-    {% css 'seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css' %}
+    <link rel="stylesheet" type="text/css" href="{% static "seiyria-bootstrap-slider/dist/css/bootstrap-slider.min.css" %}" />
     <style>
         .slider.slider-horizontal {
             width: 100%;
@@ -51,7 +50,7 @@
 {% endblock %}
 
 {% block extra_bottom_js %}
-    {% js 'activities/activity_viewer.bundle.js' %}
+    <script type="text/javascript" src="{% static "activities/activity_viewer.bundle.js" %}"></script>
     <script>
         var max_speed = +"{{ track.activity.max_speed|speed }}".split(' ')[0],
                 wind_direction = "{{ track.activity.wind_direction }}"

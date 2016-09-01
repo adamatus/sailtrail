@@ -1,5 +1,4 @@
 {% load ganalytics %}
-{% load js %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -11,9 +10,9 @@
     <!-- <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'> -->
     {% ganalytics %}
 
-    {% css 'bootstrap/dist/css/bootstrap.min.css' %}
-    {% css 'leaflet/dist/leaflet.css' %}
-    {% css 'activities/css/plots.css' %}
+    <link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "leaflet/dist/leaflet.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "activities/css/plots.css" %}" />
     {% block extra_styles %}{% endblock %}
 </head>
 <body>
@@ -27,8 +26,8 @@
     {% url "upload" as upload_url %}
     {% include 'components/upload-modal.html' with modal_id="upload-modal" header="Upload new activity" action=upload_url %}
 {% endif %}
-{% js 'jquery/dist/jquery.min.js' %}
-{% js 'bootstrap/dist/js/bootstrap.min.js' %}
+    <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "bootstrap/dist/js/bootstrap.min.js" %}"></script>
 {% include 'components/upload-validation.html' %}
 {% block extra_bottom_js %}{% endblock %}
 </body>

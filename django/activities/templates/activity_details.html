@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load js %}
+{% load static %}
 {% load unit_conversions %}
 
 {% block title_text %}{{ activity.name }}{% endblock %}
@@ -10,7 +10,7 @@
     <p>Start Time: {{ activity.start_time }}</p>
     <p>Duration: {{ activity.duration }}</p>
     <form role="form" method="POST" action="{% url 'details' activity.id %}"
-          enctype="multipart/form-data">
+          enctype="multipart/form-data" novalidate>
         {% include 'components/form-errors.html' %}
         <div class="form-group">
             {{ form.name }}
@@ -33,7 +33,7 @@
 {% endblock %}
 
 {% block extra_bottom_js %}
-    {% js 'activities/activity_viewer.bundle.js' %}
+    <script type="text/javascript" src="{% static "activities/activity_viewer.bundle.js" %}"></script>
     <script>
         var max_speed = +"{{ activity.max_speed|speed }}".split(' ')[0],
                 units = {{ units|safe }},
