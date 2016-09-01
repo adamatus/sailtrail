@@ -72,7 +72,6 @@ INSTALLED_APPS = (
 
     'healthcheck',
 
-    'djangojs',
     'djangobower',
     'ganalytics',
     'django_cleanup',
