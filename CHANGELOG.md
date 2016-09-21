@@ -1,3 +1,15 @@
+# [0.2.0](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.0%0Dv0.1.14) (2016-09-21) "Sunfish"
+
+### Bug Fixes
+
+* Mapquest integration works again ([74682e9](https://bitbucket.org/adamatus/sailtrail.net/commits/74682e9))
+
+### Features
+
+* Add option to only highlight last minute on track/speed plots ([31b8141](https://bitbucket.org/adamatus/sailtrail.net/commits/31b8141))
+* Add summary image to activity list ([a3a722a](https://bitbucket.org/adamatus/sailtrail.net/commits/a3a722a))
+* Improve track trimming and allow for adjustment ([bab9b31](https://bitbucket.org/adamatus/sailtrail.net/commits/bab9b31))
+
 ## [0.1.14](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.1.14%0Dv0.1.13) (2016-01-27)
 
 ### Features
