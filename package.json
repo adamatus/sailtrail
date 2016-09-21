@@ -7,7 +7,7 @@
     "sailings",
     "stats"
   ],
-  "homepage": "https://github.com/adamatus/sailtrail",
+  "homepage": "https://www.sailtrail.net",
   "author": {
     "name": "Adam Riggall",
     "email": "adam@riggall.info",
@@ -15,10 +15,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/adamatus/sailtrail.git"
+    "url": "https://bitbucket.org/adamatus/sailtrail.net.git"
   },
   "bugs": {
-    "url": "https://github.com/adamatus/sailtrail/issues",
+    "url": "https://bitbucket.org/adamatus/sailtrail.net/issues",
     "email": "adam@riggall.info"
   },
   "private": true,
@@ -45,7 +45,7 @@
     "grunt-bump": "0.8.0",
     "grunt-contrib-sass": "1.0.0",
     "grunt-contrib-watch": "1.0.0",
-    "grunt-conventional-changelog": "6.1.0",
+    "grunt-conventional-changelog": "5.0.0",
     "grunt-eslint": "19.0.0",
     "grunt-flake8": "0.1.3",
     "grunt-karma": "2.0.0",
