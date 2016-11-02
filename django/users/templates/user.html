@@ -31,7 +31,11 @@
                     </div>
                     <div class="media-right">
                         <a href="{% url 'view_activity' activity.id %}">
-                            <img src="{% static "activities/gray.jpg" %}" alt="{{ activity.name }} summary map" class="activity-summary-map">
+                            {% if activity.summary_image %}
+                                <img src="{{ activity.summary_image.url }}" alt="{{ activity.name }} summary map" class="activity-summary-map">
+                            {% else %}
+                                <img src="{% static "activities/gray.jpg" %}" alt="{{ activity.name }} summary map" class="activity-summary-map">
+                            {% endif %}
                         </a>
                     </div>
                 </div>
