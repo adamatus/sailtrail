@@ -14,5 +14,6 @@ newrelic==2.60.0.46
 numpy==1.11.1
 Pint==0.7.2
 Pillow==3.3.1
+psycopg2==2.6.2
 python-dateutil==2.4.2
 pytz==2016.6.1
