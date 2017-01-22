@@ -1,14 +1,25 @@
-# [0.2.0](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.0%0Dv0.1.14) (2016-09-21) "Sunfish"
+<a name="0.2.1"></a>
+## [0.2.1](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.0...v0.2.1) (2017-01-22)
+
+### Features
+
+* Move from .net to .com ([1e8d600](https://bitbucket.org/adamatus/sailtrail.net/commits/1e8d600))
 
 ### Bug Fixes
 
-* Mapquest integration works again ([74682e9](https://bitbucket.org/adamatus/sailtrail.net/commits/74682e9))
+* Show correct activity images on user list page ([5c59607](https://bitbucket.org/adamatus/sailtrail.net/commits/5c59607))
+
+# [0.2.0](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.0%0Dv0.1.14) (2016-09-21) "Sunfish"
 
 ### Features
 
 * Add option to only highlight last minute on track/speed plots ([31b8141](https://bitbucket.org/adamatus/sailtrail.net/commits/31b8141))
 * Add summary image to activity list ([a3a722a](https://bitbucket.org/adamatus/sailtrail.net/commits/a3a722a))
 * Improve track trimming and allow for adjustment ([bab9b31](https://bitbucket.org/adamatus/sailtrail.net/commits/bab9b31))
+
+### Bug Fixes
+
+* Mapquest integration works again ([74682e9](https://bitbucket.org/adamatus/sailtrail.net/commits/74682e9))
 
 ## [0.1.14](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.1.14%0Dv0.1.13) (2016-01-27)
 
