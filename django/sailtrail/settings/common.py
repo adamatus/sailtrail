@@ -23,7 +23,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     '.sailtrail.net',
-    '.sailtrail.net.'
+    '.sailtrail.net.',
+    '.sailtrail.com',
+    '.sailtrail.com.',
 ]
 
 TEMPLATES = [
@@ -116,7 +118,7 @@ DATABASES = {
 
 # Email
 
-DEFAULT_FROM_EMAIL = 'signup@sailtrail.net'
+DEFAULT_FROM_EMAIL = 'signup@sailtrail.com'
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'

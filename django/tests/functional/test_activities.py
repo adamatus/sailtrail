@@ -140,7 +140,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
         # Internally, an email is sent, with registration confirmation details
         self.assertEqual(1, len(mail.outbox))
         message = mail.outbox[0]
-        self.assertEqual('signup@sailtrail.net', message.from_email)
+        self.assertEqual('signup@sailtrail.com', message.from_email)
         self.assertIn('Please Confirm Your E-mail Address', message.subject)
 
         for line in message.body.split('\n'):
