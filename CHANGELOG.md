@@ -1,3 +1,10 @@
+<a name="0.2.2"></a>
+## [0.2.2](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.1...v0.2.2) (2017-02-05)
+
+### Features
+
+* Update python dependencies, including Django to 1.10.5 ([4e7feed](https://bitbucket.org/adamatus/sailtrail.net/commits/4e7feed))
+
 <a name="0.2.1"></a>
 ## [0.2.1](https://bitbucket.org/adamatus/sailtrail.net/compare/v0.2.0...v0.2.1) (2017-01-22)
 
