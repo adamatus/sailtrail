@@ -55,3 +55,9 @@ handler400 = BadRequestView.as_error_view()
 handler404 = NotFoundView.as_error_view()
 handler403 = PermissionDeniedView.as_error_view()
 handler500 = InternalServerErrorView.as_error_view()
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
