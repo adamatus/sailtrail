@@ -93,7 +93,7 @@ Run a watcher to automatically restart the django development server on
 any python changes, then (in conjunction with the above task) reload the
 browser via a livereload call.
 
-    ./django/manage.py runserver
+    ./django/manage.py runserver 8000
 
 ### Cut New Release
 
