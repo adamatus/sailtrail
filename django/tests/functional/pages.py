@@ -63,7 +63,7 @@ class BasePage(object):
 
     def click_through_to_new_page(self, elem):
         body = self.browser.find_element_by_tag_name('body')
-        elem.click()
+        self.browser.execute_script("arguments[0].click();", elem)
 
         def link_has_gone_stale():
             try:
@@ -252,7 +252,9 @@ class ActivityPage(BasePage):
         self.browser.find_element_by_id("activity_delete_cancel").click()
 
     def go_to_track(self, name):
-        self.browser.find_element_by_link_text(name).click()
+        element = self.browser.find_element_by_link_text(name)
+        # Silly hack to deal with chromedriver unclickable link bug
+        self.browser.execute_script("arguments[0].click();", element)
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal

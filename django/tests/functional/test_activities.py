@@ -242,7 +242,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
         # They enter a bad username and password and are warned
         self.login_page.login_as_user('testuser', 'password')
-        self.assertIn('The login and/or password you specified are ' +
+        self.assertIn('The username and/or password you specified are ' +
                       'not correct', self.login_page.get_alerts())
 
         # They enter a good, existing username and are taken back to the
