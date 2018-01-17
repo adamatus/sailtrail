@@ -129,7 +129,7 @@ activity_viewer = {
             max: this.data.time.length - 1,
             range: true,
             value: [this.config.trim_start_index || 0,
-                    this.config.trim_end_index || this.data.time.length - 1],
+                this.config.trim_end_index || this.data.time.length - 1],
             tooltip_split: true,
             formatter: function(value) {
                 if (value < 0) {
