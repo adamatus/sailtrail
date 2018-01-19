@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
         ('api', '0001_initial'),
     ]
 
+    atomic = False
+
     operations = [
         migrations.CreateModel(
             name='ActivityTrackFile',
@@ -43,6 +45,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activitytrackfile',
             name='track',
-            field=models.ForeignKey(related_name='file', to='api.ActivityTrack'),
+            field=models.ForeignKey(related_name='file', to='api.ActivityTrack', on_delete=models.CASCADE),
         ),
     ]

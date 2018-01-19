@@ -4,7 +4,7 @@ from unittest.mock import patch, sentinel, Mock
 import pytest
 import pytz
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from activities.views import (UploadView, UploadTrackView,
                               DetailsView, ActivityTrackView, ActivityView,
@@ -64,7 +64,7 @@ class TestUploadView:
         new_activity_mock.add_track.assert_any_call(sentinel.file2)
 
         # and the correct redirect response will be returned
-        redir_mock.assert_called_with('details', sentinel.id)
+        redir_mock.assert_called_with('activities:details', sentinel.id)
         assert response == sentinel.response
 
 
@@ -141,7 +141,8 @@ class TestUploadTrackView:
         found_activity.add_track.assert_any_call(sentinel.file2)
 
         # and the response will be the redirected response
-        redir_mock.assert_called_with('view_activity', pk=sentinel.id)
+        redir_mock.assert_called_with('activities:view_activity',
+                                      pk=sentinel.id)
         assert response == sentinel.response
 
 
@@ -188,7 +189,7 @@ class TestDetailsView:
         mock.return_value = dict(super=sentinel.super)
 
         # and a known delete link
-        link = reverse('delete_activity', args=[1])
+        link = reverse('api:delete_activity', args=[1])
 
         # When getting the context data
         context = view.get_context_data()
@@ -207,7 +208,7 @@ class TestDetailsView:
         mock.return_value = {}
 
         # and a known cancel link
-        link = reverse('view_activity', args=[1])
+        link = reverse('activities:view_activity', args=[1])
 
         # When getting the context data
         context = view.get_context_data()

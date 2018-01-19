@@ -28,11 +28,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activitytrack',
             name='activity',
-            field=models.ForeignKey(related_name='tracks', to='api.Activity'),
+            field=models.ForeignKey(related_name='tracks', to='api.Activity', on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='activitytrackpoint',
             name='track',
-            field=models.ForeignKey(related_name='trackpoints', to='api.ActivityTrack'),
+            field=models.ForeignKey(related_name='trackpoints', to='api.ActivityTrack', on_delete=models.CASCADE),
         ),
     ]

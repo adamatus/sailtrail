@@ -14,7 +14,7 @@
 
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><a href="{% url 'leaderboards' %}">Leaderboards</a></li>
+                <li><a href="{% url 'leaders:leaderboards' %}">Leaderboards</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if user.is_authenticated %}
@@ -25,9 +25,9 @@
                            aria-expanded="false">{{ user.username }} <span
                                 class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url "user" user.username %}">My
+                            <li><a href="{% url "users:user" user.username %}">My
                                 activities</a></li>
-                            <li><a href="{% url 'user_settings' slug=user.username %}">My settings</a></li>
+                            <li><a href="{% url 'users:user_settings' slug=user.username %}">My settings</a></li>
                             {% if upload_form %}
                                 <li class="divider"></li>
                                 <li><a id="nav-upload-link" href="#"

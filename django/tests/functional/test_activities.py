@@ -630,7 +630,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             self.assertIn(name, self.activity_page.get_page_content())
             self.assertIn(new_desc, self.activity_page.get_page_content())
 
-            time.sleep(.05)  # Wait for javascript to finish
+            time.sleep(.5)  # Wait for javascript to finish
 
             # They notice the computed wind direction on the activity page
             self.assertEqual('3', self.activity_page.get_winddir())

@@ -17,7 +17,7 @@
                     {% for leader in category.leaders %}
                         <tr>
                             <td>
-                                <a href="{% url "user" leader.user__username %}">{{ leader.user__username }}</a>
+                                <a href="{% url "users:user" leader.user__username %}">{{ leader.user__username }}</a>
                             </td>
                             <td>{{ leader.max_speed|speed }}</td>
                         </tr>

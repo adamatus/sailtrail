@@ -16,7 +16,7 @@
 
 {% block main_section %}
     <h1><a href="../..">{{ track.activity.name }}</a>
-        :: <a href="{% url 'view_track' track.activity_id track.id %}">{{ track.original_filename }}</a></h1>
+        :: <a href="{% url 'activities:view_track' track.activity_id track.id %}">{{ track.original_filename }}</a></h1>
     <div class="row">
         <div class="col-md-12" style="padding-top: 1em;">
             <p>Trim this activity to the stretch when you were actually sailing, by adjusting
@@ -30,7 +30,7 @@
             {% include 'components/track-plot.html' %}
             {% include 'components/trim-slider.html' %}
             <form role="form"
-                  action="{% url 'trim_track' track.activity_id track.id %}"
+                  action="{% url 'api:trim_track' track.activity_id track.id %}"
                   method="POST">
 
                 <input type="hidden" id="input-trim-start" name="trim-start"
@@ -53,8 +53,8 @@
             wind_direction = "{{ track.activity.wind_direction }}" == "None" ? null : +"{{track.activity.wind_direction}}",
             units = {{ units|safe }},
             urls = {
-                json: "{% url 'full_track_json' track.activity_id track.id %}",
-                winddir: "{% url 'activity_wind_direction' track.activity_id %}"
+                json: "{% url 'api:full_track_json' track.activity_id track.id %}",
+                winddir: "{% url 'api:activity_wind_direction' track.activity_id %}"
             };
 
         activity_viewer.init(urls, max_speed, wind_direction, units, {

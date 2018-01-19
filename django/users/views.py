@@ -1,9 +1,9 @@
 """Activity view module"""
 from allauth.account.views import PasswordChangeView
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse
 from django.views.generic import ListView, DetailView
 
 from api.helper import get_users_activities, summarize_by_category
@@ -64,7 +64,8 @@ class ChangePasswordView(PasswordChangeView):
     def get_success_url(self) -> str:
         """Get a success url, for the current user"""
         self.request.session['notify'] = 'Password successfully updated'
-        return reverse('user_settings', args=[self.request.user.username])
+        return reverse('users:user_settings',
+                       args=[self.request.user.username])
 
 
 class UserListView(UploadFormMixin, ListView):

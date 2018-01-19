@@ -1,6 +1,6 @@
 import time
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from selenium.common.exceptions import StaleElementReferenceException, \
     NoSuchElementException
 from selenium.webdriver.support.ui import Select
@@ -147,8 +147,8 @@ class SettingsPage(BasePage):
 
     def assert_is_current_url_for_user(self, username):
         cur_url = self.browser.current_url
-        expected_url = self.test.live_server_url + reverse('user_settings',
-                                                           args=[username])
+        expected_url = self.test.live_server_url + \
+            reverse('users:user_settings', args=[username])
         self.test.assertEqual(cur_url, expected_url)
 
 

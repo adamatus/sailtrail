@@ -18,7 +18,7 @@
     {% with activity_user=activity.user %}
     <h1>{{ activity.name }}</h1>
     <p>{{ activity.get_category_display }} by <a
-            href="{% url "user" activity_user.username %}">{{ activity_user.username }}</a>
+            href="{% url "users:user" activity_user.username %}">{{ activity_user.username }}</a>
         at {{ activity.start_time }} on {{ activity.date }}</p>
     <div class="row">
         <div class="col-md-4">
@@ -46,16 +46,16 @@
     {% endif %}
     {% if user == activity_user %}
         <a class="btn btn-default"
-           href="{% url 'details' activity.id %}">Edit</a>
+           href="{% url 'activities:details' activity.id %}">Edit</a>
         <button type="button" class="btn btn-default" data-toggle="modal"
                 data-target="#delete_modal" id="activity_delete_button">Delete
         </button>
-        {% url "delete_activity" activity.id as delete_url %}
+        {% url "api:delete_activity" activity.id as delete_url %}
         {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
         <button id="upload-file-modal-btn" type="submit" class="btn btn-default"
                 data-toggle="modal" data-target="#upload-track-modal">Add Track
         </button>
-        {% url "upload_track" activity_id=activity.id as upload_url %}
+        {% url "activities:upload_track" activity_id=activity.id as upload_url %}
         {% include 'components/upload-modal.html' with modal_id="upload-track-modal" header="Add track to this activity" action=upload_url %}
     {% endif %}
     {% include 'components/track-map-and-plot.html' %}
@@ -85,8 +85,8 @@
                         ? null : +"{{activity.wind_direction}}",
                 units = {{ units|safe }},
                 urls = {
-                    winddir: "{% url 'activity_wind_direction' activity.id %}",
-                    json: "{% url 'activity_json' activity.id %}"
+                    winddir: "{% url 'api:activity_wind_direction' activity.id %}",
+                    json: "{% url 'api:activity_json' activity.id %}"
                 };
 
         activity_viewer.init(urls, max_speed, wind_direction, units);

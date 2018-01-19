@@ -20,11 +20,11 @@
                 <div class='activity media'>
                     <div class="media-body">
                         <h3 class="media-heading">
-                            <a href="{% url 'view_activity' activity.id %}">{{ activity.name }}</a>
+                            <a href="{% url 'activities:view_activity' activity.id %}">{{ activity.name }}</a>
                         </h3>
 
                         <p>Sailed by <a
-                                href="{% url "user" activity.user.username %}">{{ activity.user.username }}</a>
+                                href="{% url "users:user" activity.user.username %}">{{ activity.user.username }}</a>
                             {% if activity.private %}<i>Private</i>{% endif %}</p>
                         <ul class="list-inline">
                             <li class="activity-date">{{ activity.date }}</li>
@@ -36,7 +36,7 @@
                         </ul>
                     </div>
                     <div class="media-right">
-                        <a href="{% url 'view_activity' activity.id %}">
+                        <a href="{% url 'activities:view_activity' activity.id %}">
                             {% if activity.summary_image %}
                                 <img src="{{ activity.summary_image.url }}" alt="{{ activity.name }} summary map" class="activity-summary-map">
                             {% else %}
@@ -76,7 +76,7 @@
                     {% for leader in category.leaders %}
                         <tr>
                             <td>
-                                <a href="{% url "user" leader.user__username %}">{{ leader.user__username }}</a>
+                                <a href="{% url "users:user" leader.user__username %}">{{ leader.user__username }}</a>
                             </td>
                             <td>{{ leader.max_speed|speed }}</td>
                         </tr>
