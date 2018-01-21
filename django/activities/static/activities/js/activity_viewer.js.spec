@@ -5,6 +5,8 @@ var activity_viewer = require('./activity_viewer'),
     polar_viewer = require('./polar_viewer'),
     track_viewer = require('./track_viewer');
 
+var sinonTest = require('sinon-test')(sinon);
+
 describe('activity_viewer', function() {
 
     var pos = {
@@ -28,7 +30,7 @@ describe('activity_viewer', function() {
             activity_viewer.urls = {winddir: 'dummy'};
         });
 
-        it('should call track_viewer.draw_map', sinon.test(function() {
+        it('should call track_viewer.draw_map', sinonTest(function() {
             this.stub(track_viewer, 'draw_map');
             this.stub(speed_viewer, 'draw_plot');
             this.stub(polar_viewer, 'draw_plot');
@@ -36,7 +38,7 @@ describe('activity_viewer', function() {
             track_viewer.draw_map.should.have.been.called;
         }));
 
-        it('should call speed_viewer.draw_plot', sinon.test(function() {
+        it('should call speed_viewer.draw_plot', sinonTest(function() {
             this.stub(track_viewer, 'draw_map');
             this.stub(speed_viewer, 'draw_plot');
             activity_viewer.setup(null, pos, units);
