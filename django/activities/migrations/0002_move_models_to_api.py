@@ -10,6 +10,8 @@ class Migration(migrations.Migration):
         ('activities', '0001_initial'),
     ]
 
+    atomic = False
+
     database_operations = [
         migrations.AlterModelTable('Activity', 'api_activity'),
         migrations.AlterModelTable('ActivityTrack', 'api_activitytrack'),

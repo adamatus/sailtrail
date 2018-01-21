@@ -6,9 +6,9 @@ from datetime import datetime as dt, time, date, timedelta
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import QuerySet
+from django.urls import reverse
 
 from analysis.stats import Stats
 from core import DATETIME_FORMAT_STR
@@ -35,7 +35,8 @@ class Activity(models.Model):
     modified = models.DateTimeField(auto_now=True)
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
-    user = models.ForeignKey(User, related_name='activity', null=False)
+    user = models.ForeignKey(User, related_name='activity', null=False,
+                             on_delete=models.CASCADE)
     summary_image = models.ImageField(null=True,
                                       upload_to='summary_images')
     distance = models.FloatField(null=True)  # m
@@ -54,7 +55,7 @@ class Activity(models.Model):
 
     def get_absolute_url(self) -> str:
         """Get the URL path for this activity"""
-        return reverse('view_activity', args=[str(self.id)])
+        return reverse('activities:view_activity', args=[str(self.id)])
 
     def _get_tracks(self) -> QuerySet:
         """Trivial helper to use related object to fetch tracks.
@@ -134,7 +135,8 @@ class ActivityTrack(models.Model):
     trim_end = models.DateTimeField(null=True, default=None)
     trimmed = models.BooleanField(null=False, default=False)
     activity = models.ForeignKey(Activity, related_name='tracks',
-                                 blank=False, null=False)
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['trim_start']
@@ -278,7 +280,8 @@ class ActivityTrackpoint(models.Model):
     lat = models.FloatField()  # degrees
     lon = models.FloatField()  # degrees
     sog = models.FloatField()  # m/s
-    track = models.ForeignKey(ActivityTrack, related_name='trackpoints')
+    track = models.ForeignKey(ActivityTrack, related_name='trackpoints',
+                              on_delete=models.CASCADE)
 
     @classmethod
     def create_trackpoints(cls,

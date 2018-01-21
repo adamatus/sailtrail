@@ -1,5 +1,4 @@
 {
-    "ecmaFeatures": {},
     "parser": "espree",
     "env": {
         "browser": true,
@@ -127,7 +126,6 @@
         "generator-star-spacing": 0,
         "guard-for-in": 0,
         "handle-callback-err": 2,
-        "indent": [2, 4, {"SwitchCase": 2}],
         "key-spacing": [2, { "beforeColon": false, "afterColon": true }],
         "keyword-spacing": [2, {"before": true}],
         "max-depth": [0, 4],

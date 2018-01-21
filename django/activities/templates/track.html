@@ -17,24 +17,24 @@
 {% block main_section %}
     <h1><a href="../..">{{ track.activity.name }}</a>
         :: {{ track.original_filename }}</h1>
-    <a href="{% url 'download_track_file' track.activity_id track.id %}" download>Download original track file</a><br />
+    <a href="{% url 'activities:download_track_file' track.activity_id track.id %}" download>Download original track file</a><br />
     <button type="button" class="btn btn-default" data-toggle="modal"
             data-target="#delete_modal" id="activity_delete_button">Delete Track
     </button>
     {% if not last_track %}
-        {% url "delete_track" track.activity_id track.id as delete_url %}
+        {% url "api:delete_track" track.activity_id track.id as delete_url %}
         {% include 'components/delete-modal.html' with target="track" action=delete_url %}
     {% else %}
-        {% url "delete_activity" track.activity_id as delete_url %}
+        {% url "api:delete_activity" track.activity_id as delete_url %}
         {% include 'components/delete-modal.html' with target="activity" action=delete_url %}
     {% endif %}
     {% if track.trimmed %}
-        <a href="{% url 'edit_track_trim' track.activity_id track.id %}"
+        <a href="{% url 'activities:edit_track_trim' track.activity_id track.id %}"
            class="btn btn-default">Adjust Trim</a>
-        <a href="{% url 'untrim_track' track.activity_id track.id %}"
+        <a href="{% url 'api:untrim_track' track.activity_id track.id %}"
            class="btn btn-default">Untrim Track</a>
     {% else %}
-        <a href="{% url 'edit_track_trim' track.activity_id track.id %}"
+        <a href="{% url 'activities:edit_track_trim' track.activity_id track.id %}"
            id="trim-track"
            data-toggle="tooltip" data-placement="right" title="Trim the track to only the area you care about"
            class="btn btn-default">Trim Track</a>
@@ -58,8 +58,8 @@
                         : +"{{track.activity.wind_direction}}",
                 units = {{ units|safe }},
                 urls = {
-                    json: "{% url 'track_json' track.activity_id track.id %}",
-                    winddir: "{% url 'activity_wind_direction' track.activity_id %}"
+                    json: "{% url 'api:track_json' track.activity_id track.id %}",
+                    winddir: "{% url 'api:activity_wind_direction' track.activity_id %}"
                 };
 
         activity_viewer.init(urls, max_speed, wind_direction, units);

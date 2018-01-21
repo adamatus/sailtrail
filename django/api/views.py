@@ -166,7 +166,7 @@ class DeleteTrackView(BaseTrackView):
         """Reset the track to be untrimmed"""
         track = self.get_object()
         track.delete()
-        return redirect('view_activity', track.activity_id)
+        return redirect('activities:view_activity', track.activity_id)
 
 
 class TrimView(BaseTrackView):
@@ -178,7 +178,7 @@ class TrimView(BaseTrackView):
         track = self.get_object()
         track.trim(request.POST.get('trim-start', '-1'),
                    request.POST.get('trim-end', '-1'))
-        return redirect('view_activity', track.activity_id)
+        return redirect('activities:view_activity', track.activity_id)
 
 
 class UntrimView(BaseTrackView):
@@ -189,4 +189,4 @@ class UntrimView(BaseTrackView):
         """Reset the track to be untrimmed"""
         track = self.get_object()
         track.reset_trim()
-        return redirect('view_activity', track.activity_id)
+        return redirect('activities:view_activity', track.activity_id)

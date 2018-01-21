@@ -123,7 +123,7 @@ class TestChangePasswordView:
 
         # Then the sentinel is return, after the mock is called correctly
         assert url == sentinel.url
-        reverse_mock.assert_called_once_with('user_settings',
+        reverse_mock.assert_called_once_with('users:user_settings',
                                              args=[sentinel.username])
 
 

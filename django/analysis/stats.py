@@ -6,6 +6,8 @@ import datetime
 import numpy as np
 from pint import UnitRegistry
 
+EARTHS_RADIUS_IN_KM = 6371.0  # in km
+
 
 class Stats(object):
     """ Stats object to compute common statistics for a GPS track"""
@@ -72,7 +74,6 @@ class Stats(object):
 
             'SphLawCos' is more accurate, but slower.
         """
-        earths_radius = 6371.0  # in km
 
         lats = np.radians(np.asarray([x['lat'] for x in self.trackpoints]))
         lons = np.radians(np.asarray([x['lon'] for x in self.trackpoints]))
@@ -88,21 +89,21 @@ class Stats(object):
         if method == 'Haversine':
             a_val = ((np.sin(dlat / 2))**2 +
                      np.cos(lat1) * np.cos(lat2) * (np.sin(dlon/2))**2)
-            dist = earths_radius * 2 * np.arctan2(np.sqrt(a_val),
-                                                  np.sqrt(1 - a_val))
+            dist = EARTHS_RADIUS_IN_KM * 2 * np.arctan2(np.sqrt(a_val),
+                                                        np.sqrt(1 - a_val))
 
         elif method == 'SphLawCos':
             dist = (np.arccos((np.sin(lat1) * np.sin(lat2)) +
                               (np.cos(lat1) * np.cos(lat2) * np.cos(dlon))) *
-                    earths_radius)
+                    EARTHS_RADIUS_IN_KM)
         else:
             x_vals = (lon2-lon1) * np.cos((lat1+lat2)/2)
             y_vals = (lat2-lat1)
-            dist = np.sqrt(x_vals**2 + y_vals**2) * earths_radius
+            dist = np.sqrt(x_vals**2 + y_vals**2) * EARTHS_RADIUS_IN_KM
 
         return dist * (self.units.m * 1000)
 
-    def distance(self, method: str='EquirecApprox') -> float:
+    def distance(self, method: str = 'EquirecApprox') -> float:
         """Get the total distance covered by the track
 
         Parameters

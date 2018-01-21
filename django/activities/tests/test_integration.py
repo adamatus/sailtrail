@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from activities.forms import (ActivityDetailsForm,
                               ERROR_ACTIVITY_NAME_MISSING,
@@ -50,7 +50,7 @@ class TestFileUploadViewIntegration(FileDeleter, TestCase):
                            REMOTE_MAP_SOURCE='fake'):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-            self.client.post(reverse('upload'),
+            self.client.post(reverse('activities:upload'),
                              data={'upfile': test_file})
 
             assert ActivityTrack.objects.count() == 1
@@ -64,10 +64,10 @@ class TestFileUploadViewIntegration(FileDeleter, TestCase):
                            REMOTE_MAP_SOURCE='fake'):
             test_file = SimpleUploadedFile('test1.sbn', SBN_BIN)
 
-            response = self.client.post(reverse('upload'),
+            response = self.client.post(reverse('activities:upload'),
                                         data={'upfile': test_file})
             self.assertRedirects(response,
-                                 reverse('details',
+                                 reverse('activities:details',
                                          args=[1]))
 
 
@@ -85,26 +85,27 @@ class TestNewActivityDetailViewIntegration(TestCase):
         self.client.login(username='test', password='password')
 
     def test_new_view_uses_activity_details_template(self):
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('activities:details', args=[1]))
         self.assertTemplateUsed(response, 'activity_details.html')
 
     def test_new_view_uses_new_session_form(self):
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('activities:details', args=[1]))
         assert isinstance(response.context['form'], ActivityDetailsForm)
 
     def test_POST_to_new_view_redirects_to_activity(self):
         response = self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': 'Test post',
                   'category': 'SK',
                   'description': 'Test description'})
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
     def test_POST_with_valid_input_saves_details(self):
         name = 'Test name'
         desc = 'Test description'
         self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': name,
                   'category': 'SK',
                   'description': desc})
@@ -115,7 +116,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
         name = ''
         desc = 'Test description'
         response = self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': name,
                   'category': 'SK',
                   'description': desc})
@@ -125,7 +126,7 @@ class TestNewActivityDetailViewIntegration(TestCase):
         name = 'Name'
         desc = 'Test description'
         response = self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': name,
                   'description': desc})
         self.assertContains(response, ERROR_ACTIVITY_CATEGORY_MISSING)
@@ -144,32 +145,33 @@ class TestActivityDetailViewIntegration(TestCase):
         self.client.login(username='test', password='password')
 
     def test_detail_view_uses_activity_details_template(self):
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('activities:details', args=[1]))
         self.assertTemplateUsed(response, 'activity_details.html')
 
     def test_detail_view_uses_new_session_form(self):
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('activities:details', args=[1]))
         assert isinstance(response.context['form'], ActivityDetailsForm)
 
     def test_detail_view_shows_current_values(self):
         details = Activity.objects.first()
-        response = self.client.get(reverse('details', args=[1]))
+        response = self.client.get(reverse('activities:details', args=[1]))
         self.assertContains(response, details.name)
         self.assertContains(response, details.description)
 
     def test_POST_to_detail_view_redirects_to_activity(self):
         response = self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': 'Test post',
                   'category': 'SK',
                   'description': 'Test description'})
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                             args=[1]))
 
     def test_POST_with_valid_input_saves_details(self):
         name = 'Test name'
         desc = 'Test description'
         self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': name,
                   'category': 'SK',
                   'description': desc})
@@ -180,7 +182,7 @@ class TestActivityDetailViewIntegration(TestCase):
         name = ''
         desc = 'Test description'
         response = self.client.post(
-            reverse('details', args=[1]),
+            reverse('activities:details', args=[1]),
             data={'name': name,
                   'description': desc})
         self.assertContains(response, ERROR_ACTIVITY_NAME_MISSING)
@@ -199,11 +201,13 @@ class TestActivityViewIntegration(TestCase):
         t.reset_trim()
 
     def test_uses_activity_template(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
+        response = self.client.get(reverse('activities:view_activity',
+                                           args=[1]))
         self.assertTemplateUsed(response, 'activity.html')
 
     def test_displays_only_details_for_that_session(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
+        response = self.client.get(reverse('activities:view_activity',
+                                           args=[1]))
 
         # Expected responses from fixture
         self.assertContains(response, 'First snowkite of the season')
@@ -211,6 +215,7 @@ class TestActivityViewIntegration(TestCase):
         self.assertNotContains(response, 'Snowkite lesson:')
 
     def test_html_includes_max_speed(self):
-        response = self.client.get(reverse('view_activity', args=[1]))
+        response = self.client.get(reverse('activities:view_activity',
+                                           args=[1]))
         self.assertContains(response, 'Max Speed')
         self.assertContains(response, 'knots')

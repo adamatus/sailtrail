@@ -1,6 +1,6 @@
 import time
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from selenium.common.exceptions import StaleElementReferenceException, \
     NoSuchElementException
 from selenium.webdriver.support.ui import Select
@@ -63,7 +63,7 @@ class BasePage(object):
 
     def click_through_to_new_page(self, elem):
         body = self.browser.find_element_by_tag_name('body')
-        elem.click()
+        self.browser.execute_script("arguments[0].click();", elem)
 
         def link_has_gone_stale():
             try:
@@ -147,8 +147,8 @@ class SettingsPage(BasePage):
 
     def assert_is_current_url_for_user(self, username):
         cur_url = self.browser.current_url
-        expected_url = self.test.live_server_url + reverse('user_settings',
-                                                           args=[username])
+        expected_url = self.test.live_server_url + \
+            reverse('users:user_settings', args=[username])
         self.test.assertEqual(cur_url, expected_url)
 
 
@@ -252,7 +252,9 @@ class ActivityPage(BasePage):
         self.browser.find_element_by_id("activity_delete_cancel").click()
 
     def go_to_track(self, name):
-        self.browser.find_element_by_link_text(name).click()
+        element = self.browser.find_element_by_link_text(name)
+        # Silly hack to deal with chromedriver unclickable link bug
+        self.browser.execute_script("arguments[0].click();", element)
 
     def delete_modal_is_visible(self):
         # Silly sleeps to deal with fade effect of modal

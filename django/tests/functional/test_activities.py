@@ -242,7 +242,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
         # They enter a bad username and password and are warned
         self.login_page.login_as_user('testuser', 'password')
-        self.assertIn('The login and/or password you specified are ' +
+        self.assertIn('The username and/or password you specified are ' +
                       'not correct', self.login_page.get_alerts())
 
         # They enter a good, existing username and are taken back to the
@@ -630,7 +630,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
             self.assertIn(name, self.activity_page.get_page_content())
             self.assertIn(new_desc, self.activity_page.get_page_content())
 
-            time.sleep(.05)  # Wait for javascript to finish
+            time.sleep(.5)  # Wait for javascript to finish
 
             # They notice the computed wind direction on the activity page
             self.assertEqual('3', self.activity_page.get_winddir())

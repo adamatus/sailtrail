@@ -1,7 +1,7 @@
 """Sitemap related data"""
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.db.models import QuerySet
+from django.urls import reverse
 
 from api.helper import get_active_users
 from core.sitemap import SailtrailSitemap
@@ -15,6 +15,6 @@ class UsersSitemap(SailtrailSitemap):
         """Get items to appear in this sitemap section"""
         return get_active_users()
 
-    def location(self, user: User) -> str:
+    def location(self, obj: User) -> str:
         """Get location for these entries"""
-        return reverse('user', args=[str(user.username)])
+        return reverse('users:user', args=[str(obj.username)])

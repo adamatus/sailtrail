@@ -1,5 +1,5 @@
 """Sitemap related data"""
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from core.sitemap import SailtrailSitemap
 
@@ -12,6 +12,6 @@ class LeaderboardSitemap(SailtrailSitemap):
         """Get items to appear in this sitemap section"""
         return ['leaderboards']
 
-    def location(self, item: str) -> str:
+    def location(self, obj) -> str:
         """Get location for these entries"""
-        return reverse(item)
+        return reverse(obj)

@@ -25,7 +25,7 @@ class TestActivityModel:
 
         # Then the sentinel is returned
         assert url == sentinel.url
-        rev_mock.assert_called_once_with('view_activity',
+        rev_mock.assert_called_once_with('activities:view_activity',
                                          args=[str(sentinel.id)])
 
     def test_start_time(self):

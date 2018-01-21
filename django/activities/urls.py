@@ -5,6 +5,9 @@ from django.contrib.auth.decorators import login_required
 from activities import views
 from homepage.views import HomePageView
 
+
+app_name = "activities"  # pylint: disable=invalid-name
+
 urlpatterns = [
     url(r'^$', HomePageView.as_view(), name='activity_list'),
     url(r'^upload$', login_required(views.UploadView.as_view()),

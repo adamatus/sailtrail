@@ -124,12 +124,12 @@ def simplify_douglas_peucker(points, tolerance):
 
         # Can pop an empty array in Javascript, but not Python, so check
         # the length of the list first
-        if len(first_stack) == 0:
+        if not first_stack:
             first = None
         else:
             first = first_stack.pop()
 
-        if len(last_stack) == 0:
+        if not last_stack:
             last = None
         else:
             last = last_stack.pop()

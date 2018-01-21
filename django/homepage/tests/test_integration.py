@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from api.models import Activity, ActivityTrack
 from api.tests.factories import (ActivityFactory, ActivityTrackFactory,

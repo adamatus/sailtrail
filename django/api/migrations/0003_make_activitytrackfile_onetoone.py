@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activitytrackfile',
             name='track',
-            field=models.OneToOneField(to='api.ActivityTrack', related_name='original_file'),
+            field=models.OneToOneField(to='api.ActivityTrack', related_name='original_file', on_delete=models.CASCADE),
         ),
     ]

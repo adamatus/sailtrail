@@ -3,8 +3,8 @@ from datetime import timedelta, time, date, datetime
 import pytest
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
 from django.test import TestCase, override_settings
+from django.urls import reverse
 from pytz import timezone
 
 from api.models import Activity, ActivityTrack, ActivityTrackpoint
@@ -28,14 +28,14 @@ class TestDeleteActivityViewIntegration(TestCase):
     def test_delete_with_other_user_403s(self):
         UserFactory.create(username='other')
         self.client.login(username='other', password='password')
-        response = self.client.get(reverse('delete_activity',
+        response = self.client.get(reverse('api:delete_activity',
                                            args=[1]))
         assert response.status_code == 403
         self.assertTemplateUsed('403.html')
 
     def test_delete_redirects_to_homepage_and_deletes_activity(self):
         self.client.login(username='test', password='password')
-        response = self.client.get(reverse('delete_activity',
+        response = self.client.get(reverse('api:delete_activity',
                                            args=[1]))
         self.assertRedirects(response, reverse('home'))
 
@@ -88,7 +88,7 @@ class TestDeleteTrack(BaseTrackView):
     def test_get_with_non_owner_returns_403_and_track_not_deleted(self):
         UserFactory.create(username='otheruser')
         self.client.login(username='otheruser', password='password')
-        response = self.client.get(reverse('delete_track',
+        response = self.client.get(reverse('api:delete_track',
                                            args=[1, 1]))
         assert response.status_code == 403
         self.assertTemplateUsed('403.html')
@@ -99,10 +99,11 @@ class TestDeleteTrack(BaseTrackView):
         self.client.login(username='test', password='password')
         assert self.activity.duration == timedelta(0, 4)
 
-        response = self.client.get(reverse('delete_track',
+        response = self.client.get(reverse('api:delete_track',
                                            args=[1, 1]))
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         activity = Activity.objects.get(id=1)
         assert activity.tracks.count() == 1
@@ -115,10 +116,11 @@ class TestDeleteTrack(BaseTrackView):
         self.client.login(username='test', password='password')
         assert self.activity.duration == timedelta(0, 4)
 
-        response = self.client.get(reverse('delete_track',
+        response = self.client.get(reverse('api:delete_track',
                                            args=[1, 2]))
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         activity = Activity.objects.get(id=1)
         assert activity.tracks.count() == 1
@@ -131,12 +133,13 @@ class TestDeleteTrack(BaseTrackView):
         self.client.login(username='test', password='password')
         assert self.activity.duration == timedelta(0, 4)
 
-        response = self.client.get(reverse('delete_track',
+        response = self.client.get(reverse('api:delete_track',
                                            args=[1, 2]))
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
-        response = self.client.get(reverse('delete_track',
+        response = self.client.get(reverse('api:delete_track',
                                            args=[1, 1]))
         assert response.status_code == 400
         self.assertTemplateUsed('400.html')
@@ -176,12 +179,13 @@ class TestTrimTrack(BaseTrackView):
         trim_start = self.next.timepoint.strftime(DATETIME_FORMAT_STR)
 
         self.client.login(username='test', password='password')
-        response = self.client.post(reverse('trim_track',
+        response = self.client.post(reverse('api:trim_track',
                                             args=[1, 1]),
                                     {'trim-start': trim_start,
                                      'trim-end': '-1'})
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is True
@@ -193,12 +197,13 @@ class TestTrimTrack(BaseTrackView):
         trim_end = self.penultimate.timepoint.strftime(DATETIME_FORMAT_STR)
 
         self.client.login(username='test', password='password')
-        response = self.client.post(reverse('trim_track',
+        response = self.client.post(reverse('api:trim_track',
                                             args=[1, 1]),
                                     {'trim-start': '-1',
                                      'trim-end': trim_end})
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is True
@@ -211,12 +216,13 @@ class TestTrimTrack(BaseTrackView):
         trim_end = self.penultimate.timepoint.strftime(DATETIME_FORMAT_STR)
 
         self.client.login(username='test', password='password')
-        response = self.client.post(reverse('trim_track',
+        response = self.client.post(reverse('api:trim_track',
                                             args=[1, 1]),
                                     {'trim-start': trim_start,
                                      'trim-end': trim_end})
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is True
@@ -226,12 +232,13 @@ class TestTrimTrack(BaseTrackView):
     def test_post_with_owner_trims_for_bad_both_does_nothing(self):
 
         self.client.login(username='test', password='password')
-        response = self.client.post(reverse('trim_track',
+        response = self.client.post(reverse('api:trim_track',
                                             args=[1, 1]),
                                     {'trim-start': 'junk',
                                      'trim-end': 'junk2'})
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is False
@@ -251,7 +258,7 @@ class TestUntrimTrack(BaseTrackView):
     def test_get_with_non_owner_returns_403_and_track_not_untrimmed(self):
         UserFactory.create(username='otheruser')
         self.client.login(username='otheruser', password='password')
-        response = self.client.get(reverse('untrim_track',
+        response = self.client.get(reverse('api:untrim_track',
                                            args=[1, 1]))
         assert response.status_code == 403
         self.assertTemplateUsed('403.html')
@@ -263,10 +270,11 @@ class TestUntrimTrack(BaseTrackView):
 
     def test_get_with_owner_redirects_to_activity_and_resets_track_trim(self):
         self.client.login(username='test', password='password')
-        response = self.client.get(reverse('untrim_track',
+        response = self.client.get(reverse('api:untrim_track',
                                            args=[1, 1]))
         assert response.status_code == 302
-        self.assertRedirects(response, reverse('view_activity', args=[1]))
+        self.assertRedirects(response, reverse('activities:view_activity',
+                                               args=[1]))
 
         track = ActivityTrack.objects.get(id=self.track.id)
         assert track.trimmed is False
@@ -274,11 +282,11 @@ class TestUntrimTrack(BaseTrackView):
         assert track.trim_end == self.end.timepoint
 
     def test_without_login_redirects_to_login_page(self):
-        response = self.client.get(reverse('untrim_track',
+        response = self.client.get(reverse('api:untrim_track',
                                            args=[1, 1]))
         assert response.status_code == 302
         new_url = "%s?next=%s" % (reverse('account_login'),
-                                  reverse('untrim_track', args=[1, 1]))
+                                  reverse('api:untrim_track', args=[1, 1]))
         self.assertRedirects(response, new_url)
 
 

@@ -13,7 +13,7 @@ def distance(value=None):
         return "{} {}".format(
             round((value * UNITS.m).to(UNIT_SETTING['dist']).magnitude, 2),
             UNIT_SETTING['dist'])
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return "error"
 
 
@@ -24,7 +24,7 @@ def speed(value=None):
         return "{} {}".format(
             round(orig_speed.to(UNIT_SETTING['speed']).magnitude, 2),
             UNIT_SETTING['speed'])
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return "error"
 
 

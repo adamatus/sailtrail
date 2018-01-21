@@ -21,7 +21,7 @@ class ErrorTemplateView(UploadFormMixin, TemplateView):
         """Render the view"""
         class_view = cls.as_view()
 
-        def view(request):
+        def view(request, exception=None):  # pylint: disable=unused-argument
             """Method to render the view"""
             response = class_view(request)
             response.render()

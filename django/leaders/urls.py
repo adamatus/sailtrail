@@ -1,8 +1,10 @@
 """Routing for activity related pages"""
-from django.conf.urls import url
+from django.urls import path
 
 from .views import LeaderboardView
 
+app_name = 'leaders'  # pylint: disable=invalid-name
+
 urlpatterns = [
-    url(r'^$', LeaderboardView.as_view(), name='leaderboards'),
+    path('', LeaderboardView.as_view(), name='leaderboards'),
 ]

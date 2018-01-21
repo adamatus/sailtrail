@@ -47,7 +47,7 @@ urlpatterns = [
 
     url(r'^healthcheck/', include('healthcheck.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

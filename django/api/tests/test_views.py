@@ -408,7 +408,7 @@ class TestDeleteTrackView:
 
         # The mocked response sentinel is returned
         assert response == sentinel.response
-        redir_mock.assert_called_once_with('view_activity',
+        redir_mock.assert_called_once_with('activities:view_activity',
                                            sentinel.activity_id)
 
         # and the track is reset properly
@@ -442,7 +442,8 @@ class TestTrimView(unittest.TestCase):
 
         # Then sentinel response is returned via correct call to redirect
         assert response == sentinel.response
-        self.redir_mock.assert_called_once_with('view_activity', sentinel.id)
+        self.redir_mock.assert_called_once_with('activities:view_activity',
+                                                sentinel.id)
 
         # and track is trimmed with correct data
         self.track_mock.trim.assert_called_once_with(sentinel.start,
@@ -457,7 +458,8 @@ class TestTrimView(unittest.TestCase):
 
         # Then sentinel response is returned via correct call to redirect
         assert response == sentinel.response
-        self.redir_mock.assert_called_once_with('view_activity', sentinel.id)
+        self.redir_mock.assert_called_once_with('activities:view_activity',
+                                                sentinel.id)
 
         # and track is trimmed with correct data
         self.track_mock.trim.assert_called_once_with(sentinel.start, '-1')
@@ -471,7 +473,8 @@ class TestTrimView(unittest.TestCase):
 
         # Then sentinel response is returned via correct call to redirect
         assert response == sentinel.response
-        self.redir_mock.assert_called_once_with('view_activity', sentinel.id)
+        self.redir_mock.assert_called_once_with('activities:view_activity',
+                                                sentinel.id)
 
         # and track is trimmed with correct data
         self.track_mock.trim.assert_called_once_with('-1', sentinel.end)
@@ -497,7 +500,7 @@ class TestUntrimView:
 
         # Then sentinel is returned after correct redirect call
         assert response == sentinel.response
-        redir_mock.assert_called_once_with('view_activity',
+        redir_mock.assert_called_once_with('activities:view_activity',
                                            sentinel.activity_id)
 
         # and track had trim reset

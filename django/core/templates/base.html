@@ -23,7 +23,7 @@
     {% include 'components/footer.html' %}
 </div>
 {% if upload_form %}
-    {% url "upload" as upload_url %}
+    {% url "activities:upload" as upload_url %}
     {% include 'components/upload-modal.html' with modal_id="upload-modal" header="Upload new activity" action=upload_url %}
 {% endif %}
     <script type="text/javascript" src="{% static "jquery/dist/jquery.min.js" %}"></script>

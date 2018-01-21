@@ -1,9 +1,9 @@
 """Activity view module"""
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.core.urlresolvers import reverse
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.views.generic import DetailView, UpdateView, View
 
 from activities.forms import ActivityDetailsForm
@@ -30,7 +30,7 @@ class UploadView(View):
             activity = create_new_activity_for_user(user=request.user)
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
-            return redirect('details', activity.id)
+            return redirect('activities:details', activity.id)
         else:
             raise SuspiciousOperation
 
@@ -51,7 +51,7 @@ class UploadTrackView(View):
         if form.is_valid():
             for each in form.cleaned_data['upfile']:
                 activity.add_track(each)
-            return redirect('view_activity', pk=activity.id)
+            return redirect('activities:view_activity', pk=activity.id)
         else:
             raise SuspiciousOperation
 
@@ -62,7 +62,7 @@ class DetailsView(UpdateView):
     template_name = 'activity_details.html'
     form_class = ActivityDetailsForm
 
-    def get_object(self, queryset: QuerySet=None) -> Activity:
+    def get_object(self, queryset: QuerySet = None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super(DetailsView, self).get_object(queryset)
         if self.request.user != activity.user:
@@ -73,9 +73,10 @@ class DetailsView(UpdateView):
         """Add additional content to the user page"""
         context = super(DetailsView, self).get_context_data(**kwargs)
         if self.object.name is None:
-            cancel_link = reverse('delete_activity', args=[self.object.id])
+            cancel_link = reverse('api:delete_activity', args=[self.object.id])
         else:
-            cancel_link = reverse('view_activity', args=[self.object.id])
+            cancel_link = reverse('activities:view_activity',
+                                  args=[self.object.id])
         context['cancel_link'] = cancel_link
         context['units'] = UNIT_SETTING
         return context
@@ -87,7 +88,7 @@ class ActivityView(UploadFormMixin, DetailView):
     template_name = 'activity.html'
     context_object_name = 'activity'
 
-    def get_object(self, queryset: QuerySet=None) -> Activity:
+    def get_object(self, queryset: QuerySet = None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super().get_object(queryset)
         verify_private_owner(activity, self.request)
@@ -111,7 +112,7 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         queryset = super(ActivityTrackView, self).get_queryset()
         return queryset.select_related('activity')
 
-    def get_object(self, queryset: QuerySet=None) -> ActivityTrack:
+    def get_object(self, queryset: QuerySet = None) -> ActivityTrack:
         """Get activity, only allowing owner to see private activities"""
         track = super().get_object(queryset)
 

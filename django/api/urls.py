@@ -4,6 +4,9 @@ from django.contrib.auth.decorators import login_required
 
 from api import views
 
+
+app_name = 'api'  # pylint: disable=invalid-name
+
 urlpatterns = [
     url(r'activity/(?P<activity_id>\d+)/tracks/(?P<pk>\d+)/delete$',
         login_required(views.DeleteTrackView.as_view()),

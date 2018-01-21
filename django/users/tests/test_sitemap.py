@@ -33,5 +33,5 @@ class TestUsersSitemap(unittest.TestCase):
 
         # Then the sentinel is returned, after the helper is called
         assert location == sentinel.location
-        reverse_mock.assert_called_once_with('user',
+        reverse_mock.assert_called_once_with('users:user',
                                              args=['sentinel.username'])

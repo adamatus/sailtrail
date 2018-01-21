@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('private', models.BooleanField(default=False)),
                 ('wind_direction', models.FloatField(null=True)),
                 ('category', models.CharField(default='SL', choices=[('SL', 'Sailing'), ('WS', 'Windsurfing'), ('KB', 'Kite Boarding'), ('SK', 'Snow Kiting'), ('IB', 'Ice Boating')], max_length=2)),
-                ('user', models.ForeignKey(related_name='activity', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(related_name='activity', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'db_table': 'api_activity'
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('trim_start', models.DateTimeField(default=None, null=True)),
                 ('trim_end', models.DateTimeField(default=None, null=True)),
                 ('trimmed', models.BooleanField(default=False)),
-                ('activity_id', models.ForeignKey(related_name='track', to='api.Activity')),
+                ('activity_id', models.ForeignKey(related_name='track', to='api.Activity', on_delete=models.CASCADE)),
             ],
             options={
                 'db_table': 'api_activitytrack'
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
                 ('lat', models.FloatField()),
                 ('lon', models.FloatField()),
                 ('sog', models.FloatField()),
-                ('track_id', models.ForeignKey(related_name='trackpoint', to='api.ActivityTrack')),
+                ('track_id', models.ForeignKey(related_name='trackpoint', to='api.ActivityTrack', on_delete=models.CASCADE)),
             ],
             options={
                 'db_table': 'api_activitytrackpoint'
