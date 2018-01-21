@@ -260,6 +260,8 @@ class Parser(object):
         else:
             print("Unknown packet type: {}".format(data[0]))
 
+        return None
+
     @staticmethod
     def _decode_0xa6_packet(data):
         """Decode a 0xa6 packet"""

@@ -73,7 +73,7 @@ def get_leaders() -> List[Dict[str, str]]:
 
     for key, category in ACTIVITY_CHOICES:
         values = [x for x in leader_list if x['category'] == key]
-        if len(values) > 0:
+        if values:
             leaders.append({'category': category, 'leaders': values})
 
     return leaders

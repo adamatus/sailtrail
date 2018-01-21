@@ -30,7 +30,7 @@ class HealthcheckView(View):
         try:
             check_db()
             status.append('DB: OK')
-        except:  # pylint: disable=bare-except
+        except:  # noqa: E722 pylint: disable=bare-except
             # If anything goes wrong, we want to mark the site as unhealthy
             site_ok = False
             error_msg = 'DB: BAD ({})'.format(traceback.format_exc())

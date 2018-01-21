@@ -15,6 +15,6 @@ class UsersSitemap(SailtrailSitemap):
         """Get items to appear in this sitemap section"""
         return get_active_users()
 
-    def location(self, user: User) -> str:
+    def location(self, obj: User) -> str:
         """Get location for these entries"""
-        return reverse('users:user', args=[str(user.username)])
+        return reverse('users:user', args=[str(obj.username)])

@@ -62,7 +62,7 @@ class DetailsView(UpdateView):
     template_name = 'activity_details.html'
     form_class = ActivityDetailsForm
 
-    def get_object(self, queryset: QuerySet=None) -> Activity:
+    def get_object(self, queryset: QuerySet = None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super(DetailsView, self).get_object(queryset)
         if self.request.user != activity.user:
@@ -88,7 +88,7 @@ class ActivityView(UploadFormMixin, DetailView):
     template_name = 'activity.html'
     context_object_name = 'activity'
 
-    def get_object(self, queryset: QuerySet=None) -> Activity:
+    def get_object(self, queryset: QuerySet = None) -> Activity:
         """Get activity, only allowing owner to see private activities"""
         activity = super().get_object(queryset)
         verify_private_owner(activity, self.request)
@@ -112,7 +112,7 @@ class ActivityTrackView(UploadFormMixin, DetailView):
         queryset = super(ActivityTrackView, self).get_queryset()
         return queryset.select_related('activity')
 
-    def get_object(self, queryset: QuerySet=None) -> ActivityTrack:
+    def get_object(self, queryset: QuerySet = None) -> ActivityTrack:
         """Get activity, only allowing owner to see private activities"""
         track = super().get_object(queryset)
 
