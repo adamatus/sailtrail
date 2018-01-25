@@ -49,7 +49,7 @@ urlpatterns = [
 
     url(r'^admin/', admin.site.urls),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 handler400 = BadRequestView.as_error_view()
 handler404 = NotFoundView.as_error_view()

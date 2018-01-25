@@ -143,3 +143,23 @@ Restart the server
 
     sudo restart gunicorn
 
+### New Deploy
+
+Starting from a clean checkout (assuming up-to-date node on host):
+
+    cd /home/ubuntu/sites/www.sailtrail.net
+    rm -rf virtualenv/
+    virtualenv -p python3.5 virtualenv
+    source virtualenv/bin/activate
+    cd source
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    npm install
+    ./node_modules/.bin/bower install
+    ./node_modules/.bin/grunt sass
+    ./node_modules/.bin/grunt browserify
+    python django/manage.py collectstatic
+    python django/manage.py migrate
+    sudo start gunicorn-www.sailtrail.net
+
+
