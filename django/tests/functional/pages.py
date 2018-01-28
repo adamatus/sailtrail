@@ -1,10 +1,11 @@
 import time
 
-from django.urls import reverse
 from selenium.common.exceptions import StaleElementReferenceException, \
     NoSuchElementException
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
+
+from django.urls import reverse
 
 from tests.assets import get_test_file_path
 
