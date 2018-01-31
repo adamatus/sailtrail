@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load unit_conversions %}
+
+{% block title_text %}Boat{% endblock %}
+
+{% block main_section %}
+    <h1>Boat</h1>
+    <h2>{{ boat.name }}</h2>
+        <button type="button" class="btn btn-default" data-toggle="modal"
+                data-target="#delete_modal" id="boat_delete_button">Delete Boat
+        </button>
+        {% url "api:delete_boat" boat.id as delete_url %}
+        {% include 'components/delete-boat-modal.html' with target="boat" action=delete_url %}
+
+{% endblock %}

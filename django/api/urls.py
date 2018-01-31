@@ -37,4 +37,8 @@ urlpatterns = [
     url(r'activities/(?P<pk>\d+)/wind_direction$',
         login_required(views.WindDirection.as_view()),
         name='activity_wind_direction'),
+
+    url(r'vessel/(?P<pk>\d+)/delete$',
+        views.DeleteBoatView.as_view(),
+        name='delete_boat'),
 ]

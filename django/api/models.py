@@ -300,3 +300,16 @@ class ActivityTrackpoint(models.Model):
 
         trackpoints = create_func(track, uploaded_file, cls)
         cls.objects.bulk_create(trackpoints)
+
+
+class Boat(models.Model):
+    """Sailing vessel"""
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=255, null=True)
+    manager = models.ForeignKey(User, related_name='manager', null=False,
+                                on_delete=models.DO_NOTHING)
+
+    def get_absolute_url(self) -> str:
+        """Get the URL path for this activity"""
+        return reverse('boats:boat', args=[str(self.id)])

@@ -4,11 +4,13 @@ import json
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import DeleteView
 from django.views.generic.detail import BaseDetailView
 
 from analysis.track_analysis import make_json_from_trackpoints
 from api.helper import verify_private_owner
-from api.models import Activity, ActivityTrack
+from api.models import Activity, ActivityTrack, Boat
 from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 
@@ -190,3 +192,12 @@ class UntrimView(BaseTrackView):
         track = self.get_object()
         track.reset_trim()
         return redirect('activities:view_activity', track.activity_id)
+
+
+class DeleteBoatView(DeleteView):
+    """Delete a boat"""
+    model = Boat
+
+    def get_success_url(self):
+        return reverse_lazy('users:boats',
+                            args=[self.get_object().manager.username])

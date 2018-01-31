@@ -27,6 +27,7 @@
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="{% url "users:user" user.username %}">My
                                 activities</a></li>
+                            <li><a href="{% url 'users:boats' user.username %}">My boats</a></li>
                             <li><a href="{% url 'users:user_settings' slug=user.username %}">My settings</a></li>
                             {% if upload_form %}
                                 <li class="divider"></li>

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load unit_conversions %}
+
+{% block title_text %}Leaderboards{% endblock %}
+
+{% block main_section %}
+    <h1>Users Boats</h1>
+    <a href="{% url 'boats:new_boat' %}">Add Boat</a>
+    <ul id="boat-list">
+    {% for boat in boats %}
+        <li><p><a href="{% url 'boats:boat' boat.id %}">{{ boat.name }}</a></p></li>
+    {% endfor %}
+    </ul>
+{% endblock %}

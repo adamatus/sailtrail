@@ -8,16 +8,21 @@ then use a with self.settings to alter the upload root.
 Any tests that need to create images should use both the FileDeleter and
 and self.settings to alter the upload root and the STATIC_MAP_TYPE to fake.
 """
+import logging
 import pytest
 from selenium import webdriver
+from selenium.webdriver.remote.remote_connection import LOGGER
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core import mail
 
 from tests.functional.pages import (
-    HomePage, ActivityPage, ActivityDetailsPage, RegistrationPage,
+    HomePage, ActivityPage, ActivityDetailsPage, BoatPage, RegistrationPage,
     LoginPage
 )
 from tests.utils import FileDeleter
+
+LOGGER.setLevel(logging.WARNING)
 
 
 @pytest.mark.functional
@@ -34,6 +39,7 @@ class OverallSiteTest(FileDeleter, StaticLiveServerTestCase):
         self.registration_page = RegistrationPage(self)
         self.details_page = ActivityDetailsPage(self)
         self.activity_page = ActivityPage(self)
+        self.boat_page = BoatPage(self)
         self.login_page = LoginPage(self)
 
     def tearDown(self):

@@ -68,6 +68,7 @@ INSTALLED_APPS = (
 
     'activities',
     'api',
+    'boats',
     'core',
     'homepage',
     'users',

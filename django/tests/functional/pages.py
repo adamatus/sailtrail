@@ -80,6 +80,9 @@ class BasePage(object):
         field.clear()
         field.send_keys(text)
 
+    def click_username_dropdown(self):
+        self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
+
     def logout(self):
         self.browser.find_element_by_id('nav-user-dropdown-toggle').click()
         logout_button = self.browser.find_element_by_link_text("Logout")
@@ -132,6 +135,68 @@ class HomePage(BasePage):
 
     def activity_list_is_empty(self):
         return [] == self.browser.find_elements_by_css_selector('.activity')
+
+
+class BoatPage(BasePage):
+
+    def boat_list_is_empty(self) -> bool:
+        return len(self.browser.find_elements_by_xpath(
+            "//ul[@id='boat-list']/li")) == 0
+
+    def click_add_boat(self):
+        self.browser.find_element_by_link_text('Add Boat').click()
+
+    def click_delete_boat(self):
+        self.browser.find_element_by_id('boat_delete_button').click()
+
+    def click_boat_link(self, boat):
+        self.browser.find_element_by_link_text(boat).click()
+
+    def click_confirm_delete(self):
+        self.browser.find_element_by_id("confirm_delete").click()
+
+    def click_cancel_delete(self):
+        self.browser.find_element_by_id("delete_cancel").click()
+
+    def url_for_user(self, username):
+        # return self.test.live_server_url + '/boats/user/' + username + '/'
+        return self.test.live_server_url + reverse('users:boats',
+                                                   args=[username])
+
+    def assert_on_users_boat_page(self, username):
+        self.test.assertEqual(
+            self.url_for_user(username),
+            self.browser.current_url,
+            "Browser should be at boats page for user"
+        )
+
+    def add_boat(self, boat_name, description):
+        field = self.browser.find_element_by_id('id_name')
+        field.clear()
+        field.send_keys(boat_name)
+        save_boat_btn = self.browser.find_element_by_id(
+            'new-boat-submit')
+        self.click_through_to_new_page(save_boat_btn)
+
+    def assert_boat_list_contains_boat(self, boat):
+        xpath = '//ul[@id="boat-list"]/li/p/a[contains(text(), "{}")]'.format(
+            boat)
+        self.test.assertTrue(
+            len(self.browser.find_elements_by_xpath(xpath)) == 1)
+
+    def assert_boat_page_title_has_boat_name(self, boat):
+        xpath = '//h2[contains(text(), "{}")]'.format(
+            boat)
+        self.test.assertTrue(
+            len(self.browser.find_elements_by_xpath(xpath)) == 1)
+
+    def delete_modal_is_visible(self):
+        # Silly sleeps to deal with fade effect of modal
+        time.sleep(.1)
+        is_visible = self.browser.find_element_by_id(
+            'delete_modal').is_displayed()
+        time.sleep(.1)
+        return is_visible
 
 
 class SettingsPage(BasePage):
