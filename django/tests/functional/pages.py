@@ -136,6 +136,10 @@ class HomePage(BasePage):
     def activity_list_is_empty(self):
         return [] == self.browser.find_elements_by_css_selector('.activity')
 
+    def click_boats_tab(self):
+        elem = self.browser.find_element_by_link_text("Boats")
+        self.click_through_to_new_page(elem)
+
 
 class BoatPage(BasePage):
 
@@ -184,6 +188,10 @@ class BoatPage(BasePage):
         self.test.assertTrue(
             len(self.browser.find_elements_by_xpath(xpath)) == 1)
 
+    def boat_list_size(self) -> int:
+        items = self.browser.find_elements_by_xpath('//ul[@id="boat-list"]/li')
+        return len(items)
+
     def assert_boat_page_title_has_boat_name(self, boat):
         xpath = '//h2[contains(text(), "{}")]'.format(
             boat)
@@ -197,6 +205,13 @@ class BoatPage(BasePage):
             'delete_modal').is_displayed()
         time.sleep(.1)
         return is_visible
+
+    def assert_on_list_page(self):
+        self.test.assertEqual(
+            self.test.live_server_url + reverse('boats:boat_list'),
+            self.browser.current_url,
+            "Browser should be at boats list"
+        )
 
 
 class SettingsPage(BasePage):

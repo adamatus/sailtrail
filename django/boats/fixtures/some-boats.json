@@ -1,0 +1,32 @@
+[
+  {
+    "model": "api.boat",
+    "pk": 1,
+    "fields": {
+      "created": "2018-01-31T07:13:47.283Z",
+      "modified": "2018-01-31T07:13:47.283Z",
+      "name": "Sporty Sportboat",
+      "manager": 2
+    }
+  },
+  {
+    "model": "api.boat",
+    "pk": 2,
+    "fields": {
+      "created": "2018-01-31T07:14:03.558Z",
+      "modified": "2018-01-31T07:14:03.558Z",
+      "name": "Dinghy McDingus",
+      "manager": 2
+    }
+  },
+  {
+    "model": "api.boat",
+    "pk": 3,
+    "fields": {
+      "created": "2018-01-31T07:14:03.558Z",
+      "modified": "2018-01-31T07:14:03.558Z",
+      "name": "Existing Boat",
+      "manager": 1
+    }
+  }
+]

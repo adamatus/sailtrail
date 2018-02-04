@@ -1,4 +1,7 @@
-from django.views.generic import CreateView, DetailView, ListView, View
+from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
+from django.http import HttpRequest, HttpResponse
+from django.views.generic import CreateView, DetailView, ListView
 
 from api.models import Boat
 
@@ -9,8 +12,10 @@ class BoatView(DetailView):
     context_object_name = 'boat'
 
 
-class BoatListView(View):
-    pass
+class BoatListView(ListView):
+    model = Boat
+    context_object_name = 'boats'
+    template_name = 'boat_list.html'
 
 
 class NewBoatView(CreateView):
@@ -28,3 +33,13 @@ class UsersBoatsView(ListView):
     model = Boat
     template_name = 'users_boats.html'
     context_object_name = 'boats'
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Lookup url supplied user, process get request"""
+        users = get_user_model()
+        self.user = users.objects.get(username=self.kwargs.get('username'))
+        return super(UsersBoatsView, self).get(request, *args, **kwargs)
+
+    def get_queryset(self) -> QuerySet:
+        boats = Boat.objects.filter(manager__username=self.user)
+        return boats
