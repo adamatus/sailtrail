@@ -18,19 +18,37 @@ SBN_BIN = get_test_file_data('tiny.SBN')
 
 @pytest.mark.django_db
 @pytest.mark.integration
-class TestActivityDetailsFormIntegration:
+class TestActivityDetailsFormIntegration(TestCase):
+
+    def setUp(self):
+        super(TestActivityDetailsFormIntegration, self).setUp()
+        self.user = UserFactory.create(username='test')
 
     def test_form_renders_correct_fields(self):
-        form = ActivityDetailsForm()
+        form = ActivityDetailsForm(self.user)
         assert 'id_name' in form.as_p()
+        assert 'id_category' in form.as_p()
+        assert 'id_boat' in form.as_p()
 
-    def test_form_save(self):
+    # def test_form_populates_select_list_with_users_boats(self):
+    #     a = ActivityFactory.create()
+    #     form = ActivityDetailsForm(self.user,
+    #                                {'name': 'Test',
+    #                                 'description': '',
+    #                                 'category': 'IB'},
+    #                                instance=a)
+    #
+    #     print(form.fields['boat'])
+    #     assert False
+
+    def test_form_save_without_boat(self):
         a = ActivityFactory.create()
-        form = ActivityDetailsForm({'name': 'Test',
+        form = ActivityDetailsForm(self.user,
+                                   {'name': 'Test',
                                     'description': '',
                                     'category': 'IB'},
                                    instance=a)
-        form.is_valid()
+        assert form.is_valid()
         upactivity = form.save()
         assert upactivity is not None
         assert upactivity.name == 'Test'

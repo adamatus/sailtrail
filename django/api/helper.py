@@ -44,6 +44,18 @@ def get_users_activities(user: User, cur_user: User) -> QuerySet:
     return activities
 
 
+def get_users_boats(user: User, cur_user: User) -> QuerySet:
+    """Get list of activities, including private activities if cur user"""
+    activities = Activity.objects.filter(
+        user__username=user.username)
+
+    # Filter out private activities if the user is not viewing themselves
+    if cur_user.username != user.username:
+        activities = activities.filter(private=False)
+
+    return activities
+
+
 def get_public_activities() -> QuerySet:
     """Helper to return all public activities"""
     return Activity.objects.filter(private=False)

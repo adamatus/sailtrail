@@ -25,6 +25,9 @@
 
                         <p>Sailed by <a
                                 href="{% url "users:user" activity.user.username %}">{{ activity.user.username }}</a>
+                            {% if activity.boat %}
+                                on <a href="{% url "boats:boat" activity.boat.id %}">{{ activity.boat }}</a>
+                            {% endif %}
                             {% if activity.private %}<i>Private</i>{% endif %}</p>
                         <ul class="list-inline">
                             <li class="activity-date">{{ activity.date }}</li>

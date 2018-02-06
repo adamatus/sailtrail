@@ -29,6 +29,23 @@ ACTIVITY_CHOICES = (
 )
 
 
+class Boat(models.Model):
+    """Sailing vessel"""
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=255, null=True)
+    manager = models.ForeignKey(User, related_name='manager', null=False,
+                                on_delete=models.DO_NOTHING)
+
+    def get_absolute_url(self) -> str:
+        """Get the URL path for this activity"""
+        return reverse('boats:boat', args=[str(self.id)])
+
+    def __str__(self):
+        """Get string version, used in select"""
+        return self.name
+
+
 class Activity(models.Model):
     """Activity model"""
     created = models.DateTimeField(auto_now_add=True)
@@ -49,6 +66,8 @@ class Activity(models.Model):
                                 blank=False,
                                 choices=ACTIVITY_CHOICES,
                                 default=SAILING)
+    boat = models.ForeignKey(Boat, related_name='activity', null=True,
+                             blank=True, on_delete=models.DO_NOTHING)
 
     class Meta:
         ordering = ['-start']
@@ -300,16 +319,3 @@ class ActivityTrackpoint(models.Model):
 
         trackpoints = create_func(track, uploaded_file, cls)
         cls.objects.bulk_create(trackpoints)
-
-
-class Boat(models.Model):
-    """Sailing vessel"""
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=255, null=True)
-    manager = models.ForeignKey(User, related_name='manager', null=False,
-                                on_delete=models.DO_NOTHING)
-
-    def get_absolute_url(self) -> str:
-        """Get the URL path for this activity"""
-        return reverse('boats:boat', args=[str(self.id)])

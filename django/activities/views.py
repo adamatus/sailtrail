@@ -69,6 +69,12 @@ class DetailsView(UpdateView):
             raise PermissionDenied
         return activity
 
+    def get_form_kwargs(self):
+        """Get custom form kwargs"""
+        kwargs = super(DetailsView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def get_context_data(self, **kwargs) -> dict:
         """Add additional content to the user page"""
         context = super(DetailsView, self).get_context_data(**kwargs)

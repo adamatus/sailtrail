@@ -388,6 +388,18 @@ class ActivityDetailsPage(BasePage):
         select = Select(self.browser.find_element_by_id('id_category'))
         select.select_by_visible_text(category)
 
+    def select_boat(self, boat):
+        select = Select(self.browser.find_element_by_id('id_boat'))
+        select.select_by_visible_text(boat)
+
+    def get_selected_boat(self):
+        select = Select(self.browser.find_element_by_id('id_boat'))
+        return select.first_selected_option.text
+
+    def get_boats(self):
+        select = Select(self.browser.find_element_by_id('id_boat'))
+        return [opt.text for opt in select.options]
+
     def enable_private(self):
         checkbox = self.browser.find_element_by_id('id_private')
         if not checkbox.is_selected():

@@ -19,6 +19,9 @@
     <h1>{{ activity.name }}</h1>
     <p>{{ activity.get_category_display }} by <a
             href="{% url "users:user" activity_user.username %}">{{ activity_user.username }}</a>
+        {% if activity.boat %}
+            on <a href="{% url "boats:boat" activity.boat.id %}">{{ activity.boat }}</a>
+        {% endif %}
         at {{ activity.start_time }} on {{ activity.date }}</p>
     <div class="row">
         <div class="col-md-4">

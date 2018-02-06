@@ -22,14 +22,18 @@ from core.forms import (ERROR_NO_UPLOAD_FILE_SELECTED,
                         ERROR_UNSUPPORTED_FILE_TYPE)
 from tests.functional.pages import (
     HomePage, ActivityPage, ActivityDetailsPage, LoginPage, ActivityTrackPage,
-    ActivityTrackTrimPage
-)
+    ActivityTrackTrimPage,
+    BoatPage)
 from tests.utils import FileDeleter
+
+import logging
+from selenium.webdriver.remote.remote_connection import LOGGER
+LOGGER.setLevel(logging.WARNING)
 
 
 @pytest.mark.functional
 class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
-    fixtures = ['two-users-no-data.json']
+    fixtures = ['two-users-no-data.json', 'some-boats.json']
 
     def setUp(self):
         super(ActivitiesTest, self).setUp()
@@ -40,6 +44,7 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
         self.home_page = HomePage(self)
         self.details_page = ActivityDetailsPage(self)
         self.activity_page = ActivityPage(self)
+        self.boat_page = BoatPage(self)
         self.track_page = ActivityTrackPage(self)
         self.login_page = LoginPage(self)
 
@@ -321,6 +326,66 @@ class ActivitiesTest(FileDeleter, StaticLiveServerTestCase):
 
             # They notice that their activity is no longer listed
             self.assertNotIn(name, self.home_page.get_page_content())
+
+    def test_associating_activity_with_boat(self):
+        with self.settings(MEDIA_ROOT=self.temp_dir,
+                           REMOTE_MAP_SOURCE='fake'):
+            # Known user comes to homepage and logs in
+            self.home_page.go_to_homepage()
+            self.home_page.login()
+            self.login_page.login_as_user('another', 'password')
+            self.assertTrue(
+                self.home_page.is_user_dropdown_present('another'))
+
+            # They upload an SBN file
+            self.home_page.upload_file('tiny.SBN')
+
+            # They enter info about the activity, including the boat
+            name = 'A sailing activity'
+            desc = 'On a vessel on the site'
+            self.details_page.enter_details(name, desc)
+            self.details_page.select_activity_type("Sailing")
+
+            # They notice the dropdown to select a boat, which has -- selected
+            self.assertEqual(self.details_page.get_selected_boat(),
+                             '---------')
+
+            # They open the dropdown and see their boats in the list,
+            # eventually selecting one of the boats
+            boat_list = self.details_page.get_boats()
+            self.assertEqual(len(boat_list), 3)
+            self.assertIn('---------', boat_list)
+            self.assertIn('Sporty Sportboat', boat_list)
+            self.assertIn('Dinghy McDingus', boat_list)
+            self.details_page.select_boat('Sporty Sportboat')
+
+            # They hit 'OK' and are redirected to the activity page,
+            # where they notice that their name and description are shown
+            self.details_page.click_ok()
+            self.assertIn(name, self.activity_page.get_page_content())
+            self.assertIn(desc, self.activity_page.get_page_content())
+            self.assertIn('Sporty Sportboat',
+                          self.activity_page.get_page_content())
+
+            # They click the boat link and are taken to boat page
+            elem = self.browser.find_element_by_link_text('Sporty Sportboat')
+            self.activity_page.click_through_to_new_page(elem)
+            self.boat_page.assert_boat_page_title_has_boat_name(
+                'Sporty Sportboat')
+
+            # They see the activity in the boat's activity list
+            # TODO
+
+            # The return to the activity list and see boat in the description
+            self.home_page.go_to_homepage()
+            self.assertIn('Sporty Sportboat',
+                          self.activity_page.get_page_content())
+
+            # They click the boat link and are taken to boat page,
+            elem = self.browser.find_element_by_link_text('Sporty Sportboat')
+            self.activity_page.click_through_to_new_page(elem)
+            self.boat_page.assert_boat_page_title_has_boat_name(
+                'Sporty Sportboat')
 
     def test_adding_and_deleting_tracks(self):
         with self.settings(MEDIA_ROOT=self.temp_dir,
