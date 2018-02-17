@@ -6,7 +6,38 @@ import pytz
 from django.core.exceptions import SuspiciousOperation
 
 from api.models import Activity, ActivityTrack, track_upload_path, \
-    ActivityTrackFile, ActivityTrackpoint
+    ActivityTrackFile, ActivityTrackpoint, Boat
+
+
+class TestBoatModel:
+
+    @patch('api.models.reverse')
+    def test_get_absolute_url_returns_result_of_reverse(self,
+                                                        rev_mock: MagicMock):
+        # Given a new boat
+        boat = Boat()
+        boat.id = sentinel.id
+
+        rev_mock.return_value = sentinel.url
+
+        # When getting the absolute url
+        url = boat.get_absolute_url()
+
+        # Then the sentinel is returned
+        assert url == sentinel.url
+        rev_mock.assert_called_once_with('boats:boat',
+                                         args=[str(sentinel.id)])
+
+    def test_string_returns_name(self):
+        # Given a new boat with sentinel name
+        boat = Boat()
+        boat.name = sentinel.name
+
+        # When getting the string for boat
+        str = boat.__str__()
+
+        # Then the sentinel is returned
+        assert str == sentinel.name
 
 
 class TestActivityModel:
@@ -132,7 +163,8 @@ class TestActivityModel:
         pos = [{"timepoint": 1}, {"timepoint": 2}]
         activity = Activity()
         activity.get_trackpoints = Mock(return_value=pos)
-        activity.summary_image = Mock(name='summary_image')
+        existing_image = Mock(name='summary_image')
+        activity.summary_image = existing_image
 
         # and a mock make_images that returns a sentinel
         image = Mock()
@@ -144,6 +176,8 @@ class TestActivityModel:
 
         # Then the image helper is called to get generate and image
         mock.assert_called_once_with(pos)
+
+        existing_image.delete.assert_called_once_with()
 
         # and that value is saved in the activity
         activity.summary_image.save.assert_called_once_with(image.name,

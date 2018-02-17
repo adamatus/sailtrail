@@ -179,6 +179,15 @@ class TestDetailsView:
         with pytest.raises(PermissionDenied):
             view.get_object()
 
+    def test_get_form_kwargs_populates_user(self):
+        # Given a view with a user
+        view = DetailsView()
+        view.request = Mock(user=sentinel.user)
+
+        # kwargs contains user
+        kwargs = view.get_form_kwargs()
+        assert kwargs['user'] == sentinel.user
+
     @patch('activities.views.UpdateView.get_context_data')
     def test_get_context_adds_delete_cancel_link(self, mock):
         # Given a mock object in the view with no name

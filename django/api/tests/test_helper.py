@@ -8,7 +8,7 @@ from api.helper import (create_new_activity_for_user, get_activity_by_id,
                         get_activities_for_user, get_users_activities,
                         get_public_activities, verify_private_owner,
                         get_active_users, summarize_by_category,
-                        _get_activity_leaders, get_leaders)
+                        _get_activity_leaders, get_leaders, get_users_boats)
 from api.models import Activity, ActivityTrack
 
 
@@ -121,6 +121,20 @@ class TestHelper(unittest.TestCase):
         assert activities == sentinel.queryset
         self.activity_mock.objects.filter.assert_called_with(
             private=False
+        )
+
+    @patch('api.helper.Boat')
+    def test_get_users_boats(self, boat_mock):
+        # Given a mock that returns a sentinel
+        boat_mock.objects.filter.return_value = sentinel.query_set
+
+        # When getting users boats
+        boats = get_users_boats(user=sentinel.user)
+
+        # Then the sentinel is returned
+        assert boats == sentinel.query_set
+        boat_mock.objects.filter.assert_called_with(
+            manager=sentinel.user
         )
 
     def test_verify_private_owner_with_public_activity_other_user(self):

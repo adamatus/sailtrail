@@ -3,7 +3,8 @@ Activity form class
 """
 from django import forms
 
-from api.models import Activity, Boat
+from api.helper import get_users_boats
+from api.models import Activity
 
 ERROR_ACTIVITY_NAME_MISSING = 'Please enter a name for this activity!'
 ERROR_ACTIVITY_CATEGORY_MISSING = 'Please enter a category for this activity!'
@@ -15,7 +16,7 @@ class ActivityDetailsForm(forms.models.ModelForm):
     def __init__(self, user, *args, **kwargs):
         """Initialize form, filtering boat list to users boats"""
         super(ActivityDetailsForm, self).__init__(*args, **kwargs)
-        self.fields['boat'].queryset = Boat.objects.filter(manager=user)
+        self.fields['boat'].queryset = get_users_boats(user)
 
     class Meta:
         model = Activity
