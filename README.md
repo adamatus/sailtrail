@@ -4,8 +4,7 @@ A wind-sports focused activity tracker. Takes your GPS tracks from windpowered
 activities (sailing, kiting, windsurfing) and provides a wealth of information
 about the session.  Currently includes speed and polar plots.
 
-Planned features include fastest 10s, fastest 500m, fastest
-alpha-500, upwind/downwind performance, tack angles, and more!
+Planned features include fastest 10s, fastest 500m, fastest alpha-500, upwind/downwind performance, tack angles, and more!
 
 ## Development
 
@@ -162,4 +161,19 @@ Starting from a clean checkout (assuming up-to-date node on host):
     python django/manage.py migrate
     sudo start gunicorn-www.sailtrail.net
 
+## Fixing Borked DB
 
+Log in to instance and get django shell running in virtual env:
+
+    cd /home/ubuntu/sites/www.sailtrail.net
+    source virtualenv/bin/activate
+    cd source/django
+    ./manage shell
+
+From virtual env:
+
+    from api.models import Activity
+    Activity.objects.all()
+    a = Activity.objects.first()
+    [ ... etc ... ]
+    a.delete()
