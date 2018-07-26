@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'c9n93(^++p*%siz2#o_kkmwfq(k#%qcp_hu9dil7c%ppvpwclb'
+SECRET_KEY = 'FIXME'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -108,8 +108,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'sailtrail',
-        'USER': 'sailTrail5QLRoot',
-        'PASSWORD': 'accidentbarefreshsurface',
+        'USER': 'FIXME',
+        'PASSWORD': 'FIXME',
         'HOST': 'sailtrailpostgres.c7pplqgwazdn.us-west-2.rds.amazonaws.com',
         'PORT': '5432'
     }
@@ -122,8 +122,8 @@ DEFAULT_FROM_EMAIL = 'signup@sailtrail.com'
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
 EMAIL_PORT = 465
-EMAIL_HOST_USER = 'AKIAJIRS6B7SSKBGER2Q'
-EMAIL_HOST_PASSWORD = 'AvBdiWm8OHP0EWlrN20dn/F8fjkxGaUYki16nO40gKjj'
+EMAIL_HOST_USER = 'FIXME'
+EMAIL_HOST_PASSWORD = 'FIXME'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -182,8 +182,8 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 
 # S3 Settings
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-AWS_ACCESS_KEY_ID = 'AKIAIU4EZBZQTEJVOXWQ'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = 'FIXME'
+AWS_SECRET_ACCESS_KEY = 'FIXME'
 AWS_STORAGE_BUCKET_NAME = 'sailtrail-data'
 
 REMOTE_MAP_SOURCE = 'mapquest'
